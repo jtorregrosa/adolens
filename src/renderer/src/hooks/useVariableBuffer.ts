@@ -3,8 +3,10 @@ import type { AdoVariable, DraftNewVariable, PendingChange } from '../types'
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface DraftChange {
-  /** Variable key */
+  /** Variable key (original / old key for renames) */
   key: string
+  /** If the key was renamed, this holds the new key name */
+  newKey?: string
   /** Value in the cloud (undefined = key did not exist / brand-new variable) */
   oldValue: string | undefined
   /** Value after the local edit */
@@ -15,6 +17,8 @@ export interface DraftChange {
   isCreated?: boolean
   /** True when this existing variable is locally staged for deletion */
   isDeleted?: boolean
+  /** True when the variable key was renamed (key → newKey) */
+  isRenamed?: boolean
 }
 
 export interface VariableBuffer {
@@ -60,9 +64,13 @@ export function useVariableBuffer(
 
   for (const edit of ownEdits) {
     const existing = merged[edit.key]
-    merged[edit.key] = {
-      value: edit.newValue,
-      isSecret: existing?.isSecret ?? false
+    const isSecret = edit.isSecret ?? existing?.isSecret ?? false
+    if (edit.newKey && edit.newKey !== edit.key) {
+      // Rename: remove old key, write under new key
+      delete merged[edit.key]
+      merged[edit.newKey] = { value: edit.newValue, isSecret }
+    } else {
+      merged[edit.key] = { value: edit.newValue, isSecret }
     }
   }
 
@@ -80,23 +88,30 @@ export function useVariableBuffer(
   // ── Compute diff ──────────────────────────────────────────────────────────
   const draftChanges: DraftChange[] = []
 
+  const renamedFromKeys = new Set(
+    ownEdits.filter((e) => e.newKey && e.newKey !== e.key).map((e) => e.key)
+  )
+
   for (const edit of ownEdits) {
-    // If the key is staged for deletion, it will appear only in the deleted
-    // section — skip it here to avoid a duplicate "modified" entry.
-    if (deletedSet.has(edit.key)) continue
+    // If the key is staged for deletion and this is not a rename, show it only in the deleted section.
+    if (deletedSet.has(edit.key) && !renamedFromKeys.has(edit.key)) continue
 
     const cloudVar = cloud[edit.key]
     const cloudValue = cloudVar?.value ?? ''
-    const isSecret = cloudVar?.isSecret ?? false
+    const cloudSecret = cloudVar?.isSecret ?? false
+    const isSecret = edit.isSecret ?? cloudSecret
+    const isRenamed = !!edit.newKey && edit.newKey !== edit.key
+    const valueChanged = edit.newValue !== cloudValue
+    const secretToggled = edit.isSecret !== undefined && edit.isSecret !== cloudSecret
 
-    // Always include secrets (we can't compare hidden values) and values that
-    // genuinely differ from the cloud snapshot.
-    if (isSecret || edit.newValue !== cloudValue) {
+    if (isRenamed || valueChanged || cloudSecret || secretToggled) {
       draftChanges.push({
         key: edit.key,
+        newKey: isRenamed ? edit.newKey : undefined,
         oldValue: cloudVar !== undefined ? cloudValue : undefined,
         newValue: edit.newValue,
-        isSecret
+        isSecret,
+        isRenamed: isRenamed || undefined
       })
     }
   }
@@ -112,8 +127,9 @@ export function useVariableBuffer(
     })
   }
 
-  // Append deleted variables as draft changes.
+  // Append deleted variables as draft changes (exclude keys that were renamed away).
   for (const key of deletedKeys) {
+    if (renamedFromKeys.has(key)) continue
     const cloudVar = cloud[key]
     if (!cloudVar) continue // safety: only track real cloud vars
     draftChanges.push({

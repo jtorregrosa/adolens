@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Group as PanelGroup, Panel, Separator as PanelResizeHandle } from 'react-resizable-panels'
 import { GripVertical, ArrowLeftRight, Merge, RefreshCw, Unplug } from 'lucide-react'
 import { Tooltip } from '../ui/Tooltip'
@@ -24,6 +24,7 @@ export function ComparisonArea(): React.JSX.Element {
     setSyncScroll,
     clearOwnEdits,
     upsertOwnEdit,
+    removeOwnEdit,
     clearAddedVars,
     upsertAddedVar,
     removeAddedVar,
@@ -50,6 +51,19 @@ export function ComparisonArea(): React.JSX.Element {
   const [leftClearToken, setLeftClearToken] = useState(0)
   const [rightClearToken, setRightClearToken] = useState(0)
 
+  // Scroll to and flash the row when a variable was just added (cleared after delay).
+  const [scrollToAddedKeyLeft, setScrollToAddedKeyLeft] = useState<string | null>(null)
+  const [scrollToAddedKeyRight, setScrollToAddedKeyRight] = useState<string | null>(null)
+  useEffect(() => {
+    const key = scrollToAddedKeyLeft ?? scrollToAddedKeyRight
+    if (!key) return
+    const t = setTimeout(() => {
+      setScrollToAddedKeyLeft((k) => (k === key ? null : k))
+      setScrollToAddedKeyRight((k) => (k === key ? null : k))
+    }, 2500)
+    return () => clearTimeout(t)
+  }, [scrollToAddedKeyLeft, scrollToAddedKeyRight])
+
   function discardSide(side: 'left' | 'right'): void {
     clearOwnEdits(side)
     clearAddedVars(side)
@@ -71,24 +85,33 @@ export function ComparisonArea(): React.JSX.Element {
   } = useVariableGroup(rightPane.projectId, rightPane.groupId)
 
   // Merges cloud variables with locally-pending edits + added draft vars for the diff engine.
-  // Including ownEdits ensures copied/edited values are immediately reflected in both panes' rows.
-  const leftEffectiveVars = leftGroup?.variables
-    ? {
-        ...leftGroup.variables,
-        ...Object.fromEntries(
-          leftOwnEdits.map((e) => [e.key, { value: e.newValue, isSecret: leftGroup.variables[e.key]?.isSecret ?? false }])
-        ),
-        ...Object.fromEntries(leftAddedVars.map((v) => [v.key, { value: v.value, isSecret: false }]))
+  // Applies renames (old key removed, new key set) so the diff aligns correctly.
+  function buildEffectiveVars(
+    cloud: Record<string, AdoVariable>,
+    ownEdits: typeof leftOwnEdits,
+    addedVars: typeof leftAddedVars
+  ): Record<string, AdoVariable> {
+    const out: Record<string, AdoVariable> = { ...cloud }
+    for (const e of ownEdits) {
+      const isSecret = cloud[e.key]?.isSecret ?? false
+      const entry = { value: e.newValue, isSecret }
+      if (e.newKey && e.newKey !== e.key) {
+        delete out[e.key]
+        out[e.newKey] = entry
+      } else {
+        out[e.key] = entry
       }
+    }
+    for (const v of addedVars) {
+      out[v.key] = { value: v.value, isSecret: false }
+    }
+    return out
+  }
+  const leftEffectiveVars = leftGroup?.variables
+    ? buildEffectiveVars(leftGroup.variables, leftOwnEdits, leftAddedVars)
     : leftGroup?.variables
   const rightEffectiveVars = rightGroup?.variables
-    ? {
-        ...rightGroup.variables,
-        ...Object.fromEntries(
-          rightOwnEdits.map((e) => [e.key, { value: e.newValue, isSecret: rightGroup.variables[e.key]?.isSecret ?? false }])
-        ),
-        ...Object.fromEntries(rightAddedVars.map((v) => [v.key, { value: v.value, isSecret: false }]))
-      }
+    ? buildEffectiveVars(rightGroup.variables, rightOwnEdits, rightAddedVars)
     : rightGroup?.variables
 
   const diff = useVariableDiff(leftEffectiveVars, rightEffectiveVars)
@@ -109,7 +132,7 @@ export function ComparisonArea(): React.JSX.Element {
 
   /**
    * Execute the actual PUT request after the user has confirmed in the modal
-   * and in the native dialog. Called by onConfirmPush in PushReviewModal.
+   * Called by onConfirmPush in PushReviewModal.
    */
   async function executePush(
     side: 'left' | 'right',
@@ -144,6 +167,8 @@ export function ComparisonArea(): React.JSX.Element {
       candidate = `new_variable_${idx}`
     }
     upsertAddedVar(side, { key: candidate, value: '' })
+    if (side === 'left') setScrollToAddedKeyLeft(candidate)
+    else setScrollToAddedKeyRight(candidate)
   }
 
   function handleUpdateNewVar(side: 'left' | 'right', oldKey: string, newKey: string, value: string): void {
@@ -260,14 +285,17 @@ export function ComparisonArea(): React.JSX.Element {
                 onOpenReview={() => setReviewSide('left')}
                 clearToken={leftClearToken}
                 addedVars={leftAddedVars}
+                scrollToAddedKey={scrollToAddedKeyLeft}
                 onAddVar={() => handleAddVar('left')}
                 onDeleteNewVar={(key) => handleDeleteNewVar('left', key)}
                 onUpdateNewVar={(oldKey, newKey, value) => handleUpdateNewVar('left', oldKey, newKey, value)}
                 deletedKeys={leftDeletedKeys}
                 onDeleteVar={(key) => markDeleted('left', key)}
+                onRemoveLocalVar={(key) => removeOwnEdit('left', key)}
                 onRestoreVar={(key) => unmarkDeleted('left', key)}
                 onDiscard={() => discardSide('left')}
                 peerHasChanges={rightPendingCount > 0}
+                cloudKeysForPane={leftGroup?.variables ? Object.keys(leftGroup.variables) : []}
               />
             ) : (
               <EmptyPane label="Left" />
@@ -283,7 +311,7 @@ export function ComparisonArea(): React.JSX.Element {
               />
             )}
             {hasBoth && (
-              <div className="flex h-8 shrink-0 items-center justify-end border-t border-slate-800 px-4">
+              <div className="flex h-8 w-full shrink-0 items-center border-t border-slate-800 px-4">
                 <DiffStats stats={diff.stats} side="left" />
               </div>
             )}
@@ -312,14 +340,17 @@ export function ComparisonArea(): React.JSX.Element {
                 onOpenReview={() => setReviewSide('right')}
                 clearToken={rightClearToken}
                 addedVars={rightAddedVars}
+                scrollToAddedKey={scrollToAddedKeyRight}
                 onAddVar={() => handleAddVar('right')}
                 onDeleteNewVar={(key) => handleDeleteNewVar('right', key)}
                 onUpdateNewVar={(oldKey, newKey, value) => handleUpdateNewVar('right', oldKey, newKey, value)}
                 deletedKeys={rightDeletedKeys}
                 onDeleteVar={(key) => markDeleted('right', key)}
+                onRemoveLocalVar={(key) => removeOwnEdit('right', key)}
                 onRestoreVar={(key) => unmarkDeleted('right', key)}
                 onDiscard={() => discardSide('right')}
                 peerHasChanges={leftPendingCount > 0}
+                cloudKeysForPane={rightGroup?.variables ? Object.keys(rightGroup.variables) : []}
               />
             ) : (
               <EmptyPane label="Right" />
@@ -335,7 +366,7 @@ export function ComparisonArea(): React.JSX.Element {
               />
             )}
             {hasBoth && (
-              <div className="flex h-8 shrink-0 items-center border-t border-slate-800 px-4">
+              <div className="flex h-8 w-full shrink-0 items-center border-t border-slate-800 px-4">
                 <DiffStats stats={diff.stats} side="right" />
               </div>
             )}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, LogIn, Loader2, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react'
+import appIcon from '@resources/icon.png'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../store/authStore'
 
@@ -52,10 +53,10 @@ export function LoginScreen(): React.JSX.Element {
       >
         {/* Logo / Header */}
         <div className="mb-10 text-center">
-          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600/20 ring-1 ring-blue-500/30">
-            <ShieldCheck className="h-8 w-8 text-blue-400" />
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-800/80 ring-1 ring-slate-700/50">
+            <img src={appIcon} alt="" className="h-10 w-10 select-none" draggable={false} />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">ADO Lens</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white">ADOLens</h1>
           <p className="mt-2 text-sm text-slate-400">
             Azure DevOps Variable Group Comparison Tool
           </p>

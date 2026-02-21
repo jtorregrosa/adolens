@@ -80,23 +80,58 @@ button:hover .marquee-text,
   background: #475569;
 }
 
-/* Row diff highlights */
+/* Row diff highlights — green only for added (from other side or new variable) */
 .diff-row-identical {
   opacity: 0.6;
 }
 .diff-row-modified {
-  background-color: rgba(217, 119, 6, 0.25);
+  background-color: rgba(234, 179, 8, 0.2);
+}
+.diff-row-renamed {
+  background-color: rgba(59, 130, 246, 0.2);
 }
 .diff-row-added {
   background-color: rgba(34, 197, 94, 0.18);
 }
+
+/* Flash animations per row type — bright pulse then back to expected background */
+@keyframes diff-row-flash-added {
+  0% { background-color: rgba(34, 197, 94, 0.5); }
+  100% { background-color: rgba(34, 197, 94, 0.18); }
+}
+@keyframes diff-row-flash-deleted {
+  0% { background-color: rgba(239, 68, 68, 0.5); }
+  100% { background-color: rgba(239, 68, 68, 0.22); }
+}
+@keyframes diff-row-flash-renamed {
+  0% { background-color: rgba(59, 130, 246, 0.45); }
+  100% { background-color: rgba(59, 130, 246, 0.2); }
+}
+@keyframes diff-row-flash-modified {
+  0% { background-color: rgba(234, 179, 8, 0.45); }
+  100% { background-color: rgba(234, 179, 8, 0.2); }
+}
+.diff-row-flash-added   { animation: diff-row-flash-added 1.2s ease-out forwards; }
+.diff-row-flash-deleted  { animation: diff-row-flash-deleted 1.2s ease-out forwards; }
+.diff-row-flash-renamed  { animation: diff-row-flash-renamed 1.2s ease-out forwards; }
+.diff-row-flash-modified { animation: diff-row-flash-modified 1.2s ease-out forwards; }
 .diff-row-removed {
-  background-color: rgba(239, 68, 68, 0.18);
+}
+.diff-row-deleted {
+  background-color: rgba(239, 68, 68, 0.22);
 }
 .diff-row-ghost {
-  background-color: rgba(239, 68, 68, 0.08);
   opacity: 0.4;
   pointer-events: none;
+}
+
+/* Light hover overlay on diff rows */
+.diff-table tbody tr:hover {
+  background-image: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.06)
+  );
 }
 
 /* Highlighted value cell */

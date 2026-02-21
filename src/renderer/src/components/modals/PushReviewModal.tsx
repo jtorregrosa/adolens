@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, CloudUpload, Trash2, Loader2, Lock, PackageOpen, AlertTriangle } from 'lucide-react'
+import { X, CloudUpload, Trash2, Loader2, Lock, PackageOpen, AlertTriangle, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
 import type { DraftChange } from '../../hooks/useVariableBuffer'
 
@@ -26,7 +26,7 @@ interface Props {
 
 export function PushReviewModal({
   groupName,
-  projectName,
+  projectName: _projectName,
   draftChanges,
   mergedVariables,
   onClose,
@@ -41,18 +41,6 @@ export function PushReviewModal({
 
   async function handleConfirmPush(): Promise<void> {
     if (isPushing) return
-
-    // Ask the main process to show a native confirmation dialog.
-    const confirmed = await window.api.showConfirmDialog({
-      title: 'Confirm Push',
-      message: `Are you sure you want to overwrite "${groupName ?? 'this library'}" in Azure DevOps?\n\nThis action cannot be undone.`,
-      detail: `${draftChanges.length} variable${draftChanges.length !== 1 ? 's' : ''} will be updated in project "${projectName ?? 'Unknown'}".`,
-      buttons: ['Confirm & Push', 'Cancel'],
-      defaultId: 0,
-      cancelId: 1
-    })
-
-    if (confirmed !== 0) return
 
     setIsPushing(true)
     try {
@@ -148,7 +136,7 @@ export function PushReviewModal({
               <PackageOpen className="h-10 w-10 text-slate-700" />
               <p className="text-sm font-medium text-slate-400">No local changes detected</p>
               <p className="max-w-xs text-xs text-slate-600">
-                Edit variable values or sync keys from the other pane to stage changes here.
+                Edit variable values or keys, sync keys from the other pane, or add / delete variables to stage changes here.
               </p>
             </div>
           ) : (
@@ -156,7 +144,7 @@ export function PushReviewModal({
             <div className="mx-6 my-4 flex flex-col gap-4 max-h-96 overflow-auto">
               {/* ── Modified / synced variables ─────────────────────────── */}
               {(() => {
-                const modified = draftChanges.filter((c) => !c.isCreated && !c.isDeleted)
+                const modified = draftChanges.filter((c) => !c.isCreated && !c.isDeleted && !c.isRenamed)
                 if (modified.length === 0) return null
                 return (
                   <div>
@@ -211,7 +199,66 @@ export function PushReviewModal({
                   </div>
                 )
               })()}
-
+              {/* ── Renamed variables ─────────────────────────────────────── */}
+              {(() => {
+                const renamed = draftChanges.filter((c) => c.isRenamed)
+                if (renamed.length === 0) return null
+                return (
+                  <div>
+                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Renamed Variables
+                      <span className="ml-2 rounded-full bg-blue-500/20 px-1.5 py-0.5 text-blue-400">
+                        {renamed.length}
+                      </span>
+                    </p>
+                    <div className="rounded-lg ring-1 ring-slate-700/50">
+                      <table className="w-full border-collapse text-sm">
+                        <thead className="sticky top-0 bg-slate-800">
+                          <tr>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Old Key</th>
+                            <th className="w-6" />
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">New Key</th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Value</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {renamed.map((change) => {
+                            const valueChanged = change.newValue !== change.oldValue
+                            return (
+                              <tr key={change.key} className="border-t border-slate-800/80 hover:bg-slate-800/30">
+                                <td className="mono px-4 py-2.5 text-slate-500 line-through">{change.key}</td>
+                                <td className="py-2.5 text-slate-600">
+                                  <ArrowRight className="h-3.5 w-3.5" />
+                                </td>
+                                <td className="mono px-4 py-2.5">
+                                  <span className="rounded bg-blue-500/10 px-1.5 py-0.5 font-semibold text-blue-300">
+                                    {change.newKey}
+                                  </span>
+                                </td>
+                                <td className="mono px-4 py-2.5">
+                                  {change.isSecret ? (
+                                    <span className="flex items-center gap-1 text-slate-600">
+                                      <Lock className="h-3 w-3" /><em>secret</em>
+                                    </span>
+                                  ) : valueChanged ? (
+                                    <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-400">
+                                      {change.newValue || <em className="not-italic text-slate-600">(empty)</em>}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-500">
+                                      {change.newValue || <em className="not-italic text-slate-600">(empty)</em>}
+                                    </span>
+                                  )}
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )
+              })()}
               {/* ── Newly added variables ────────────────────────────────── */}
               {(() => {
                 const created = draftChanges.filter((c) => c.isCreated)

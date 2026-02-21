@@ -16,6 +16,16 @@
       }
     },
     {
+      "name": "Attach to Main Process",
+      "type": "node",
+      "request": "attach",
+      "port": 5858,
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/out/main/**/*.js"],
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
+    },
+    {
       "name": "Debug Renderer Process",
       "port": 9222,
       "request": "attach",

@@ -122,10 +122,19 @@ export function setupAdoHandlers(
           }
         }
 
-        await taskAgentApi.updateVariableGroup(
-          { ...existing, variables: updatedVariables },
-          groupId
-        )
+        // Update API requires variableGroupProjectReferences with project id (GUID), not name.
+        const payload = {
+          ...existing,
+          variables: updatedVariables,
+          variableGroupProjectReferences: [
+            {
+              name: existing.name,
+              projectReference: { id: projectId }
+            }
+          ]
+        }
+
+        await taskAgentApi.updateVariableGroup(payload, groupId)
         return { ok: true }
       } catch (err) {
         return { ok: false, error: String(err) }

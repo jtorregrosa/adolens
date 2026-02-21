@@ -1,0 +1,151 @@
+# ── Build outputs ─────────────────────────────────────────────────────────────
+out/
+out_test/
+dist/
+build/Release
+
+# ── Dependencies ───────────────────────────────────────────────────────────────
+node_modules/
+jspm_packages/
+web_modules/
+bower_components
+
+# ── Lock files (large, low signal) ────────────────────────────────────────────
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.yarn-integrity
+.pnp.*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# ── Source maps ───────────────────────────────────────────────────────────────
+**/*.map
+
+# ── TypeScript ────────────────────────────────────────────────────────────────
+*.tsbuildinfo
+
+# ── Caches ────────────────────────────────────────────────────────────────────
+.eslintcache
+.stylelintcache
+.vite/
+.cache
+.cache/
+.parcel-cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+.npm
+.webpack/
+.fusebox/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# ── Runtime / process ─────────────────────────────────────────────────────────
+pids
+*.pid
+*.seed
+*.pid.lock
+.node_repl_history
+*.tgz
+
+# ── Coverage / test ───────────────────────────────────────────────────────────
+coverage
+*.lcov
+.nyc_output
+lib-cov
+.grunt
+.vscode-test
+
+# ── Framework build artefacts ─────────────────────────────────────────────────
+.next
+.nuxt
+.temp
+.docusaurus
+.svelte-kit
+.serverless/
+.dynamodb/
+.tern-port
+.vuepress/dist
+
+# ── Environment ───────────────────────────────────────────────────────────────
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# ── Editor artefacts ──────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+.history
+.ionide
+*.vsix
+*.sublime*
+.lock-wscript
+
+# ── OS — macOS ────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_*
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+*.icloud
+
+# ── OS — Linux ────────────────────────────────────────────────────────────────
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ── OS — Windows ──────────────────────────────────────────────────────────────
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+**/*.backup.*
+**/*.back.*
+psd
+thumb
+sketch

@@ -1,7 +1,7 @@
 import { Sidebar } from './Sidebar'
 import { ComparisonArea } from '../diff/ComparisonArea'
 import { useUIStore } from '../../store/uiStore'
-import appIcon from '../../assets/icon.png'
+import appIcon from '@resources/icon.png'
 
 export function ResizableLayout(): React.JSX.Element {
   const { sidebarCollapsed } = useUIStore()

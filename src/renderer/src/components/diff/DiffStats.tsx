@@ -31,16 +31,17 @@ export function DiffStats({ stats, side }: Props): React.JSX.Element {
       : stats.identical + stats.modified + stats.added
 
   const isLeft = side === 'left'
-
-  return (
-    <div className={`flex items-center gap-1.5 ${isLeft ? 'flex-row-reverse' : ''}`}>
-      <span
-        className={`rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
-          isLeft ? 'bg-blue-500/20 text-blue-400' : 'bg-fuchsia-500/20 text-fuchsia-400'
-        }`}
-      >
-        {isLeft ? 'Left' : 'Right'}
-      </span>
+  const labelEl = (
+    <span
+      className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
+        isLeft ? 'bg-blue-500/20 text-blue-400' : 'bg-fuchsia-500/20 text-fuchsia-400'
+      }`}
+    >
+      {isLeft ? 'Left' : 'Right'}
+    </span>
+  )
+  const statsEl = (
+    <div className="flex min-w-0 items-center gap-1.5">
       <span className="rounded-full border border-slate-700 px-2 py-0.5 text-xs font-semibold text-slate-400">
         {total} vars
       </span>
@@ -51,6 +52,13 @@ export function DiffStats({ stats, side }: Props): React.JSX.Element {
       />
       <Chip count={stats.modified} label="modified" color="bg-amber-500/20 text-amber-400" />
       <Chip count={stats.identical} label="identical" color="bg-slate-700 text-slate-400" />
+    </div>
+  )
+
+  return (
+    <div className="flex w-full items-center justify-between gap-2">
+      {isLeft ? statsEl : labelEl}
+      {isLeft ? labelEl : statsEl}
     </div>
   )
 }

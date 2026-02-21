@@ -48,6 +48,10 @@ export interface PendingChange {
   side: 'left' | 'right'
   originalValue?: string
   newValue: string
+  /** If set, the variable key is being renamed from `key` to `newKey`. */
+  newKey?: string
+  /** Override secret flag for this variable when pushing (undefined = use cloud value). */
+  isSecret?: boolean
 }
 
 /** A brand-new variable that exists only in the local draft (not yet in the cloud). */
