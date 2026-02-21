@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CloudUpload, FileJson, FileUp, Loader2 } from 'lucide-react'
+import { CloudUpload, FileJson, FileUp } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AdoVariable } from '../../types'
 import { ExportModal } from '../modals/ExportModal'
@@ -8,30 +8,20 @@ import { Tooltip } from '../ui/Tooltip'
 
 interface Props {
   side: 'left' | 'right'
-  hasUnsavedChanges: boolean
-  onSync: () => Promise<void>
+  /** Number of staged local changes. Drives the badge and icon colour. */
+  pendingCount: number
+  /** Opens the PushReviewModal – no async work happens here. */
+  onPush: () => void
   variables?: Record<string, AdoVariable>
   groupName?: string | null
   onImport: (variables: Record<string, AdoVariable>) => void
 }
 
-export function PaneActionBar({ hasUnsavedChanges, onSync, variables, groupName, onImport }: Props): React.JSX.Element {
-  const [isSyncing, setIsSyncing] = useState(false)
+export function PaneActionBar({ pendingCount, onPush, variables, groupName, onImport }: Props): React.JSX.Element {
   const [exportOpen, setExportOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
 
-  async function handleSync(): Promise<void> {
-    if (isSyncing) return
-    setIsSyncing(true)
-    try {
-      await onSync()
-      toast.success('Changes pushed to Azure DevOps')
-    } catch (err) {
-      toast.error(`Push failed: ${err instanceof Error ? err.message : String(err)}`)
-    } finally {
-      setIsSyncing(false)
-    }
-  }
+  const hasChanges = pendingCount > 0
 
   function handleExport(): void {
     if (!variables || Object.keys(variables).length === 0) {
@@ -52,21 +42,17 @@ export function PaneActionBar({ hasUnsavedChanges, onSync, variables, groupName,
 
           {/* ── Push Changes ──────────────────────────────────── */}
           <ActionButton
-            label="Push"
-            onClick={handleSync}
-            disabled={isSyncing}
-            indicator={hasUnsavedChanges && !isSyncing}
-            indicatorTitle="Unsaved local changes"
+            label="Review & Push"
+            onClick={onPush}
+            disabled={!hasChanges}
+            badgeCount={pendingCount}
+            indicatorTitle={hasChanges ? `${pendingCount} staged change${pendingCount !== 1 ? 's' : ''}` : undefined}
           >
-            {isSyncing ? (
-              <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
-            ) : (
-              <CloudUpload
-                className={`h-4 w-4 transition-colors ${
-                  hasUnsavedChanges ? 'text-orange-400' : 'text-slate-400'
-                }`}
-              />
-            )}
+            <CloudUpload
+              className={`h-4 w-4 transition-colors ${
+                hasChanges ? 'text-orange-400' : 'text-slate-400'
+              }`}
+            />
           </ActionButton>
 
           <Divider />
@@ -110,7 +96,8 @@ interface ActionButtonProps {
   label: string
   onClick: () => void
   disabled?: boolean
-  indicator?: boolean
+  /** When set, renders a numeric badge instead of a plain dot. */
+  badgeCount?: number
   indicatorTitle?: string
   children: React.ReactNode
 }
@@ -119,12 +106,25 @@ function ActionButton({
   label,
   onClick,
   disabled,
-  indicator,
+  badgeCount,
   indicatorTitle,
   children
 }: ActionButtonProps): React.JSX.Element {
+  const hasBadge = badgeCount !== undefined && badgeCount > 0
+
   return (
-    <Tooltip content={indicator && indicatorTitle ? <>{label} <span className="text-orange-400">· {indicatorTitle}</span></> : label} side="top">
+    <Tooltip
+      content={
+        hasBadge && indicatorTitle ? (
+          <>
+            {label} <span className="text-orange-400">· {indicatorTitle}</span>
+          </>
+        ) : (
+          label
+        )
+      }
+      side="top"
+    >
       <button
         aria-label={label}
         onClick={onClick}
@@ -134,9 +134,11 @@ function ActionButton({
         {children}
         <span className="hidden sm:inline">{label}</span>
 
-        {/* Unsaved-changes dot */}
-        {indicator && (
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-orange-400 ring-1 ring-slate-900" />
+        {/* Numeric pending-changes badge */}
+        {hasBadge && (
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold leading-none text-white ring-1 ring-slate-900">
+            {badgeCount! > 99 ? '99+' : badgeCount}
+          </span>
         )}
       </button>
     </Tooltip>

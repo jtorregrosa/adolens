@@ -33,6 +33,14 @@ export interface IpcApi {
     groupId: number,
     newName: string
   ): Promise<ApiResponse<AdoVariableGroup>>
+  showConfirmDialog(opts: {
+    title: string
+    message: string
+    detail?: string
+    buttons: string[]
+    defaultId: number
+    cancelId: number
+  }): Promise<number>
   loadFavorites(): Promise<{
     ok: boolean
     favoriteProjectIds: string[]

@@ -1,4 +1,4 @@
-import { forwardRef, useState, useCallback } from 'react'
+import { forwardRef, useState, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Lock,
@@ -8,19 +8,50 @@ import {
   X,
   ChevronsRight,
   ChevronsLeft,
-  Loader2
+  Loader2,
+  Trash2,
+  RotateCcw,
+  Plus,
+  CloudUpload
 } from 'lucide-react'
-import type { DiffVariableRow, AdoVariableGroup, PendingChange } from '../../types'
+import type { DiffVariableRow, AdoVariableGroup, DraftNewVariable, PendingChange } from '../../types'
 import { useUIStore } from '../../store/uiStore'
-import { useUpdateVariableGroup } from '../../hooks/useADOApi'
-import { ReviewChangesModal } from '../modals/ReviewChangesModal'
 import { Tooltip } from '../ui/Tooltip'
+import { NewPropertyRow } from './NewPropertyRow'
 
 interface Props {
   side: 'left' | 'right'
   rows: DiffVariableRow[]
   isLoading: boolean
   otherGroup: AdoVariableGroup | undefined
+  /** Opens the PushReviewModal for this pane. */
+  onOpenReview: () => void
+  /**
+   * Increment this value from outside to force-clear all local pending
+   * changes (e.g. after a discard or a successful push).
+   */
+  clearToken: number
+  /** Locally-drafted new variables (not yet in ADO). */
+  addedVars?: DraftNewVariable[]
+  /** Trigger adding a new variable (called by the inline footer row). */
+  onAddVar?: () => void
+  /** Remove a locally-drafted variable by key. */
+  onDeleteNewVar?: (key: string) => void
+  /** Update a locally-drafted variable (oldKey for renames, value). */
+  onUpdateNewVar?: (oldKey: string, newKey: string, value: string) => void
+  /** Keys of existing cloud variables staged for local deletion. */
+  deletedKeys?: string[]
+  /** Stage an existing variable for deletion. */
+  onDeleteVar?: (key: string) => void
+  /** Restore a variable previously staged for deletion. */
+  onRestoreVar?: (key: string) => void
+  /** Discard all local changes for this pane (edits, added vars, deleted keys). */
+  onDiscard?: () => void
+  /**
+   * True when the opposite pane has pending changes. Used to render an
+   * invisible spacer so both panes stay vertically aligned.
+   */
+  peerHasChanges?: boolean
 }
 
 const SECRET_PLACEHOLDER = '••••••••'
@@ -41,17 +72,24 @@ function rowClass(status: DiffVariableRow['status']): string {
 }
 
 export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
-  { side, rows, isLoading, otherGroup },
+  { side, rows, isLoading, otherGroup, onOpenReview, clearToken, addedVars = [], onAddVar, onDeleteNewVar, onUpdateNewVar, deletedKeys = [], onDeleteVar, onRestoreVar, onDiscard, peerHasChanges = false },
   ref
 ) {
-  const { searchQuery, leftPane, rightPane, upsertOwnEdit, removeOwnEdit, clearOwnEdits } = useUIStore()
+  const { searchQuery, upsertOwnEdit, removeOwnEdit } = useUIStore()
+  // Subscribe to own-side edits from Zustand so the notification bar count
+  // reflects cross-pane copies that arrive via the global store (not local state).
+  const ownEdits = useUIStore((s) => side === 'left' ? s.leftOwnEdits : s.rightOwnEdits)
   const [editingKey, setEditingKey] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([])
-  const [showReview, setShowReview] = useState(false)
-  const updateMutation = useUpdateVariableGroup()
 
-  const pane = side === 'left' ? leftPane : rightPane
+  // When the parent signals a discard or post-push, wipe all local pending state.
+  useEffect(() => {
+    if (clearToken > 0) {
+      setPendingChanges([])
+      setEditingKey(null)
+    }
+  }, [clearToken])
 
   const startEdit = useCallback((key: string, currentValue: string | undefined) => {
     setEditingKey(key)
@@ -86,12 +124,13 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
     (key: string, value: string | undefined) => {
       if (value === undefined) return
       const targetSide = side === 'left' ? 'right' : 'left'
-      setPendingChanges((prev) => {
-        const without = prev.filter((c) => !(c.key === key && c.side === targetSide))
-        return [...without, { key, side: targetSide, originalValue: undefined, newValue: value }]
-      })
+      const change: PendingChange = { key, side: targetSide, originalValue: undefined, newValue: value }
+      // Only update the global store for the TARGET pane — do NOT add to this
+      // pane's local pendingChanges, which would incorrectly count a copy as
+      // a source-side pending change.
+      upsertOwnEdit(targetSide, change)
     },
-    [side]
+    [side, upsertOwnEdit]
   )
 
   const bulkSyncAll = useCallback(() => {
@@ -108,17 +147,27 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
         newValue: sourceVar.value ?? ''
       })
     }
-    setPendingChanges((prev) => {
-      const withoutOverwritten = prev.filter(
-        (c) => !newChanges.some((n) => n.key === c.key && n.side === c.side)
-      )
-      return [...withoutOverwritten, ...newChanges]
-    })
-  }, [rows, side])
+    // Only push into the global store for the TARGET pane.
+    for (const change of newChanges) {
+      upsertOwnEdit(targetSide, change)
+    }
+  }, [rows, side, upsertOwnEdit])
 
-  const filteredRows = searchQuery
+  // Cloud-side keys for duplicate validation in NewPropertyRow.
+  // Exclude keys that are already tracked as addedVars so the "NEW" badge rows
+  // don't incorrectly trigger a duplicate warning against themselves.
+  const addedVarKeys = addedVars.map((v) => v.key)
+  const addedVarKeySet = new Set(addedVarKeys)
+  const deletedKeySet = new Set(deletedKeys)
+  const cloudKeys = rows.map((r) => r.key).filter((k) => !addedVarKeySet.has(k))
+
+  // Suppress diff rows for keys that are rendered as NewPropertyRow entries
+  // (the diff engine produces a row for them because ComparisonArea injects
+  // addedVars into the effective variable map for ghost-row alignment).
+  const filteredRows = (searchQuery
     ? rows.filter((r) => r.key.toLowerCase().includes(searchQuery.toLowerCase()))
     : rows
+  ).filter((r) => !addedVarKeySet.has(r.key))
 
   if (isLoading) {
     return (
@@ -129,28 +178,40 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   }
 
   const pendingCount = pendingChanges.filter((c) => c.side === (side === 'left' ? 'right' : 'left')).length
+  // Total: own-side edits from Zustand (includes copies FROM the other pane) +
+  // locally-added variables + staged deletions.
+  const totalPendingCount = ownEdits.length + addedVars.length + deletedKeys.length
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      {/* Pending changes bar */}
-      {pendingChanges.length > 0 && (
+      {/* Pending changes bar — or muted spacer when peer pane has changes */}
+      {totalPendingCount > 0 ? (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs text-amber-400"
+          className="flex h-8 shrink-0 items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 text-xs text-amber-400"
         >
-          <span className="font-semibold">{pendingChanges.length} pending change(s)</span>
+          <span className="font-semibold">{totalPendingCount} pending change(s)</span>
           <button
-            onClick={() => setShowReview(true)}
-            className="ml-auto rounded bg-amber-500/20 px-2 py-0.5 font-medium transition hover:bg-amber-500/30"
+            onClick={onOpenReview}
+            className="ml-auto flex items-center gap-1.5 rounded bg-amber-500/20 px-2 py-0.5 font-medium transition hover:bg-amber-500/30"
           >
-            Review &amp; Commit
+            <CloudUpload className="h-3.5 w-3.5" />
+            Review &amp; Push
           </button>
-          <button onClick={() => { setPendingChanges([]); clearOwnEdits(side) }} className="text-amber-600 hover:text-amber-400">
-            <X className="h-3.5 w-3.5" />
+          <button
+            onClick={() => onDiscard?.()}
+            className="flex items-center gap-1.5 rounded border border-red-800/50 bg-red-900/20 px-2 py-0.5 font-medium text-red-400 transition hover:bg-red-900/40 hover:text-red-300"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Discard
           </button>
         </motion.div>
-      )}
+      ) : peerHasChanges ? (
+        <div className="flex h-8 shrink-0 items-center border-b border-slate-800/60 bg-slate-900/40 px-4 text-xs text-slate-600">
+          <span className="font-semibold">0 pending change(s)</span>
+        </div>
+      ) : null}
 
       {/* Bulk sync toolbar */}
       {otherGroup && (
@@ -189,7 +250,11 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
         <table className="w-full border-collapse" style={{ direction: 'ltr' }}>
           <thead className="sticky top-0 z-10 bg-slate-900">
             <tr>
-              {/* Right pane: action column is FIRST (left edge = near separator) */}
+              {/* Left pane outer edge: delete column */}
+              {side === 'left' && (
+                <th className="sticky left-0 z-20 w-10 border-b border-slate-800 bg-slate-900" />
+              )}
+              {/* Right pane near separator: copy column */}
               {side === 'right' && (
                 <th className="sticky left-0 z-20 w-10 border-b border-slate-800 bg-slate-900" />
               )}
@@ -199,55 +264,90 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
               <th className="border-b border-slate-800 px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Value
               </th>
-              {/* Left pane: action column is LAST (right edge = near separator) */}
+              {/* Left pane near separator: copy column */}
               {side === 'left' && (
+                <th className="sticky right-0 z-20 w-10 border-b border-slate-800 bg-slate-900" />
+              )}
+              {/* Right pane outer edge: delete column */}
+              {side === 'right' && (
                 <th className="sticky right-0 z-20 w-10 border-b border-slate-800 bg-slate-900" />
               )}
             </tr>
           </thead>
           <tbody>
+            {/* Cloud rows */}
             {filteredRows.map((row, idx) => {
               const variable = side === 'left' ? row.left : row.right
-              const isEditing = editingKey === row.key
+              const isDeleted = deletedKeySet.has(row.key)
+              const isEditing = !isDeleted && editingKey === row.key
               const pending = pendingChanges.find((c) => c.key === row.key && c.side === side)
               const displayValue = pending?.newValue ?? variable?.value
 
               const showCopyButton =
+                !isDeleted &&
                 !!variable &&
                 row.status !== 'ghost' &&
                 row.status !== 'identical' &&
                 !!otherGroup &&
                 !variable?.isSecret
 
-              const actionCell = (
+              const canDelete = !!variable && row.status !== 'ghost'
+
+              // Copy button — always near the separator
+              const copyCell = (
                 <td
                   className={`w-10 px-1 py-2 bg-slate-950 ${
                     side === 'left' ? 'sticky right-0' : 'sticky left-0'
                   }`}
                 >
                   <div className="flex items-center justify-center">
-                  {showCopyButton ? (
-                    <Tooltip content={`Copy to ${side === 'left' ? 'Right' : 'Left'}`} side={side === 'left' ? 'right' : 'left'}>
-                      <button
-                        onClick={() => copyRowToOtherSide(row.key, variable?.value)}
-                        className="rounded p-1 text-slate-500 transition hover:bg-slate-700 hover:text-slate-300"
-                      >
-                        {side === 'left' ? (
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        ) : (
-                          <ArrowLeft className="h-3.5 w-3.5" />
-                        )}
+                    {showCopyButton ? (
+                      <Tooltip content={`Copy to ${side === 'left' ? 'Right' : 'Left'}`} side={side === 'left' ? 'right' : 'left'}>
+                        <button
+                          onClick={() => copyRowToOtherSide(row.key, variable?.value)}
+                          className="rounded p-1 text-slate-500 transition hover:bg-slate-700 hover:text-slate-300"
+                        >
+                          {side === 'left' ? <ArrowRight className="h-3.5 w-3.5" /> : <ArrowLeft className="h-3.5 w-3.5" />}
+                        </button>
+                      </Tooltip>
+                    ) : (
+                      <button className="invisible rounded p-1">
+                        {side === 'left' ? <ArrowRight className="h-3.5 w-3.5" /> : <ArrowLeft className="h-3.5 w-3.5" />}
                       </button>
-                    </Tooltip>
-                  ) : (
-                    <button className="invisible rounded p-1">
-                      {side === 'left' ? (
-                        <ArrowRight className="h-3.5 w-3.5" />
+                    )}
+                  </div>
+                </td>
+              )
+
+              // Delete/restore button — always on the outer edge (away from separator)
+              const deleteCell = (
+                <td
+                  className={`w-10 px-1 py-2 bg-slate-950 ${
+                    side === 'left' ? 'sticky left-0' : 'sticky right-0'
+                  }`}
+                >
+                  <div className="flex items-center justify-center">
+                    {canDelete && (
+                      isDeleted ? (
+                        <Tooltip content="Restore variable" side={side === 'left' ? 'left' : 'right'}>
+                          <button
+                            onClick={() => onRestoreVar?.(row.key)}
+                            className="rounded p-1 text-red-500 transition hover:bg-red-500/10 hover:text-red-400"
+                          >
+                            <RotateCcw className="h-3 w-3" />
+                          </button>
+                        </Tooltip>
                       ) : (
-                        <ArrowLeft className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                  )}
+                        <Tooltip content="Delete variable" side={side === 'left' ? 'left' : 'right'}>
+                          <button
+                            onClick={() => onDeleteVar?.(row.key)}
+                            className="rounded p-1 text-transparent transition group-hover:text-slate-600 hover:!text-red-400 hover:bg-red-500/10"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </Tooltip>
+                      )
+                    )}
                   </div>
                 </td>
               )
@@ -255,19 +355,34 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
               return (
                 <tr
                   key={`${row.key}-${idx}`}
-                  className={`border-b border-slate-800/50 ${rowClass(!variable ? 'ghost' : otherGroup ? row.status : 'identical')} group`}
+                  className={`border-b border-slate-800/50 ${
+                    isDeleted
+                      ? 'bg-red-950/20 opacity-60'
+                      : rowClass(!variable ? 'ghost' : otherGroup ? row.status : 'identical')
+                  } group`}
                 >
-                  {side === 'right' && actionCell}
+                  {/* Left pane: delete on outer-left, copy on outer-right (near separator) */}
+                  {/* Right pane: copy on outer-left (near separator), delete on outer-right */}
+                  {side === 'left' ? deleteCell : copyCell}
 
                   {/* Key cell */}
                   <td className="w-5/12 max-w-0 overflow-hidden px-4 py-2">
                     <Tooltip content={row.key} side="top" delayDuration={800}>
                       <span
                         className={`mono selectable block w-fit max-w-full truncate text-sm ${
-                          row.status === 'ghost' || !variable ? 'invisible' : 'text-slate-300'
+                          row.status === 'ghost' || !variable
+                            ? 'invisible'
+                            : isDeleted
+                            ? 'text-red-400 line-through'
+                            : 'text-slate-300'
                         }`}
                       >
                         {row.key}
+                        {isDeleted && (
+                          <span className="ml-1.5 no-underline rounded px-1 py-0.5 text-[10px] font-semibold bg-red-500/20 text-red-400 border border-red-500/30">
+                            DEL
+                          </span>
+                        )}
                       </span>
                     </Tooltip>
                   </td>
@@ -276,6 +391,10 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                   <td className="max-w-0 overflow-hidden px-4 py-2">
                     {row.status === 'ghost' || !variable ? (
                       <span className="mono block truncate text-sm invisible">&nbsp;</span>
+                    ) : isDeleted ? (
+                      <span className="mono block truncate text-sm text-red-400/60 line-through">
+                        {variable.isSecret ? SECRET_PLACEHOLDER : (variable.value || <em className="not-italic text-red-400/40">(empty)</em>)}
+                      </span>
                     ) : variable?.isSecret ? (
                       <div className="flex items-center gap-1.5 text-slate-500">
                         <Lock className="h-3 w-3" />
@@ -320,10 +439,45 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                     )}
                   </td>
 
-                  {side === 'left' && actionCell}
+                  {side === 'left' ? copyCell : deleteCell}
                 </tr>
               )
             })}
+
+            {/* Draft-only new variables — rendered below cloud rows */}
+            {addedVars.map((v) => (
+              <NewPropertyRow
+                key={v.key}
+                side={side}
+                variable={v}
+                existingKeys={addedVarKeys}
+                cloudKeys={cloudKeys}
+                onUpdate={(oldKey, newKey, value) => onUpdateNewVar?.(oldKey, newKey, value)}
+                onDelete={(key) => onDeleteNewVar?.(key)}
+              />
+            ))}
+
+            {/* Inline “Add variable” footer row */}
+            {onAddVar && (
+              <tr
+                onClick={onAddVar}
+                className="cursor-pointer border-t border-white/5 hover:bg-emerald-950/20 transition-colors group/add"
+              >
+                {/* outer-left cell */}
+                <td className="w-10 bg-slate-950 sticky left-0" />
+                {/* key cell */}
+                <td className="w-5/12 px-4 py-2">
+                  <span className="flex items-center gap-1.5 text-xs text-slate-600 group-hover/add:text-emerald-400 transition-colors select-none">
+                    <Plus className="h-3.5 w-3.5" />
+                    Add variable
+                  </span>
+                </td>
+                {/* value cell */}
+                <td />
+                {/* outer-right cell */}
+                <td className="w-10 bg-slate-950 sticky right-0" />
+              </tr>
+            )}
           </tbody>
         </table>
 
@@ -334,29 +488,6 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
         )}
       </div>
 
-      {/* Review modal */}
-      {showReview && pane.projectId && pane.groupId && (
-        <ReviewChangesModal
-          pendingChanges={pendingChanges.filter(
-            (c) => c.side === (side === 'left' ? 'right' : 'left')
-          )}
-          projectId={pane.projectId}
-          groupId={pane.groupId}
-          currentVariables={otherGroup?.variables ?? {}}
-          onClose={() => setShowReview(false)}
-          onCommit={async (variables) => {
-            await updateMutation.mutateAsync({
-              projectId: side === 'left' ? (rightPane.projectId ?? pane.projectId!) : (leftPane.projectId ?? pane.projectId!),
-              groupId: side === 'left' ? (rightPane.groupId ?? pane.groupId!) : (leftPane.groupId ?? pane.groupId!),
-              variables
-            })
-            setPendingChanges([])
-            clearOwnEdits(side)
-            setShowReview(false)
-          }}
-          isPending={updateMutation.isPending}
-        />
-      )}
     </div>
   )
 })

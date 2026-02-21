@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Group as PanelGroup, Panel, Separator as PanelResizeHandle } from 'react-resizable-panels'
 import { GripVertical, ArrowLeftRight, Merge, RefreshCw, Unplug } from 'lucide-react'
 import { Tooltip } from '../ui/Tooltip'
@@ -6,12 +7,14 @@ import type { AdoVariable } from '../../types'
 import { useUIStore } from '../../store/uiStore'
 import { useVariableGroup, useUpdateVariableGroup } from '../../hooks/useADOApi'
 import { useVariableDiff } from '../../hooks/useVariableDiff'
+import { useVariableBuffer } from '../../hooks/useVariableBuffer'
 import { useSyncScroll } from '../../hooks/useSyncScroll'
 import { DiffTable } from './DiffTable'
 import { PaneHeader } from './PaneHeader'
 import { EmptyPane } from './EmptyPane'
 import { DiffStats } from './DiffStats'
 import { PaneActionBar } from './PaneActionBar'
+import { PushReviewModal } from '../modals/PushReviewModal'
 
 export function ComparisonArea(): React.JSX.Element {
   const {
@@ -19,12 +22,41 @@ export function ComparisonArea(): React.JSX.Element {
     rightPane,
     syncScroll,
     setSyncScroll,
-    leftOwnEdits,
-    rightOwnEdits,
     clearOwnEdits,
     upsertOwnEdit,
+    clearAddedVars,
+    upsertAddedVar,
+    removeAddedVar,
+    clearDeletedKeys,
+    markDeleted,
+    unmarkDeleted,
     clearPanes
   } = useUIStore()
+
+  // Use fine-grained selectors so the component re-renders exactly when these
+  // arrays change — avoids any potential stale-closure issue with the whole
+  // store subscription.
+  const leftOwnEdits = useUIStore((s) => s.leftOwnEdits)
+  const rightOwnEdits = useUIStore((s) => s.rightOwnEdits)
+  const leftAddedVars = useUIStore((s) => s.leftAddedVars)
+  const rightAddedVars = useUIStore((s) => s.rightAddedVars)
+  const leftDeletedKeys = useUIStore((s) => s.leftDeletedKeys)
+  const rightDeletedKeys = useUIStore((s) => s.rightDeletedKeys)
+
+  // Which pane's review modal is currently open (null = closed)
+  const [reviewSide, setReviewSide] = useState<'left' | 'right' | null>(null)
+
+  // Increment to signal DiffTable to clear its local pendingChanges state.
+  const [leftClearToken, setLeftClearToken] = useState(0)
+  const [rightClearToken, setRightClearToken] = useState(0)
+
+  function discardSide(side: 'left' | 'right'): void {
+    clearOwnEdits(side)
+    clearAddedVars(side)
+    clearDeletedKeys(side)
+    if (side === 'left') setLeftClearToken((t) => t + 1)
+    else setRightClearToken((t) => t + 1)
+  }
 
   const {
     data: leftGroup,
@@ -38,41 +70,91 @@ export function ComparisonArea(): React.JSX.Element {
     refetch: refetchRight
   } = useVariableGroup(rightPane.projectId, rightPane.groupId)
 
-  const diff = useVariableDiff(leftGroup?.variables, rightGroup?.variables)
+  // Merges cloud variables with locally-pending edits + added draft vars for the diff engine.
+  // Including ownEdits ensures copied/edited values are immediately reflected in both panes' rows.
+  const leftEffectiveVars = leftGroup?.variables
+    ? {
+        ...leftGroup.variables,
+        ...Object.fromEntries(
+          leftOwnEdits.map((e) => [e.key, { value: e.newValue, isSecret: leftGroup.variables[e.key]?.isSecret ?? false }])
+        ),
+        ...Object.fromEntries(leftAddedVars.map((v) => [v.key, { value: v.value, isSecret: false }]))
+      }
+    : leftGroup?.variables
+  const rightEffectiveVars = rightGroup?.variables
+    ? {
+        ...rightGroup.variables,
+        ...Object.fromEntries(
+          rightOwnEdits.map((e) => [e.key, { value: e.newValue, isSecret: rightGroup.variables[e.key]?.isSecret ?? false }])
+        ),
+        ...Object.fromEntries(rightAddedVars.map((v) => [v.key, { value: v.value, isSecret: false }]))
+      }
+    : rightGroup?.variables
+
+  const diff = useVariableDiff(leftEffectiveVars, rightEffectiveVars)
   const { leftRef, rightRef } = useSyncScroll(syncScroll)
   const updateMutation = useUpdateVariableGroup()
+
+  // ─ Local draft buffers (cloud state merged with user edits + added vars) ──────
+  const leftBuffer = useVariableBuffer(leftGroup?.variables, leftOwnEdits, leftAddedVars, leftDeletedKeys)
+  const rightBuffer = useVariableBuffer(rightGroup?.variables, rightOwnEdits, rightAddedVars, rightDeletedKeys)
+
+  // Pending counts used to show the notification bar spacer in the opposite pane.
+  const leftPendingCount = leftOwnEdits.length + leftAddedVars.length + leftDeletedKeys.length
+  const rightPendingCount = rightOwnEdits.length + rightAddedVars.length + rightDeletedKeys.length
 
   const hasLeft = !!leftPane.groupId
   const hasRight = !!rightPane.groupId
   const hasBoth = hasLeft && hasRight
 
-  /** Push the current resolved state of a pane (base variables + own inline edits) to Azure. */
-  async function pushToAzure(side: 'left' | 'right'): Promise<void> {
+  /**
+   * Execute the actual PUT request after the user has confirmed in the modal
+   * and in the native dialog. Called by onConfirmPush in PushReviewModal.
+   */
+  async function executePush(
+    side: 'left' | 'right',
+    variables: Record<string, { value: string; isSecret: boolean }>
+  ): Promise<void> {
     const pane = side === 'left' ? leftPane : rightPane
-    const group = side === 'left' ? leftGroup : rightGroup
-    const ownEdits = side === 'left' ? leftOwnEdits : rightOwnEdits
-
-    if (!pane.projectId || !pane.groupId || !group) {
-      throw new Error('No group is loaded in this pane')
-    }
-
-    // Build merged variable map: base + own edits
-    const merged: Record<string, { value: string; isSecret: boolean }> = {}
-    for (const [key, v] of Object.entries(group.variables)) {
-      merged[key] = { value: v.value ?? '', isSecret: v.isSecret ?? false }
-    }
-    for (const change of ownEdits) {
-      const existing = merged[change.key]
-      merged[change.key] = { value: change.newValue, isSecret: existing?.isSecret ?? false }
-    }
+    if (!pane.projectId || !pane.groupId) throw new Error('No group is loaded in this pane')
 
     await updateMutation.mutateAsync({
       projectId: pane.projectId,
       groupId: pane.groupId,
-      variables: merged
+      variables
     })
 
     clearOwnEdits(side)
+    clearAddedVars(side)
+    clearDeletedKeys(side)
+    if (side === 'left') { refetchLeft(); setLeftClearToken((t) => t + 1) }
+    else { refetchRight(); setRightClearToken((t) => t + 1) }
+  }
+
+  function handleAddVar(side: 'left' | 'right'): void {
+    // Generate a unique placeholder key, avoiding collisions with cloud and existing added vars
+    const cloudKeys = new Set([
+      ...Object.keys((side === 'left' ? leftGroup : rightGroup)?.variables ?? {}),
+      ...(side === 'left' ? leftAddedVars : rightAddedVars).map((v) => v.key)
+    ])
+    let idx = 1
+    let candidate = `new_variable_${idx}`
+    while (cloudKeys.has(candidate)) {
+      idx++
+      candidate = `new_variable_${idx}`
+    }
+    upsertAddedVar(side, { key: candidate, value: '' })
+  }
+
+  function handleUpdateNewVar(side: 'left' | 'right', oldKey: string, newKey: string, value: string): void {
+    if (oldKey !== newKey) {
+      removeAddedVar(side, oldKey)
+    }
+    upsertAddedVar(side, { key: newKey, value })
+  }
+
+  function handleDeleteNewVar(side: 'left' | 'right', key: string): void {
+    removeAddedVar(side, key)
   }
 
   /** Apply imported variables as own edits so user can review and push. */
@@ -175,6 +257,17 @@ export function ComparisonArea(): React.JSX.Element {
                 rows={diff.rows}
                 isLoading={leftLoading}
                 otherGroup={rightGroup}
+                onOpenReview={() => setReviewSide('left')}
+                clearToken={leftClearToken}
+                addedVars={leftAddedVars}
+                onAddVar={() => handleAddVar('left')}
+                onDeleteNewVar={(key) => handleDeleteNewVar('left', key)}
+                onUpdateNewVar={(oldKey, newKey, value) => handleUpdateNewVar('left', oldKey, newKey, value)}
+                deletedKeys={leftDeletedKeys}
+                onDeleteVar={(key) => markDeleted('left', key)}
+                onRestoreVar={(key) => unmarkDeleted('left', key)}
+                onDiscard={() => discardSide('left')}
+                peerHasChanges={rightPendingCount > 0}
               />
             ) : (
               <EmptyPane label="Left" />
@@ -182,8 +275,8 @@ export function ComparisonArea(): React.JSX.Element {
             {hasLeft && (
               <PaneActionBar
                 side="left"
-                hasUnsavedChanges={leftOwnEdits.length > 0}
-                onSync={() => pushToAzure('left')}
+                pendingCount={leftBuffer.pendingCount}
+                onPush={() => setReviewSide('left')}
                 variables={leftGroup?.variables}
                 groupName={leftPane.groupName}
                 onImport={(vars) => importVariables('left', vars)}
@@ -216,6 +309,17 @@ export function ComparisonArea(): React.JSX.Element {
                 rows={diff.rows}
                 isLoading={rightLoading}
                 otherGroup={leftGroup}
+                onOpenReview={() => setReviewSide('right')}
+                clearToken={rightClearToken}
+                addedVars={rightAddedVars}
+                onAddVar={() => handleAddVar('right')}
+                onDeleteNewVar={(key) => handleDeleteNewVar('right', key)}
+                onUpdateNewVar={(oldKey, newKey, value) => handleUpdateNewVar('right', oldKey, newKey, value)}
+                deletedKeys={rightDeletedKeys}
+                onDeleteVar={(key) => markDeleted('right', key)}
+                onRestoreVar={(key) => unmarkDeleted('right', key)}
+                onDiscard={() => discardSide('right')}
+                peerHasChanges={leftPendingCount > 0}
               />
             ) : (
               <EmptyPane label="Right" />
@@ -223,8 +327,8 @@ export function ComparisonArea(): React.JSX.Element {
             {hasRight && (
               <PaneActionBar
                 side="right"
-                hasUnsavedChanges={rightOwnEdits.length > 0}
-                onSync={() => pushToAzure('right')}
+                pendingCount={rightBuffer.pendingCount}
+                onPush={() => setReviewSide('right')}
                 variables={rightGroup?.variables}
                 groupName={rightPane.groupName}
                 onImport={(vars) => importVariables('right', vars)}
@@ -238,6 +342,30 @@ export function ComparisonArea(): React.JSX.Element {
           </div>
         </Panel>
       </PanelGroup>
+
+      {/* ── Push Review Modals ─────────────────────────────────────────────── */}
+      {reviewSide === 'left' && (
+        <PushReviewModal
+          groupName={leftPane.groupName}
+          projectName={leftPane.projectName}
+          draftChanges={leftBuffer.draftChanges}
+          mergedVariables={leftBuffer.mergedVariables}
+          onClose={() => setReviewSide(null)}
+          onDiscardAll={() => discardSide('left')}
+          onConfirmPush={(vars) => executePush('left', vars)}
+        />
+      )}
+      {reviewSide === 'right' && (
+        <PushReviewModal
+          groupName={rightPane.groupName}
+          projectName={rightPane.projectName}
+          draftChanges={rightBuffer.draftChanges}
+          mergedVariables={rightBuffer.mergedVariables}
+          onClose={() => setReviewSide(null)}
+          onDiscardAll={() => discardSide('right')}
+          onConfirmPush={(vars) => executePush('right', vars)}
+        />
+      )}
     </div>
   )
 }

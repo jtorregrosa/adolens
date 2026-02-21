@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { PendingChange } from '../types'
+import type { PendingChange, DraftNewVariable } from '../types'
 
 interface PaneSelection {
   projectId: string | null
@@ -28,6 +28,14 @@ interface UIState {
   leftOwnEdits: PendingChange[]
   rightOwnEdits: PendingChange[]
 
+  /** Variables added locally (not yet pushed to ADO) per pane. */
+  leftAddedVars: DraftNewVariable[]
+  rightAddedVars: DraftNewVariable[]
+
+  /** Cloud variable keys locally marked for deletion (not yet pushed). */
+  leftDeletedKeys: string[]
+  rightDeletedKeys: string[]
+
   toggleSidebar: () => void
   setSyncScroll: (v: boolean) => void
   setSearchQuery: (q: string) => void
@@ -41,6 +49,20 @@ interface UIState {
   removeOwnEdit: (side: 'left' | 'right', key: string) => void
   /** Clear all own-pane edits for a side. */
   clearOwnEdits: (side: 'left' | 'right') => void
+
+  /** Add or update a locally-drafted new variable. */
+  upsertAddedVar: (side: 'left' | 'right', variable: DraftNewVariable) => void
+  /** Remove a locally-drafted new variable by key. */
+  removeAddedVar: (side: 'left' | 'right', key: string) => void
+  /** Clear all locally-drafted new variables for a side. */
+  clearAddedVars: (side: 'left' | 'right') => void
+
+  /** Mark an existing cloud variable for deletion in the local draft. */
+  markDeleted: (side: 'left' | 'right', key: string) => void
+  /** Unmark a variable from local deletion (restore). */
+  unmarkDeleted: (side: 'left' | 'right', key: string) => void
+  /** Clear all locally-deleted keys for a side. */
+  clearDeletedKeys: (side: 'left' | 'right') => void
 
   // ─── Favorites actions ─────────────────────────────────────────────────────
   /** Hydrate favorites from persisted store (called once on startup). */
@@ -67,6 +89,10 @@ export const useUIStore = create<UIState>((set, get) => ({
   rightPane: emptyPane,
   leftOwnEdits: [],
   rightOwnEdits: [],
+  leftAddedVars: [],
+  rightAddedVars: [],
+  leftDeletedKeys: [],
+  rightDeletedKeys: [],
 
   favoriteProjectIds: [],
   favoriteLibraryIds: [],
@@ -77,15 +103,19 @@ export const useUIStore = create<UIState>((set, get) => ({
   setLeftPane: (p) =>
     set((s) => ({
       leftPane: { ...s.leftPane, ...p },
-      // Clear own edits when the group changes so the orange dot doesn't persist
-      ...(p.groupId !== undefined && p.groupId !== s.leftPane.groupId ? { leftOwnEdits: [] } : {})
+      // Clear own edits and added vars when the group changes
+      ...(p.groupId !== undefined && p.groupId !== s.leftPane.groupId
+        ? { leftOwnEdits: [], leftAddedVars: [], leftDeletedKeys: [] }
+        : {})
     })),
   setRightPane: (p) =>
     set((s) => ({
       rightPane: { ...s.rightPane, ...p },
-      ...(p.groupId !== undefined && p.groupId !== s.rightPane.groupId ? { rightOwnEdits: [] } : {})
+      ...(p.groupId !== undefined && p.groupId !== s.rightPane.groupId
+        ? { rightOwnEdits: [], rightAddedVars: [], rightDeletedKeys: [] }
+        : {})
     })),
-  clearPanes: () => set({ leftPane: emptyPane, rightPane: emptyPane, leftOwnEdits: [], rightOwnEdits: [] }),
+  clearPanes: () => set({ leftPane: emptyPane, rightPane: emptyPane, leftOwnEdits: [], rightOwnEdits: [], leftAddedVars: [], rightAddedVars: [], leftDeletedKeys: [], rightDeletedKeys: [] }),
 
   upsertOwnEdit: (side, change) =>
     set((s) => {
@@ -107,6 +137,36 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   clearOwnEdits: (side) =>
     set(side === 'left' ? { leftOwnEdits: [] } : { rightOwnEdits: [] }),
+
+  upsertAddedVar: (side, variable) =>
+    set((s) => {
+      const k = side === 'left' ? 'leftAddedVars' : 'rightAddedVars'
+      return { [k]: [...s[k].filter((v) => v.key !== variable.key), variable] }
+    }),
+
+  removeAddedVar: (side, key) =>
+    set((s) => {
+      const k = side === 'left' ? 'leftAddedVars' : 'rightAddedVars'
+      return { [k]: s[k].filter((v) => v.key !== key) }
+    }),
+
+  clearAddedVars: (side) =>
+    set(side === 'left' ? { leftAddedVars: [] } : { rightAddedVars: [] }),
+
+  markDeleted: (side, key) =>
+    set((s) => {
+      const k = side === 'left' ? 'leftDeletedKeys' : 'rightDeletedKeys'
+      return s[k].includes(key) ? {} : { [k]: [...s[k], key] }
+    }),
+
+  unmarkDeleted: (side, key) =>
+    set((s) => {
+      const k = side === 'left' ? 'leftDeletedKeys' : 'rightDeletedKeys'
+      return { [k]: s[k].filter((x) => x !== key) }
+    }),
+
+  clearDeletedKeys: (side) =>
+    set(side === 'left' ? { leftDeletedKeys: [] } : { rightDeletedKeys: [] }),
 
   // ─── Favorites ────────────────────────────────────────────────────────────
   loadFavorites: (projectIds, libraryIds) =>

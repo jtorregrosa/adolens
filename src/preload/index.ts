@@ -29,6 +29,16 @@ const api = {
   cloneVariableGroup: (projectId: string, groupId: number, newName: string) =>
     ipcRenderer.invoke('ado:clone-variable-group', projectId, groupId, newName),
 
+  // ─── App utilities ─────────────────────────────────────────────────────────
+  showConfirmDialog: (opts: {
+    title: string
+    message: string
+    detail?: string
+    buttons: string[]
+    defaultId: number
+    cancelId: number
+  }) => ipcRenderer.invoke('app:confirm-dialog', opts),
+
   // ─── Favorites ─────────────────────────────────────────────────────────────
   loadFavorites: () => ipcRenderer.invoke('favorites:load'),
 

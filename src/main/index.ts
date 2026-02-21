@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, safeStorage, screen } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, safeStorage, screen, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import ElectronStoreImport from 'electron-store'
@@ -111,6 +111,34 @@ app.whenReady().then(() => {
   setupAuthHandlers(ipcMain, store, safeStorage)
   setupAdoHandlers(ipcMain, store, safeStorage)
   setupFavoritesHandlers(ipcMain, store)
+
+  // ── Native confirm dialog ─────────────────────────────────────────────────
+  ipcMain.handle(
+    'app:confirm-dialog',
+    async (
+      _event,
+      opts: {
+        title: string
+        message: string
+        detail?: string
+        buttons: string[]
+        defaultId: number
+        cancelId: number
+      }
+    ) => {
+      const win = BrowserWindow.getFocusedWindow()
+      const result = await dialog.showMessageBox(win ?? BrowserWindow.getAllWindows()[0], {
+        type: 'warning',
+        title: opts.title,
+        message: opts.message,
+        detail: opts.detail,
+        buttons: opts.buttons,
+        defaultId: opts.defaultId,
+        cancelId: opts.cancelId
+      })
+      return result.response
+    }
+  )
 
   createWindow()
 

@@ -21,7 +21,7 @@ export interface AdoVariableGroup {
 
 // ─── Diff Engine ────────────────────────────────────────────────────────────
 
-export type DiffStatus = 'identical' | 'modified' | 'added' | 'removed' | 'ghost'
+export type DiffStatus = 'identical' | 'modified' | 'added' | 'removed' | 'ghost' | 'created'
 
 export interface DiffVariableRow {
   key: string
@@ -48,4 +48,10 @@ export interface PendingChange {
   side: 'left' | 'right'
   originalValue?: string
   newValue: string
+}
+
+/** A brand-new variable that exists only in the local draft (not yet in the cloud). */
+export interface DraftNewVariable {
+  key: string
+  value: string
 }
