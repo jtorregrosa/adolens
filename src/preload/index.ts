@@ -24,7 +24,16 @@ const api = {
     projectId: string,
     groupId: number,
     variables: Record<string, { value: string; isSecret: boolean }>
-  ) => ipcRenderer.invoke('ado:update-variable-group', projectId, groupId, variables)
+  ) => ipcRenderer.invoke('ado:update-variable-group', projectId, groupId, variables),
+
+  cloneVariableGroup: (projectId: string, groupId: number, newName: string) =>
+    ipcRenderer.invoke('ado:clone-variable-group', projectId, groupId, newName),
+
+  // ─── Favorites ─────────────────────────────────────────────────────────────
+  loadFavorites: () => ipcRenderer.invoke('favorites:load'),
+
+  saveFavorites: (favoriteProjectIds: string[], favoriteLibraryIds: number[]) =>
+    ipcRenderer.invoke('favorites:save', favoriteProjectIds, favoriteLibraryIds)
 }
 
 if (process.contextIsolated) {

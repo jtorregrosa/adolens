@@ -18,7 +18,7 @@ export function PaneHeader({ side, projectName, groupName }: Props): React.JSX.E
     : 'bg-fuchsia-500/20 text-fuchsia-400'
 
   return (
-    <div className={`flex items-center gap-2 border-b px-4 py-2 ${borderBg}`}>
+    <div className={`flex items-center gap-2 border-b px-4 py-2 ${borderBg} ${side === 'left' ? 'flex-row-reverse' : ''}`}>
       <span className={`rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider ${labelStyle}`}>
         {label}
       </span>

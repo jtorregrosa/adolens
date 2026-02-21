@@ -41,6 +41,35 @@ export function useVariableGroup(projectId: string | null, groupId: number | nul
   })
 }
 
+// ─── Clone Variable Group ────────────────────────────────────────────────────
+
+export function useCloneVariableGroup() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      groupId,
+      newName
+    }: {
+      projectId: string
+      groupId: number
+      newName: string
+    }) => {
+      const res = await window.api.cloneVariableGroup(projectId, groupId, newName)
+      if (!res.ok) throw new Error((res as { ok: false; error: string }).error)
+      return res.data
+    },
+    onSuccess: (_data, { projectId }) => {
+      queryClient.invalidateQueries({ queryKey: ['variableGroups', projectId] })
+      toast.success('Library cloned successfully')
+    },
+    onError: (err: Error) => {
+      toast.error(`Failed to clone library: ${err.message}`)
+    }
+  })
+}
+
 // ─── Update Variable Group ───────────────────────────────────────────────────
 
 export function useUpdateVariableGroup() {

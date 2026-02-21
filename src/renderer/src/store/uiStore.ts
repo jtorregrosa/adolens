@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { PendingChange } from '../types'
 
 interface PaneSelection {
   projectId: string | null
@@ -15,12 +16,39 @@ interface UIState {
   leftPane: PaneSelection
   rightPane: PaneSelection
 
+  // ─── Favorites ─────────────────────────────────────────────────────────────
+  favoriteProjectIds: string[]
+  favoriteLibraryIds: number[]
+
+  /**
+   * Own-pane inline edits, keyed by destination side.
+   * Only tracks edits where the user directly edits a cell in that pane
+   * (commitEdit path). Cross-copy operations remain local to each DiffTable.
+   */
+  leftOwnEdits: PendingChange[]
+  rightOwnEdits: PendingChange[]
+
   toggleSidebar: () => void
   setSyncScroll: (v: boolean) => void
   setSearchQuery: (q: string) => void
   setLeftPane: (p: Partial<PaneSelection>) => void
   setRightPane: (p: Partial<PaneSelection>) => void
   clearPanes: () => void
+
+  /** Upsert an own-pane edit; side must match the pane side. */
+  upsertOwnEdit: (side: 'left' | 'right', change: PendingChange) => void
+  /** Remove one own-pane edit by key. */
+  removeOwnEdit: (side: 'left' | 'right', key: string) => void
+  /** Clear all own-pane edits for a side. */
+  clearOwnEdits: (side: 'left' | 'right') => void
+
+  // ─── Favorites actions ─────────────────────────────────────────────────────
+  /** Hydrate favorites from persisted store (called once on startup). */
+  loadFavorites: (projectIds: string[], libraryIds: number[]) => void
+  toggleFavoriteProject: (projectId: string) => void
+  toggleFavoriteLibrary: (libraryId: number) => void
+  isFavoriteProject: (projectId: string) => boolean
+  isFavoriteLibrary: (libraryId: number) => boolean
 }
 
 const emptyPane: PaneSelection = {
@@ -30,18 +58,80 @@ const emptyPane: PaneSelection = {
   groupName: null
 }
 
-export const useUIStore = create<UIState>((set) => ({
+export const useUIStore = create<UIState>((set, get) => ({
   sidebarCollapsed: false,
   syncScroll: true,
   searchQuery: '',
 
   leftPane: emptyPane,
   rightPane: emptyPane,
+  leftOwnEdits: [],
+  rightOwnEdits: [],
+
+  favoriteProjectIds: [],
+  favoriteLibraryIds: [],
 
   toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
   setSyncScroll: (v) => set({ syncScroll: v }),
   setSearchQuery: (q) => set({ searchQuery: q }),
-  setLeftPane: (p) => set((s) => ({ leftPane: { ...s.leftPane, ...p } })),
-  setRightPane: (p) => set((s) => ({ rightPane: { ...s.rightPane, ...p } })),
-  clearPanes: () => set({ leftPane: emptyPane, rightPane: emptyPane })
+  setLeftPane: (p) =>
+    set((s) => ({
+      leftPane: { ...s.leftPane, ...p },
+      // Clear own edits when the group changes so the orange dot doesn't persist
+      ...(p.groupId !== undefined && p.groupId !== s.leftPane.groupId ? { leftOwnEdits: [] } : {})
+    })),
+  setRightPane: (p) =>
+    set((s) => ({
+      rightPane: { ...s.rightPane, ...p },
+      ...(p.groupId !== undefined && p.groupId !== s.rightPane.groupId ? { rightOwnEdits: [] } : {})
+    })),
+  clearPanes: () => set({ leftPane: emptyPane, rightPane: emptyPane, leftOwnEdits: [], rightOwnEdits: [] }),
+
+  upsertOwnEdit: (side, change) =>
+    set((s) => {
+      const key = side === 'left' ? 'leftOwnEdits' : 'rightOwnEdits'
+      const prev = s[key]
+      return {
+        [key]: [
+          ...prev.filter((c) => c.key !== change.key),
+          change
+        ]
+      }
+    }),
+
+  removeOwnEdit: (side, key) =>
+    set((s) => {
+      const storeKey = side === 'left' ? 'leftOwnEdits' : 'rightOwnEdits'
+      return { [storeKey]: s[storeKey].filter((c) => c.key !== key) }
+    }),
+
+  clearOwnEdits: (side) =>
+    set(side === 'left' ? { leftOwnEdits: [] } : { rightOwnEdits: [] }),
+
+  // ─── Favorites ────────────────────────────────────────────────────────────
+  loadFavorites: (projectIds, libraryIds) =>
+    set({ favoriteProjectIds: projectIds, favoriteLibraryIds: libraryIds }),
+
+  toggleFavoriteProject: (projectId) => {
+    set((s) => {
+      const next = s.favoriteProjectIds.includes(projectId)
+        ? s.favoriteProjectIds.filter((id) => id !== projectId)
+        : [...s.favoriteProjectIds, projectId]
+      window.api.saveFavorites(next, s.favoriteLibraryIds)
+      return { favoriteProjectIds: next }
+    })
+  },
+
+  toggleFavoriteLibrary: (libraryId) => {
+    set((s) => {
+      const next = s.favoriteLibraryIds.includes(libraryId)
+        ? s.favoriteLibraryIds.filter((id) => id !== libraryId)
+        : [...s.favoriteLibraryIds, libraryId]
+      window.api.saveFavorites(s.favoriteProjectIds, next)
+      return { favoriteLibraryIds: next }
+    })
+  },
+
+  isFavoriteProject: (projectId) => get().favoriteProjectIds.includes(projectId),
+  isFavoriteLibrary: (libraryId) => get().favoriteLibraryIds.includes(libraryId)
 }))

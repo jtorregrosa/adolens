@@ -28,6 +28,21 @@ export interface IpcApi {
     groupId: number,
     variables: Record<string, { value: string; isSecret: boolean }>
   ): Promise<{ ok: boolean; error?: string }>
+  cloneVariableGroup(
+    projectId: string,
+    groupId: number,
+    newName: string
+  ): Promise<ApiResponse<AdoVariableGroup>>
+  loadFavorites(): Promise<{
+    ok: boolean
+    favoriteProjectIds: string[]
+    favoriteLibraryIds: number[]
+    error?: string
+  }>
+  saveFavorites(
+    favoriteProjectIds: string[],
+    favoriteLibraryIds: number[]
+  ): Promise<{ ok: boolean; error?: string }>
 }
 
 declare global {

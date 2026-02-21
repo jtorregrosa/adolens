@@ -8,6 +8,7 @@ const StoreClass =
   ElectronStoreImport
 import { setupAuthHandlers } from './ipc/auth'
 import { setupAdoHandlers } from './ipc/ado'
+import { setupFavoritesHandlers } from './ipc/favorites'
 import icon from '../../resources/icon.png?asset'
 
 type WindowBounds = { width: number; height: number; x?: number; y?: number }
@@ -53,17 +54,20 @@ function createWindow(): void {
   const bounds = ensureVisibleBounds(rawBounds)
 
   const mainWindow = new BrowserWindow({
+    title: 'ADOLens',
     width: bounds.width,
     height: bounds.height,
     x: bounds.x,
     y: bounds.y,
+    minWidth: 900,
+    minHeight: 600,
     show: false,
     autoHideMenuBar: true,
     titleBarStyle: 'hidden',
     titleBarOverlay: {
       color: '#0f172a',
       symbolColor: '#94a3b8',
-      height: 48
+      height: 47
     },
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -96,7 +100,8 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.ado-lens')
+  app.setName('ADOLens')
+  electronApp.setAppUserModelId('com.adolens.app')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
@@ -105,6 +110,7 @@ app.whenReady().then(() => {
   // Register IPC handlers
   setupAuthHandlers(ipcMain, store, safeStorage)
   setupAdoHandlers(ipcMain, store, safeStorage)
+  setupFavoritesHandlers(ipcMain, store)
 
   createWindow()
 

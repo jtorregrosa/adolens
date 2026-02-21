@@ -10,22 +10,171 @@ import {
   AlertCircle,
   LogOut,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Star,
+  Download,
+  PanelLeft,
+  PanelRight,
+  StarOff,
+  Copy
 } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { useUIStore } from '../../store/uiStore'
-import { useProjects, useVariableGroups } from '../../hooks/useADOApi'
+import { useProjects, useVariableGroups, useVariableGroup } from '../../hooks/useADOApi'
 import { toast } from 'sonner'
+import { AppContextMenu } from '../ui/AppContextMenu'
+import type { ContextMenuItem } from '../ui/AppContextMenu'
+import { Tooltip } from '../ui/Tooltip'
+import { ExportModal } from '../modals/ExportModal'
+import { CloneLibraryModal } from '../modals/CloneLibraryModal'
 
-function ProjectNode({ projectId, projectName }: { projectId: string; projectName: string }): React.JSX.Element {
+// --- Library row ------------------------------------------------------------
+
+interface LibraryRowProps {
+  groupId: number
+  groupName: string
+  projectId: string
+  projectName: string
+  isFavorite: boolean
+  onToggleFavorite: () => void
+  onSelect: (side: 'left' | 'right') => void
+  onExport: () => void
+  onClone: () => void
+  isLeft: boolean
+  isRight: boolean
+}
+
+function LibraryRow({
+  groupName,
+  isFavorite,
+  onToggleFavorite,
+  onSelect,
+  onExport,
+  onClone,
+  isLeft,
+  isRight
+}: LibraryRowProps): React.JSX.Element {
+  const libraryMenuItems: ContextMenuItem[] = [
+    {
+      label: 'Load into Left Pane',
+      icon: <PanelLeft className="h-3.5 w-3.5" />,
+      onSelect: () => onSelect('left')
+    },
+    {
+      label: 'Load into Right Pane',
+      icon: <PanelRight className="h-3.5 w-3.5" />,
+      onSelect: () => onSelect('right')
+    },
+    {
+      label: isFavorite ? 'Remove from Favorites' : 'Mark as Favorite',
+      icon: isFavorite ? (
+        <StarOff className="h-3.5 w-3.5 text-yellow-400" />
+      ) : (
+        <Star className="h-3.5 w-3.5" />
+      ),
+      dividerBefore: true,
+      onSelect: onToggleFavorite
+    },
+    {
+      label: 'Export Variables…',
+      icon: <Download className="h-3.5 w-3.5" />,
+      dividerBefore: true,
+      onSelect: onExport
+    },
+    {
+      label: 'Clone Library…',
+      icon: <Copy className="h-3.5 w-3.5" />,
+      onSelect: onClone
+    }
+  ]
+
+  return (
+    <AppContextMenu items={libraryMenuItems}>
+      <div className="group flex items-center gap-1 rounded-md px-2 py-1 text-xs text-slate-400 transition hover:bg-slate-700/50">
+        <Layers className="h-3 w-3 shrink-0 text-slate-500" />
+        <div className="marquee-wrap flex-1">
+          <span className="marquee-text">{groupName}</span>
+        </div>
+
+        {/* Inline actions: shown on hover, star always visible when favourited */}
+        <div className="flex shrink-0 items-center gap-1">
+          <Tooltip content={isFavorite ? 'Remove from favorites' : 'Add to favorites'} side="top">
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite() }}
+              className={`rounded p-0.5 transition ${
+                isFavorite
+                  ? 'text-yellow-400 opacity-100'
+                  : 'text-slate-600 opacity-0 group-hover:opacity-100 hover:text-yellow-400'
+              }`}
+            >
+              <Star className={`h-3 w-3 ${isFavorite ? 'fill-yellow-400' : ''}`} />
+            </button>
+          </Tooltip>
+          <div className="flex gap-1 opacity-0 transition group-hover:opacity-100">
+            <Tooltip content="Load into Left pane" side="top">
+              <button
+                onClick={() => onSelect('left')}
+                className={`rounded px-2 py-1 text-xs font-bold transition ${isLeft ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-blue-600/70 hover:text-white'}`}
+              >
+                L
+              </button>
+            </Tooltip>
+            <Tooltip content="Load into Right pane" side="top">
+              <button
+                onClick={() => onSelect('right')}
+                className={`rounded px-2 py-1 text-xs font-bold transition ${isRight ? 'bg-fuchsia-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-fuchsia-600/70 hover:text-white'}`}
+              >
+                R
+              </button>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+    </AppContextMenu>
+  )
+}
+
+// --- Project node -----------------------------------------------------------
+
+interface ProjectNodeProps {
+  projectId: string
+  projectName: string
+  isFavorite: boolean
+  onToggleFavorite: () => void
+}
+
+function ProjectNode({
+  projectId,
+  projectName,
+  isFavorite,
+  onToggleFavorite
+}: ProjectNodeProps): React.JSX.Element {
   const [expanded, setExpanded] = useState(false)
   const [search, setSearch] = useState('')
+  const [exportGroupId, setExportGroupId] = useState<number | null>(null)
+  const [exportGroupName, setExportGroupName] = useState<string | null>(null)
+  const [cloneGroupId, setCloneGroupId] = useState<number | null>(null)
+  const [cloneGroupName, setCloneGroupName] = useState<string | null>(null)
+
   const { data: groups, isLoading } = useVariableGroups(expanded ? projectId : null)
-  const { setLeftPane, setRightPane, leftPane, rightPane } = useUIStore()
+  const { data: exportGroup } = useVariableGroup(
+    exportGroupId !== null ? projectId : null,
+    exportGroupId
+  )
+  const { setLeftPane, setRightPane, leftPane, rightPane, toggleFavoriteLibrary, isFavoriteLibrary } =
+    useUIStore()
 
   const filtered = (groups ?? []).filter((g) =>
     g.name.toLowerCase().includes(search.toLowerCase())
   )
+
+  const favLibraries = filtered
+    .filter((g) => isFavoriteLibrary(g.id!))
+    .sort((a, b) => a.name!.localeCompare(b.name!))
+  const regularLibraries = filtered
+    .filter((g) => !isFavoriteLibrary(g.id!))
+    .sort((a, b) => a.name!.localeCompare(b.name!))
+  const hasLibFavorites = favLibraries.length > 0
 
   const selectGroup = (groupId: number, groupName: string, side: 'left' | 'right'): void => {
     if (side === 'left') setLeftPane({ projectId, projectName, groupId, groupName })
@@ -33,22 +182,80 @@ function ProjectNode({ projectId, projectName }: { projectId: string; projectNam
     toast.success(`${groupName} loaded in ${side === 'left' ? 'Left' : 'Right'} pane`)
   }
 
+  const handleExport = (groupId: number, groupName: string): void => {
+    setExportGroupId(groupId)
+    setExportGroupName(groupName)
+  }
+
+  const handleClone = (groupId: number, groupName: string): void => {
+    setCloneGroupId(groupId)
+    setCloneGroupName(groupName)
+  }
+
+  const projectMenuItems: ContextMenuItem[] = [
+    {
+      label: isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+      icon: isFavorite ? (
+        <StarOff className="h-3.5 w-3.5 text-yellow-400" />
+      ) : (
+        <Star className="h-3.5 w-3.5" />
+      ),
+      onSelect: onToggleFavorite
+    }
+  ]
+
   return (
     <div>
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-300 transition hover:bg-slate-700/50"
-      >
-        {expanded ? (
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-500" />
-        ) : (
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-500" />
-        )}
-        <FolderOpen className="h-3.5 w-3.5 shrink-0 text-blue-400" />
-        <div className="marquee-wrap">
-          <span className="marquee-text font-medium">{projectName}</span>
-        </div>
-      </button>
+      <AppContextMenu items={projectMenuItems}>
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-300 transition hover:bg-slate-700/50"
+        >
+          {expanded ? (
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+          )}
+          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-blue-400" />
+          <div className="marquee-wrap flex-1">
+            <span className="marquee-text font-medium">{projectName}</span>
+          </div>
+          <Tooltip content={isFavorite ? 'Remove from favorites' : 'Add to favorites'} side="right">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleFavorite()
+              }}
+              className={`ml-auto shrink-0 rounded p-0.5 transition ${
+                isFavorite
+                  ? 'text-yellow-400 opacity-100'
+                  : 'text-slate-600 opacity-0 group-hover:opacity-100 hover:text-yellow-400'
+              }`}
+            >
+              <Star className={`h-3 w-3 ${isFavorite ? 'fill-yellow-400' : ''}`} />
+            </button>
+          </Tooltip>
+        </button>
+      </AppContextMenu>
+
+      {/* Export modal — rendered outside the AnimatePresence so it stays mounted */}
+      {exportGroup && exportGroupId !== null && (
+        <ExportModal
+          variables={exportGroup.variables}
+          groupName={exportGroupName}
+          onClose={() => { setExportGroupId(null); setExportGroupName(null) }}
+        />
+      )}
+
+      {/* Clone modal */}
+      {cloneGroupId !== null && cloneGroupName !== null && (
+        <CloneLibraryModal
+          projectId={projectId}
+          groupId={cloneGroupId}
+          sourceName={cloneGroupName}
+          onClose={() => { setCloneGroupId(null); setCloneGroupName(null) }}
+        />
+      )}
 
       <AnimatePresence>
         {expanded && (
@@ -60,7 +267,6 @@ function ProjectNode({ projectId, projectName }: { projectId: string; projectNam
             className="overflow-hidden"
           >
             <div className="ml-5 mt-1 space-y-0.5">
-              {/* Search within groups */}
               <div className="relative mb-2">
                 <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-500" />
                 <input
@@ -74,45 +280,61 @@ function ProjectNode({ projectId, projectName }: { projectId: string; projectNam
               {isLoading && (
                 <div className="flex items-center gap-1.5 px-2 py-1 text-xs text-slate-500">
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  Loading…
+                  Loading...
                 </div>
               )}
 
-              {filtered.map((g) => {
+              {/* ⭐ Favorite libraries */}
+              {hasLibFavorites && (
+                <>
+                  <SectionHeader label="Favorites" />
+                  {favLibraries.map((g) => {
+                    const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
+                    const isRight = rightPane.groupId === g.id && rightPane.projectId === projectId
+                    return (
+                      <LibraryRow
+                        key={g.id}
+                        groupId={g.id!}
+                        groupName={g.name!}
+                        projectId={projectId}
+                        projectName={projectName}
+                        isFavorite={true}
+                        onToggleFavorite={() => toggleFavoriteLibrary(g.id!)}
+                        onSelect={(side) => selectGroup(g.id!, g.name!, side)}
+                        onExport={() => handleExport(g.id!, g.name!)}
+                        onClone={() => handleClone(g.id!, g.name!)}
+                        isLeft={isLeft}
+                        isRight={isRight}
+                      />
+                    )
+                  })}
+                  <SectionHeader label="All Libraries" />
+                </>
+              )}
+
+              {/* Regular libraries */}
+              {regularLibraries.map((g) => {
                 const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
                 const isRight = rightPane.groupId === g.id && rightPane.projectId === projectId
                 return (
-                  <div
+                  <LibraryRow
                     key={g.id}
-                    className="group flex items-center gap-1 rounded-md px-2 py-1 text-xs text-slate-400 transition hover:bg-slate-700/50"
-                  >
-                    <Layers className="h-3 w-3 shrink-0 text-slate-500" />
-                    <div className="marquee-wrap">
-                      <span className="marquee-text">{g.name}</span>
-                    </div>
-
-                    <div className="flex gap-1 opacity-0 transition group-hover:opacity-100">
-                      <button
-                        title="Load in Left pane"
-                        onClick={() => selectGroup(g.id!, g.name!, 'left')}
-                        className={`rounded px-2 py-1 text-xs font-bold transition ${isLeft ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-blue-600/70 hover:text-white'}`}
-                      >
-                        L
-                      </button>
-                      <button
-                        title="Load in Right pane"
-                        onClick={() => selectGroup(g.id!, g.name!, 'right')}
-                        className={`rounded px-2 py-1 text-xs font-bold transition ${isRight ? 'bg-fuchsia-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-fuchsia-600/70 hover:text-white'}`}
-                      >
-                        R
-                      </button>
-                    </div>
-
-                  </div>
+                    groupId={g.id!}
+                    groupName={g.name!}
+                    projectId={projectId}
+                    projectName={projectName}
+                    isFavorite={false}
+                    onToggleFavorite={() => toggleFavoriteLibrary(g.id!)}
+                    onSelect={(side) => selectGroup(g.id!, g.name!, side)}
+                    onExport={() => handleExport(g.id!, g.name!)}
+                    onClone={() => handleClone(g.id!, g.name!)}
+                    isLeft={isLeft}
+                    isRight={isRight}
+                  />
                 )
               })}
 
-              {!isLoading && filtered.length === 0 && (
+              {!isLoading && favLibraries.length === 0 && regularLibraries.length === 0 && (
                 <p className="px-2 py-1 text-xs text-slate-600">No groups found</p>
               )}
             </div>
@@ -123,8 +345,29 @@ function ProjectNode({ projectId, projectName }: { projectId: string; projectNam
   )
 }
 
+// --- Section header ---------------------------------------------------------
+
+function SectionHeader({ label }: { label: string }): React.JSX.Element {
+  return (
+    <div className="mb-1 mt-2 flex items-center gap-1.5 px-2">
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-600">
+        {label}
+      </span>
+      <div className="h-px flex-1 bg-slate-800" />
+    </div>
+  )
+}
+
+// --- Main Sidebar -----------------------------------------------------------
+
 export function Sidebar(): React.JSX.Element {
-  const { sidebarCollapsed, toggleSidebar } = useUIStore()
+  const {
+    sidebarCollapsed,
+    toggleSidebar,
+    favoriteProjectIds,
+    toggleFavoriteProject,
+    isFavoriteProject
+  } = useUIStore()
   const { logout } = useAuthStore()
   const [projectSearch, setProjectSearch] = useState('')
   const { data: projects, isLoading, isError } = useProjects()
@@ -135,14 +378,20 @@ export function Sidebar(): React.JSX.Element {
     toast.info('Logged out')
   }
 
-  const filtered = (projects ?? []).filter((p) =>
+  const all = projects ?? []
+  const filtered = all.filter((p) =>
     p.name!.toLowerCase().includes(projectSearch.toLowerCase())
   )
+  const favoriteProjects = filtered
+    .filter((p) => isFavoriteProject(p.id!))
+    .sort((a, b) => a.name!.localeCompare(b.name!))
+  const regularProjects = filtered
+    .filter((p) => !isFavoriteProject(p.id!))
+    .sort((a, b) => a.name!.localeCompare(b.name!))
+  const hasFavorites = favoriteProjectIds.length > 0 && favoriteProjects.length > 0
 
   return (
-    <div
-      className="flex h-full w-full flex-col bg-slate-900"
-    >
+    <div className="flex h-full w-full flex-col bg-slate-900">
       {/* Header */}
       <div className="flex h-10 items-center justify-between border-b border-slate-800 px-2">
         {!sidebarCollapsed && (
@@ -150,17 +399,18 @@ export function Sidebar(): React.JSX.Element {
             Projects
           </span>
         )}
-        <button
-          onClick={toggleSidebar}
-          className="ml-auto rounded p-1 text-slate-500 transition hover:bg-slate-700 hover:text-slate-300"
-          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {sidebarCollapsed ? (
-            <PanelLeftOpen className="h-4 w-4" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" />
-          )}
-        </button>
+        <Tooltip content={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} side="right">
+          <button
+            onClick={toggleSidebar}
+            className="ml-auto rounded p-1 text-slate-500 transition hover:bg-slate-700 hover:text-slate-300"
+          >
+            {sidebarCollapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
+          </button>
+        </Tooltip>
       </div>
 
       {!sidebarCollapsed && (
@@ -172,7 +422,7 @@ export function Sidebar(): React.JSX.Element {
               <input
                 value={projectSearch}
                 onChange={(e) => setProjectSearch(e.target.value)}
-                placeholder="Search projects…"
+                placeholder="Search projects..."
                 className="selectable w-full rounded-md border border-slate-700 bg-slate-800 py-1.5 pl-7 pr-2 text-xs text-slate-300 placeholder-slate-500 outline-none focus:border-blue-500"
               />
             </div>
@@ -183,7 +433,7 @@ export function Sidebar(): React.JSX.Element {
             {isLoading && (
               <div className="flex items-center gap-2 p-3 text-xs text-slate-500">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Loading projects…
+                Loading projects...
               </div>
             )}
             {isError && (
@@ -192,8 +442,33 @@ export function Sidebar(): React.JSX.Element {
                 Failed to load projects
               </div>
             )}
-            {filtered.map((p) => (
-              <ProjectNode key={p.id} projectId={p.id!} projectName={p.name!} />
+
+            {/* Favorites section */}
+            {hasFavorites && (
+              <>
+                <SectionHeader label="Favorites" />
+                {favoriteProjects.map((p) => (
+                  <ProjectNode
+                    key={p.id}
+                    projectId={p.id!}
+                    projectName={p.name!}
+                    isFavorite={true}
+                    onToggleFavorite={() => toggleFavoriteProject(p.id!)}
+                  />
+                ))}
+                <SectionHeader label="All Projects" />
+              </>
+            )}
+
+            {/* Regular projects */}
+            {regularProjects.map((p) => (
+              <ProjectNode
+                key={p.id}
+                projectId={p.id!}
+                projectName={p.name!}
+                isFavorite={false}
+                onToggleFavorite={() => toggleFavoriteProject(p.id!)}
+              />
             ))}
           </div>
 
@@ -201,7 +476,7 @@ export function Sidebar(): React.JSX.Element {
           <div className="border-t border-slate-800 p-2">
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-slate-500 transition hover:bg-slate-700/50 hover:text-red-400"
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-red-400 transition hover:bg-red-500/10 hover:text-red-300"
             >
               <LogOut className="h-3.5 w-3.5" />
               Disconnect

@@ -33,7 +33,7 @@ export function DiffStats({ stats, side }: Props): React.JSX.Element {
   const isLeft = side === 'left'
 
   return (
-    <div className={`flex items-center gap-1.5 ${isLeft ? '' : 'flex-row-reverse'}`}>
+    <div className={`flex items-center gap-1.5 ${isLeft ? 'flex-row-reverse' : ''}`}>
       <span
         className={`rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
           isLeft ? 'bg-blue-500/20 text-blue-400' : 'bg-fuchsia-500/20 text-fuchsia-400'

@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuthStore } from './store/authStore'
+import { useUIStore } from './store/uiStore'
 import { LoginScreen } from './components/auth/LoginScreen'
 import { ResizableLayout } from './components/layout/ResizableLayout'
 
 function App(): React.JSX.Element {
   const { isAuthenticated, setAuthenticated } = useAuthStore()
+  const { loadFavorites } = useUIStore()
 
   // Auto-load persisted credentials on startup
   useEffect(() => {
@@ -15,6 +17,15 @@ function App(): React.JSX.Element {
       }
     })
   }, [setAuthenticated])
+
+  // Hydrate favorites from electron-store
+  useEffect(() => {
+    window.api.loadFavorites().then((result) => {
+      if (result.ok) {
+        loadFavorites(result.favoriteProjectIds, result.favoriteLibraryIds)
+      }
+    })
+  }, [loadFavorites])
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-slate-950">

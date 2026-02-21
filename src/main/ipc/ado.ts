@@ -132,4 +132,38 @@ export function setupAdoHandlers(
       }
     }
   )
+
+  /** Clone a variable group under a new name */
+  ipcMain.handle(
+    'ado:clone-variable-group',
+    async (_event, projectId: string, groupId: number, newName: string) => {
+      try {
+        const connection = await getConnection(store, safeStorage)
+        const taskAgentApi = await connection.getTaskAgentApi()
+        const allGroups = await taskAgentApi.getVariableGroups(projectId, undefined, groupId)
+        const source = allGroups.find((g) => g.id === groupId)
+        if (!source) throw new Error('Source variable group not found')
+
+        const created = await taskAgentApi.addVariableGroup({
+            name: newName,
+            description: source.description ?? '',
+            type: source.type ?? 'Vsts',
+            variables: source.variables ?? {},
+            providerData: source.providerData
+          })
+        return {
+          ok: true,
+          data: {
+            id: created.id,
+            name: created.name,
+            description: created.description,
+            variableCount: Object.keys(created.variables ?? {}).length,
+            variables: created.variables
+          }
+        }
+      } catch (err) {
+        return { ok: false, error: String(err) }
+      }
+    }
+  )
 }

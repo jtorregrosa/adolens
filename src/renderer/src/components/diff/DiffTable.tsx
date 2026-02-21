@@ -14,6 +14,7 @@ import type { DiffVariableRow, AdoVariableGroup, PendingChange } from '../../typ
 import { useUIStore } from '../../store/uiStore'
 import { useUpdateVariableGroup } from '../../hooks/useADOApi'
 import { ReviewChangesModal } from '../modals/ReviewChangesModal'
+import { Tooltip } from '../ui/Tooltip'
 
 interface Props {
   side: 'left' | 'right'
@@ -43,7 +44,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   { side, rows, isLoading, otherGroup },
   ref
 ) {
-  const { searchQuery, leftPane, rightPane } = useUIStore()
+  const { searchQuery, leftPane, rightPane, upsertOwnEdit, removeOwnEdit, clearOwnEdits } = useUIStore()
   const [editingKey, setEditingKey] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([])
@@ -65,14 +66,20 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   const commitEdit = useCallback(
     (key: string, originalValue: string | undefined) => {
       if (editValue !== (originalValue ?? '')) {
+        const change: PendingChange = { key, side, originalValue, newValue: editValue }
         setPendingChanges((prev) => {
           const without = prev.filter((c) => !(c.key === key && c.side === side))
-          return [...without, { key, side, originalValue, newValue: editValue }]
+          return [...without, change]
         })
+        // Mirror to global store so PaneActionBar can observe unsaved state
+        upsertOwnEdit(side, change)
+      } else {
+        // Edit reverted to original — remove from store if present
+        removeOwnEdit(side, key)
       }
       setEditingKey(null)
     },
-    [editValue, side]
+    [editValue, side, upsertOwnEdit, removeOwnEdit]
   )
 
   const copyRowToOtherSide = useCallback(
@@ -139,7 +146,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
           >
             Review &amp; Commit
           </button>
-          <button onClick={() => setPendingChanges([])} className="text-amber-600 hover:text-amber-400">
+          <button onClick={() => { setPendingChanges([]); clearOwnEdits(side) }} className="text-amber-600 hover:text-amber-400">
             <X className="h-3.5 w-3.5" />
           </button>
         </motion.div>
@@ -174,8 +181,12 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
       )}
 
       {/* Table */}
-      <div ref={ref} className="flex-1 overflow-auto">
-        <table className="w-full border-collapse">
+      <div
+        ref={ref}
+        className="flex-1 overflow-auto"
+        style={side === 'left' ? { direction: 'rtl' } : undefined}
+      >
+        <table className="w-full border-collapse" style={{ direction: 'ltr' }}>
           <thead className="sticky top-0 z-10 bg-slate-900">
             <tr>
               {/* Right pane: action column is FIRST (left edge = near separator) */}
@@ -214,41 +225,51 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                     side === 'left' ? 'sticky right-0' : 'sticky left-0'
                   }`}
                 >
-                  <button
-                    onClick={showCopyButton ? () => copyRowToOtherSide(row.key, variable?.value) : undefined}
-                    title={showCopyButton ? `Copy to ${side === 'left' ? 'Right' : 'Left'}` : undefined}
-                    className={`rounded p-1 transition ${
-                      showCopyButton
-                        ? 'text-slate-500 hover:bg-slate-700 hover:text-slate-300'
-                        : 'invisible'
-                    }`}
-                  >
-                    {side === 'left' ? (
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    ) : (
-                      <ArrowLeft className="h-3.5 w-3.5" />
-                    )}
-                  </button>
+                  <div className="flex items-center justify-center">
+                  {showCopyButton ? (
+                    <Tooltip content={`Copy to ${side === 'left' ? 'Right' : 'Left'}`} side={side === 'left' ? 'right' : 'left'}>
+                      <button
+                        onClick={() => copyRowToOtherSide(row.key, variable?.value)}
+                        className="rounded p-1 text-slate-500 transition hover:bg-slate-700 hover:text-slate-300"
+                      >
+                        {side === 'left' ? (
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        ) : (
+                          <ArrowLeft className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </Tooltip>
+                  ) : (
+                    <button className="invisible rounded p-1">
+                      {side === 'left' ? (
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      ) : (
+                        <ArrowLeft className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  )}
+                  </div>
                 </td>
               )
 
               return (
                 <tr
                   key={`${row.key}-${idx}`}
-                  className={`border-b border-slate-800/50 ${rowClass(!variable ? 'ghost' : row.status)} group`}
+                  className={`border-b border-slate-800/50 ${rowClass(!variable ? 'ghost' : otherGroup ? row.status : 'identical')} group`}
                 >
                   {side === 'right' && actionCell}
 
                   {/* Key cell */}
                   <td className="w-5/12 max-w-0 overflow-hidden px-4 py-2">
-                    <span
-                      title={row.key}
-                      className={`mono selectable block truncate text-sm ${
-                        row.status === 'ghost' || !variable ? 'invisible' : 'text-slate-300'
-                      }`}
-                    >
-                      {row.key}
-                    </span>
+                    <Tooltip content={row.key} side="top" delayDuration={800}>
+                      <span
+                        className={`mono selectable block w-fit max-w-full truncate text-sm ${
+                          row.status === 'ghost' || !variable ? 'invisible' : 'text-slate-300'
+                        }`}
+                      >
+                        {row.key}
+                      </span>
+                    </Tooltip>
                   </td>
 
                   {/* Value cell */}
@@ -286,15 +307,16 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                         </button>
                       </div>
                     ) : (
-                      <span
-                        className={`mono selectable block cursor-text truncate rounded text-sm text-slate-300 ${
-                          pending || row.status === 'modified' ? 'diff-cell-modified' : ''
-                        }`}
-                        onDoubleClick={() => startEdit(row.key, displayValue)}
-                        title={displayValue ?? ''}
-                      >
-                        {displayValue ?? <span className="text-slate-600 italic">empty</span>}
-                      </span>
+                      <Tooltip content={displayValue ?? '(empty)'} side="top" delayDuration={800}>
+                        <span
+                          className={`mono selectable block w-fit max-w-full cursor-text truncate rounded text-sm text-slate-300 ${
+                            otherGroup && (pending || row.status === 'modified') ? 'diff-cell-modified' : ''
+                          }`}
+                          onDoubleClick={() => startEdit(row.key, displayValue)}
+                        >
+                          {displayValue ?? <span className="text-slate-600 italic">empty</span>}
+                        </span>
+                      </Tooltip>
                     )}
                   </td>
 
@@ -329,6 +351,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
               variables
             })
             setPendingChanges([])
+            clearOwnEdits(side)
             setShowReview(false)
           }}
           isPending={updateMutation.isPending}
