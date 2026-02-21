@@ -56,7 +56,7 @@ export const NewPropertyRow = forwardRef<HTMLTableRowElement, Props>(function Ne
 
   return (
     <tr ref={ref} className="diff-row-added border-b border-slate-800/50 group">
-      <td className="w-10 px-1 py-2 bg-slate-950 sticky left-0 align-middle">
+      <td className="w-10 px-1 py-2 sticky left-0 align-middle">
         <div className="flex min-h-6 items-center justify-center">
           {side === 'left' && (
             <button
@@ -157,7 +157,7 @@ export const NewPropertyRow = forwardRef<HTMLTableRowElement, Props>(function Ne
         </div>
       </td>
 
-      <td className="w-10 px-1 py-2 bg-slate-950 sticky right-0 align-middle">
+      <td className="w-10 px-1 py-2 sticky right-0 align-middle">
         <div className="flex min-h-6 items-center justify-center">
           {side === 'right' && (
             <button

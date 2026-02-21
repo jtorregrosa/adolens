@@ -70,7 +70,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   ref
 ) {
   const addedRowRef = useRef<HTMLTableRowElement | null>(null)
-  type FlashRowType = 'added' | 'deleted' | 'renamed' | 'modified'
+  type FlashRowType = 'added' | 'deleted' | 'renamed' | 'modified' | 'edited'
   const [flashRow, setFlashRow] = useState<{ key: string; type: FlashRowType } | null>(null)
   const { searchQuery, upsertOwnEdit, removeOwnEdit } = useUIStore()
   // Subscribe to own-side edits from Zustand so the notification bar count
@@ -185,9 +185,10 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   )
 
   const commitEdit = useCallback(
-    (key: string, originalValue: string | undefined) => {
+    (key: string, originalValue: string | undefined, variable?: { value?: string; isSecret?: boolean } | null) => {
       const existingEdit = ownEdits.find((e) => e.key === key)
       const existingRename = existingEdit?.newKey
+      const isSecret = existingEdit?.isSecret ?? variable?.isSecret ?? false
       if (editValue !== (originalValue ?? '') || existingRename) {
         const change: PendingChange = {
           key,
@@ -195,7 +196,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
           originalValue,
           newValue: editValue,
           ...(existingRename ? { newKey: existingRename } : {}),
-          ...(existingEdit?.isSecret !== undefined ? { isSecret: existingEdit.isSecret } : {})
+          ...(isSecret ? { isSecret: true } : existingEdit?.isSecret !== undefined ? { isSecret: existingEdit.isSecret } : {})
         }
         setPendingChanges((prev) => {
           const without = prev.filter((c) => !(c.key === key && c.side === side))
@@ -203,7 +204,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
         })
         // Mirror to global store so PaneActionBar can observe unsaved state
         upsertOwnEdit(side, change)
-        setFlashRow({ key, type: 'modified' })
+        setFlashRow({ key, type: 'edited' })
       } else {
         // Edit reverted to original — remove from store if present
         removeOwnEdit(side, key)
@@ -495,7 +496,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
               // Copy button — always near the separator
               const copyCell = (
                 <td
-                  className={`w-10 px-1 py-2 bg-slate-950 ${
+                  className={`w-10 px-1 py-2 ${
                     side === 'left' ? 'sticky right-0' : 'sticky left-0'
                   }`}
                 >
@@ -521,7 +522,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
               // Delete/restore/remove button — always on the outer edge (away from separator)
               const deleteCell = (
                 <td
-                  className={`w-10 px-1 py-2 bg-slate-950 ${
+                  className={`w-10 px-1 py-2 ${
                     side === 'left' ? 'sticky left-0' : 'sticky right-0'
                   }`}
                 >
@@ -559,6 +560,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                     ? row.status
                     : 'identical'
               const isAddedToThisLibrary = !!variable && !isDeleted && !cloudKeysForPaneSet.has(row.key)
+              const hasOwnValueEdit = ownEdits.some((e) => e.key === row.key) && !isKeyRenamed
               const rowHighlightClass = isDeleted
                 ? 'diff-row-deleted'
                 : isKeyRenamed
@@ -567,9 +569,11 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                     ? 'diff-row-added'
                     : effectiveStatus === 'ghost'
                       ? 'diff-row-ghost'
-                      : effectiveStatus === 'modified'
-                        ? 'diff-row-modified'
-                        : ''
+                      : hasOwnValueEdit
+                        ? 'diff-row-edited'
+                        : effectiveStatus === 'modified'
+                          ? 'diff-row-modified'
+                          : ''
 
               return (
                 <AppContextMenu key={`${row.key}-${idx}`} items={rowMenuItems}>
@@ -644,10 +648,15 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                         {variable.isSecret ? SECRET_PLACEHOLDER : (variable.value || <span className="text-slate-500 italic">empty</span>)}
                       </span>
                     ) : effectiveSecret ? (
-                      <div className="flex min-h-6 items-center gap-1.5 text-slate-500">
-                        <Lock className="h-3 w-3" />
-                        <span className="mono text-sm">{SECRET_PLACEHOLDER}</span>
-                      </div>
+                      <Tooltip content="Click to set or change secret value" side="top" delayDuration={800}>
+                        <div
+                          className="flex min-h-6 cursor-text items-center gap-1.5 rounded text-slate-500 hover:text-slate-400"
+                          onClick={() => startEdit(row.key, undefined)}
+                        >
+                          <Lock className="h-3 w-3 shrink-0" />
+                          <span className="mono text-sm">{SECRET_PLACEHOLDER}</span>
+                        </div>
+                      </Tooltip>
                     ) : isEditing ? (
                       <div className="flex items-center gap-1">
                         <input

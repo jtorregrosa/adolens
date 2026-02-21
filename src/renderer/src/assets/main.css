@@ -18,6 +18,23 @@ body,
   -webkit-user-select: none;
 }
 
+/* Animated icons — hover scale app-wide, pulse on “Add variable” */
+@keyframes icon-pulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.1); }
+}
+button svg,
+[role="button"] svg {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+button:hover:not(:disabled) svg,
+[role="button"]:hover:not([aria-disabled="true"]) svg {
+  transform: scale(1.15);
+}
+.diff-table tr.group\/add svg {
+  animation: icon-pulse 2.2s ease-in-out infinite;
+}
+
 /* Marquee scroll for overflowing sidebar text — plays on parent hover */
 @keyframes marquee-scroll {
   0%, 15%   { transform: translateX(0); }
@@ -84,14 +101,43 @@ button:hover .marquee-text,
 .diff-row-identical {
   opacity: 0.6;
 }
+/* Other side has same key but different value (no local edit) — border on cells so it isn't clipped by overflow */
 .diff-row-modified {
+  background-color: rgba(236, 72, 153, 0.12);
+}
+.diff-table tr.diff-row-modified > td:first-child {
+  border-left: 4px solid rgba(236, 72, 153, 0.8);
+}
+.diff-table tr.diff-row-modified > td:last-child {
+  border-right: 4px solid rgba(236, 72, 153, 0.8);
+}
+/* User manually edited this variable (value or key) on this pane */
+.diff-row-edited {
   background-color: rgba(234, 179, 8, 0.2);
+}
+.diff-table tr.diff-row-edited > td:first-child {
+  border-left: 4px solid rgba(234, 179, 8, 0.8);
+}
+.diff-table tr.diff-row-edited > td:last-child {
+  border-right: 4px solid rgba(234, 179, 8, 0.8);
 }
 .diff-row-renamed {
   background-color: rgba(59, 130, 246, 0.2);
 }
+.diff-table tr.diff-row-renamed > td:first-child {
+  border-left: 4px solid rgba(59, 130, 246, 0.8);
+}
+.diff-table tr.diff-row-renamed > td:last-child {
+  border-right: 4px solid rgba(59, 130, 246, 0.8);
+}
 .diff-row-added {
   background-color: rgba(34, 197, 94, 0.18);
+}
+.diff-table tr.diff-row-added > td:first-child {
+  border-left: 4px solid rgba(34, 197, 94, 0.8);
+}
+.diff-table tr.diff-row-added > td:last-child {
+  border-right: 4px solid rgba(34, 197, 94, 0.8);
 }
 
 /* Flash animations per row type — bright pulse then back to expected background */
@@ -108,6 +154,10 @@ button:hover .marquee-text,
   100% { background-color: rgba(59, 130, 246, 0.2); }
 }
 @keyframes diff-row-flash-modified {
+  0% { background-color: rgba(236, 72, 153, 0.25); }
+  100% { background-color: transparent; }
+}
+@keyframes diff-row-flash-edited {
   0% { background-color: rgba(234, 179, 8, 0.45); }
   100% { background-color: rgba(234, 179, 8, 0.2); }
 }
@@ -115,10 +165,17 @@ button:hover .marquee-text,
 .diff-row-flash-deleted  { animation: diff-row-flash-deleted 1.2s ease-out forwards; }
 .diff-row-flash-renamed  { animation: diff-row-flash-renamed 1.2s ease-out forwards; }
 .diff-row-flash-modified { animation: diff-row-flash-modified 1.2s ease-out forwards; }
+.diff-row-flash-edited   { animation: diff-row-flash-edited 1.2s ease-out forwards; }
 .diff-row-removed {
 }
 .diff-row-deleted {
   background-color: rgba(239, 68, 68, 0.22);
+}
+.diff-table tr.diff-row-deleted > td:first-child {
+  border-left: 4px solid rgba(239, 68, 68, 0.8);
+}
+.diff-table tr.diff-row-deleted > td:last-child {
+  border-right: 4px solid rgba(239, 68, 68, 0.8);
 }
 .diff-row-ghost {
   opacity: 0.4;

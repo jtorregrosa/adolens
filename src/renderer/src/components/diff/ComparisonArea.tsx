@@ -262,7 +262,6 @@ export function ComparisonArea(): React.JSX.Element {
             </Tooltip>
           )}
         </div>
-
       </div>
 
       {/* Split view */}

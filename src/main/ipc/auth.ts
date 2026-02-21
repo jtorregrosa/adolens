@@ -56,4 +56,5 @@ export function setupAuthHandlers(
     store.delete('encryptedPat')
     return { ok: true }
   })
-}
+
+  }
