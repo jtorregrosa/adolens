@@ -48,7 +48,7 @@ export function DiffStats({ stats, side }: Props): React.JSX.Element {
       <Chip
         count={isLeft ? stats.removed : stats.added}
         label="only here"
-        color={isLeft ? 'bg-red-500/20 text-red-400' : 'bg-fuchsia-500/20 text-fuchsia-400'}
+        color={isLeft ? 'bg-blue-500/20 text-blue-400' : 'bg-fuchsia-500/20 text-fuchsia-400'}
       />
       <Chip count={stats.modified} label="modified" color="bg-amber-500/20 text-amber-400" />
       <Chip count={stats.identical} label="identical" color="bg-slate-700 text-slate-400" />

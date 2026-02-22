@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronRight,
@@ -92,9 +92,11 @@ function LibraryRow({
     <AppContextMenu items={libraryMenuItems}>
       <div className="group flex items-center gap-1 rounded-md px-2 py-1 text-xs text-slate-400 transition hover:bg-slate-700/50">
         <Layers className="h-3 w-3 shrink-0 text-slate-500" />
-        <div className="marquee-wrap flex-1">
-          <span className="marquee-text">{groupName}</span>
-        </div>
+        <Tooltip content={groupName} side="top">
+          <div className="min-w-0 flex-1 truncate">
+            <span className="block truncate">{groupName}</span>
+          </div>
+        </Tooltip>
 
         {/* Inline actions: shown on hover, star always visible when favourited */}
         <div className="flex shrink-0 items-center gap-1">
@@ -217,9 +219,11 @@ function ProjectNode({
             <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-500" />
           )}
           <FolderOpen className="h-3.5 w-3.5 shrink-0 text-blue-400" />
-          <div className="marquee-wrap flex-1">
-            <span className="marquee-text font-medium">{projectName}</span>
-          </div>
+          <Tooltip content={projectName} side="top">
+            <div className="min-w-0 flex-1 truncate">
+              <span className="block truncate font-medium">{projectName}</span>
+            </div>
+          </Tooltip>
           <Tooltip content={isFavorite ? 'Remove from favorites' : 'Add to favorites'} side="right">
             <button
               onClick={(e) => {
@@ -288,17 +292,58 @@ function ProjectNode({
               {hasLibFavorites && (
                 <>
                   <SectionHeader label="Favorites" />
-                  {favLibraries.map((g) => {
-                    const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
-                    const isRight = rightPane.groupId === g.id && rightPane.projectId === projectId
-                    return (
+                  <AnimatePresence>
+                    {favLibraries.map((g) => {
+                      const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
+                      const isRight = rightPane.groupId === g.id && rightPane.projectId === projectId
+                      return (
+                        <motion.div
+                          key={g.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <LibraryRow
+                            groupId={g.id!}
+                            groupName={g.name!}
+                            projectId={projectId}
+                            projectName={projectName}
+                            isFavorite={true}
+                            onToggleFavorite={() => toggleFavoriteLibrary(g.id!)}
+                            onSelect={(side) => selectGroup(g.id!, g.name!, side)}
+                            onExport={() => handleExport(g.id!, g.name!)}
+                            onClone={() => handleClone(g.id!, g.name!)}
+                            isLeft={isLeft}
+                            isRight={isRight}
+                          />
+                        </motion.div>
+                      )
+                    })}
+                  </AnimatePresence>
+                  <SectionHeader label="All Libraries" />
+                </>
+              )}
+
+              {/* Regular libraries */}
+              <AnimatePresence>
+                {regularLibraries.map((g) => {
+                  const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
+                  const isRight = rightPane.groupId === g.id && rightPane.projectId === projectId
+                  return (
+                    <motion.div
+                      key={g.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
                       <LibraryRow
-                        key={g.id}
                         groupId={g.id!}
                         groupName={g.name!}
                         projectId={projectId}
                         projectName={projectName}
-                        isFavorite={true}
+                        isFavorite={false}
                         onToggleFavorite={() => toggleFavoriteLibrary(g.id!)}
                         onSelect={(side) => selectGroup(g.id!, g.name!, side)}
                         onExport={() => handleExport(g.id!, g.name!)}
@@ -306,33 +351,10 @@ function ProjectNode({
                         isLeft={isLeft}
                         isRight={isRight}
                       />
-                    )
-                  })}
-                  <SectionHeader label="All Libraries" />
-                </>
-              )}
-
-              {/* Regular libraries */}
-              {regularLibraries.map((g) => {
-                const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
-                const isRight = rightPane.groupId === g.id && rightPane.projectId === projectId
-                return (
-                  <LibraryRow
-                    key={g.id}
-                    groupId={g.id!}
-                    groupName={g.name!}
-                    projectId={projectId}
-                    projectName={projectName}
-                    isFavorite={false}
-                    onToggleFavorite={() => toggleFavoriteLibrary(g.id!)}
-                    onSelect={(side) => selectGroup(g.id!, g.name!, side)}
-                    onExport={() => handleExport(g.id!, g.name!)}
-                    onClone={() => handleClone(g.id!, g.name!)}
-                    isLeft={isLeft}
-                    isRight={isRight}
-                  />
-                )
-              })}
+                    </motion.div>
+                  )
+                })}
+              </AnimatePresence>
 
               {!isLoading && favLibraries.length === 0 && regularLibraries.length === 0 && (
                 <p className="px-2 py-1 text-xs text-slate-600">No groups found</p>
@@ -370,7 +392,30 @@ export function Sidebar(): React.JSX.Element {
   } = useUIStore()
   const { logout } = useAuthStore()
   const [projectSearch, setProjectSearch] = useState('')
+  const [scrollShadeTop, setScrollShadeTop] = useState(false)
+  const [scrollShadeBottom, setScrollShadeBottom] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const { data: projects, isLoading, isError } = useProjects()
+
+  const updateScrollShades = (): void => {
+    const el = scrollRef.current
+    if (!el) return
+    setScrollShadeTop(el.scrollTop > 0)
+    setScrollShadeBottom(el.scrollTop + el.clientHeight < el.scrollHeight - 1)
+  }
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    updateScrollShades()
+    el.addEventListener('scroll', updateScrollShades)
+    const ro = new ResizeObserver(updateScrollShades)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener('scroll', updateScrollShades)
+      ro.disconnect()
+    }
+  }, [sidebarCollapsed, projects, projectSearch])
 
   const handleLogout = async (): Promise<void> => {
     await window.api.clearCredentials()
@@ -428,8 +473,32 @@ export function Sidebar(): React.JSX.Element {
             </div>
           </div>
 
-          {/* Project list */}
-          <div className="flex-1 overflow-y-auto px-1 pb-2">
+          {/* Project list with top/bottom scroll shades */}
+          <div className="relative flex-1 min-h-0">
+            {/* Top scroll shade */}
+            <div
+              aria-hidden
+              className={`pointer-events-none absolute left-0 right-0 top-0 z-10 h-6 transition-opacity duration-200 ${
+                scrollShadeTop ? 'opacity-100' : 'opacity-0'
+              }`}
+              style={{
+                background: 'linear-gradient(to bottom, var(--sidebar-bg, rgb(15 23 42)) 0%, transparent 100%)'
+              }}
+            />
+            {/* Bottom scroll shade */}
+            <div
+              aria-hidden
+              className={`pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-6 transition-opacity duration-200 ${
+                scrollShadeBottom ? 'opacity-100' : 'opacity-0'
+              }`}
+              style={{
+                background: 'linear-gradient(to top, var(--sidebar-bg, rgb(15 23 42)) 0%, transparent 100%)'
+              }}
+            />
+            <div
+              ref={scrollRef}
+              className="scrollbar-hide h-full overflow-y-auto px-1 pb-2"
+            >
             {isLoading && (
               <div className="flex items-center gap-2 p-3 text-xs text-slate-500">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -447,29 +516,48 @@ export function Sidebar(): React.JSX.Element {
             {hasFavorites && (
               <>
                 <SectionHeader label="Favorites" />
-                {favoriteProjects.map((p) => (
-                  <ProjectNode
-                    key={p.id}
-                    projectId={p.id!}
-                    projectName={p.name!}
-                    isFavorite={true}
-                    onToggleFavorite={() => toggleFavoriteProject(p.id!)}
-                  />
-                ))}
+                <AnimatePresence>
+                  {favoriteProjects.map((p) => (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ProjectNode
+                        projectId={p.id!}
+                        projectName={p.name!}
+                        isFavorite={true}
+                        onToggleFavorite={() => toggleFavoriteProject(p.id!)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
                 <SectionHeader label="All Projects" />
               </>
             )}
 
             {/* Regular projects */}
-            {regularProjects.map((p) => (
-              <ProjectNode
-                key={p.id}
-                projectId={p.id!}
-                projectName={p.name!}
-                isFavorite={false}
-                onToggleFavorite={() => toggleFavoriteProject(p.id!)}
-              />
-            ))}
+            <AnimatePresence>
+              {regularProjects.map((p) => (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ProjectNode
+                    projectId={p.id!}
+                    projectName={p.name!}
+                    isFavorite={false}
+                    onToggleFavorite={() => toggleFavoriteProject(p.id!)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            </div>
           </div>
 
           {/* Footer */}

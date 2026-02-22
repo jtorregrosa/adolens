@@ -13,11 +13,18 @@ asarUnpack:
   - resources/**
 win:
   executableName: ADOLens
+portable:
+  artifactName: ${name}-${version}-portable.${ext}
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  allowElevation: true
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  installerLanguages:
+    - en-US
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:

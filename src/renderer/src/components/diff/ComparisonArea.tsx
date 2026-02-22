@@ -264,11 +264,12 @@ export function ComparisonArea(): React.JSX.Element {
         </div>
       </div>
 
-      {/* Split view */}
-      <PanelGroup orientation="horizontal" className="min-h-0 flex-1">
+      {/* Split view — 400px min width per panel; horizontal scroll when narrow */}
+      <div className="min-h-0 flex-1 overflow-x-auto">
+        <PanelGroup orientation="horizontal" className="min-h-0 h-full min-w-[800px]">
         {/* Left / Source */}
-        <Panel defaultSize={50} minSize={30} id="left-pane">
-          <div className="flex h-full flex-col border-r border-slate-800">
+        <Panel defaultSize={50} minSize={25} id="left-pane" style={{ minWidth: 400 }}>
+          <div className="flex h-full min-w-[400px] flex-col border-r border-slate-800">
             <PaneHeader
               side="left"
               projectName={leftPane.projectName}
@@ -322,8 +323,9 @@ export function ComparisonArea(): React.JSX.Element {
         </PanelResizeHandle>
 
         {/* Right / Target */}
-        <Panel defaultSize={50} minSize={30} id="right-pane">
-          <div className="flex h-full flex-col">
+        {/* Right / Target */}
+        <Panel defaultSize={50} minSize={25} id="right-pane" style={{ minWidth: 400 }}>
+          <div className="flex h-full min-w-[400px] flex-col">
             <PaneHeader
               side="right"
               projectName={rightPane.projectName}
@@ -371,7 +373,8 @@ export function ComparisonArea(): React.JSX.Element {
             )}
           </div>
         </Panel>
-      </PanelGroup>
+        </PanelGroup>
+      </div>
 
       {/* ── Push Review Modals ─────────────────────────────────────────────── */}
       {reviewSide === 'left' && (

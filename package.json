@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Azure DevOps Variable Group Comparison Tool",
   "main": "./out/main/index.js",
-  "author": "ADO Lens",
+  "author": "Jorge Torregrosa Lloret",
   "homepage": "https://github.com/ado-lens/ado-lens",
   "scripts": {
     "format": "prettier --write .",
@@ -18,12 +18,23 @@
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
+    "build:win:portable": "npm run build && electron-builder --win portable",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux"
   },
   "build": {
     "directories": {
       "buildResources": "resources"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerLanguages": ["en-US"],
+      "shortcutName": "ADOLens",
+      "uninstallDisplayName": "ADOLens",
+      "artifactName": "ADOLens-${version}-setup.${ext}"
     }
   },
   "dependencies": {

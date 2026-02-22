@@ -588,10 +588,10 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                   {/* Key cell — min-h-6 keeps row height consistent with value cell */}
                   <td className="w-5/12 max-w-0 overflow-hidden px-4 py-2 align-middle">
                     {row.status === 'ghost' || !variable ? (
-                      <span className="mono block min-h-6 truncate text-sm invisible">&nbsp;</span>
+                      <span className="mono block min-h-6 truncate py-0.5 text-sm invisible">&nbsp;</span>
                     ) : isDeleted ? (
                       <Tooltip content={row.key} side="top" delayDuration={800}>
-                        <span className="mono selectable block min-h-6 w-fit max-w-full truncate text-sm text-slate-400 line-through">
+                        <span className="mono selectable block min-h-6 w-fit max-w-full truncate py-0.5 text-sm text-slate-400 line-through">
                           {row.key}
                         </span>
                       </Tooltip>
@@ -628,7 +628,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                     ) : (
                       <Tooltip content={isKeyRenamed ? `${row.key} → ${displayKey}` : displayKey} side="top" delayDuration={800}>
                         <span
-                          className={`mono selectable block min-h-6 w-fit max-w-full cursor-text truncate rounded text-sm text-slate-300 ${
+                          className={`mono selectable block min-h-6 w-fit max-w-full cursor-text truncate rounded py-0.5 text-sm text-slate-300 ${
                             isKeyRenamed ? 'font-bold' : ''
                           }`}
                           onClick={() => !isDeleted && startKeyEdit(row.key)}
@@ -642,9 +642,9 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                   {/* Value cell — min-h-6 keeps row height consistent */}
                   <td className="max-w-0 overflow-hidden px-4 py-2 align-middle">
                     {row.status === 'ghost' || !variable ? (
-                      <span className="mono block min-h-6 truncate text-sm invisible">&nbsp;</span>
+                      <span className="mono block min-h-6 truncate py-0.5 text-sm invisible">&nbsp;</span>
                     ) : isDeleted ? (
-                      <span className="mono block min-h-6 truncate text-sm text-slate-400 line-through">
+                      <span className="mono block min-h-6 truncate py-0.5 text-sm text-slate-400 line-through">
                         {variable.isSecret ? SECRET_PLACEHOLDER : (variable.value || <span className="text-slate-500 italic">empty</span>)}
                       </span>
                     ) : effectiveSecret ? (

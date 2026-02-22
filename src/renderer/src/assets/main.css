@@ -97,6 +97,15 @@ button:hover .marquee-text,
   background: #475569;
 }
 
+/* Hide scrollbar while keeping scroll (e.g. sidebar) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Row diff highlights — green only for added (from other side or new variable) */
 .diff-row-identical {
   opacity: 0.6;
