@@ -3,7 +3,7 @@ mod commands;
 use azure_devops_rust_api::{core, distributed_task, Credential};
 use commands::{
     ado::{clone_variable_group, get_projects, get_variable_group, get_variable_groups, update_variable_group},
-    auth::{clear_credentials, get_user_profile, load_credentials, save_credentials},
+    auth::{clear_credentials, get_user_profile, load_credentials, save_credentials, set_request_timeout},
     preferences::{load_favorites, save_favorites},
 };
 use std::sync::{Arc, Mutex};
@@ -33,6 +33,10 @@ pub struct CachedAdoClients {
 }
 
 pub struct ClientState(pub Mutex<Option<Arc<CachedAdoClients>>>);
+
+// ─── Timeout state (seconds to wait on HTTP calls) ───────────────────────────
+
+pub struct AppTimeoutState(pub Mutex<u64>);
 
 impl ClientState {
     pub fn get(&self) -> Result<Arc<CachedAdoClients>, String> {
@@ -81,6 +85,7 @@ pub fn run() {
     tauri::Builder::default()
         .manage(CredentialsState(Mutex::new(None)))
         .manage(ClientState(Mutex::new(None)))
+        .manage(AppTimeoutState(Mutex::new(15)))
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
@@ -95,6 +100,7 @@ pub fn run() {
             clone_variable_group,
             load_favorites,
             save_favorites,
+            set_request_timeout,
         ])
         .run(tauri::generate_context!())
         .expect("error while running ADOLens");

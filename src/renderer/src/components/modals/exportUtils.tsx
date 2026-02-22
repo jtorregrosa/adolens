@@ -21,12 +21,13 @@ export const FORMAT_OPTIONS: FormatOption[] = [
 
 const SECRET_MASK = '***'
 
-/** Serialize all variables; secrets appear with *** as their value. */
+/** Serialize variables. When `includeSecrets` is false, secret entries are omitted entirely. */
 export function serializeVariables(
   variables: Record<string, AdoVariable>,
-  format: ExportFormat
+  format: ExportFormat,
+  includeSecrets = true
 ): string {
-  const entries = Object.entries(variables)
+  const entries = Object.entries(variables).filter(([, v]) => includeSecrets || !v.isSecret)
   const val = (v: AdoVariable): string => (v.isSecret ? SECRET_MASK : (v.value ?? ''))
 
   switch (format) {

@@ -14,6 +14,7 @@
     "rememberToken": "Recorda el token entre sessions",
     "patStored": "El teu PAT s'emmagatzema de forma segura al clauer del sistema operatiu",
     "patStoredSession": "El teu PAT només s'emmagatzema durant aquesta sessió",
+    "recentOrgs": "Organitzacions recents",
     "toast": {
       "missingFields": "Si us plau, omple tots els camps",
       "success": "Connexió correcta",
@@ -78,7 +79,12 @@
     "noVariables": "No hi ha variables per mostrar",
     "addVariable": "Afegir variable",
     "empty": "buit",
-    "clickToSetSecret": "Fes clic per establir o canviar el valor del secret"
+    "clickToSetSecret": "Fes clic per establir o canviar el valor del secret",
+    "confirmDiscard": "Descartar tots els canvis locals?",
+    "confirmDiscardDescription": "Això eliminarà permanentment totes les edicions, addicions i eliminacions no desades d'aquest panell.",
+    "confirmDiscardYes": "Sí, descarta",
+    "confirmDiscardCancel": "Cancel·lar",
+    "warnSecretOverwrite": "\"{{key}}\" és secret al panell destí — el valor estarà buit"
   },
   "pane": {
     "left": "Esquerre",
@@ -111,6 +117,7 @@
     "unload": "Descarregar",
     "unloadTooltip": "Descarregar ambdós panells",
     "avatarAlt": "Avatar de l'usuari",
+    "organization": "Organització",
     "importedVariables": "{{count}} variable(s) importada(es) — revisa i publica quan estiguis a punt"
   },
   "appMenu": {
@@ -121,16 +128,43 @@
     "title": "Configuració",
     "sections": {
       "appearance": "Aparença",
-      "general": "General"
+      "behavior": "Comportament",
+      "exportImport": "Exportar / Importar",
+      "connection": "Connexió"
     },
     "appearance": {
       "language": "Idioma",
       "languageDescription": "Tria l'idioma de visualització de l'aplicació",
-      "english": "English",
-      "spanish": "Español"
+      "paneSplit": "Disposició de panells predeterminada",
+      "paneSplitDescription": "Proporció inicial en carregar dos grups",
+      "split5050": "50 / 50",
+      "split6040": "60 / 40",
+      "split4060": "40 / 60",
+      "compactMode": "Mode compacte",
+      "compactModeDescription": "Redueix l'alçada de les files per a major densitat de variables"
     },
-    "general": {
-      "comingSoon": "Més configuració properament."
+    "behavior": {
+      "confirmBeforeDiscard": "Confirmar abans de descartar",
+      "confirmBeforeDiscardDescription": "Mostra un avís abans de descartar tots els canvis locals",
+      "syncScroll": "Desplaçament sincronitzat",
+      "syncScrollDescription": "Ambdós panells es desplacen junts en carregar un grup",
+      "warnOnSecretOverwrite": "Avisar en sobreescriure secrets",
+      "warnOnSecretOverwriteDescription": "Mostra un avís en sincronitzar una clau marcada com a secret al panell destí"
+    },
+    "exportImport": {
+      "defaultFormat": "Format d'exportació predeterminat",
+      "defaultFormatDescription": "Format preseleccionat en obrir el modal d'exportació",
+      "includeSecrets": "Incloure secrets a l'exportació",
+      "includeSecretsDescription": "Mostra *** com a marcador per als secrets; desactiva per ometre'ls completament"
+    },
+    "connection": {
+      "requestTimeout": "Temps d'espera",
+      "requestTimeoutDescription": "Temps màxim per esperar respostes de l'API d'Azure DevOps",
+      "seconds": "s",
+      "orgUrlHistory": "Historial d'URLs d'organització",
+      "orgUrlHistoryDescription": "Les URLs usades anteriorment apareixen com a suggeriments a la pantalla d'inici",
+      "clearHistory": "Esborrar historial",
+      "noHistory": "No hi ha URLs desades encara"
     }
   },
   "modals": {

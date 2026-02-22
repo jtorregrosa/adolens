@@ -2,15 +2,20 @@ import {
   ArrowLeftRight,
   GripVertical,
   Info,
-  Merge,
   MoreHorizontal,
   RefreshCw,
   Settings,
+  Trash2,
   Unplug
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels'
+import {
+  Panel,
+  Group as PanelGroup,
+  Separator as PanelResizeHandle,
+  useGroupRef
+} from 'react-resizable-panels'
 import { toast } from 'sonner'
 import { useUpdateVariableGroup, useVariableGroup } from '../../hooks/useADOApi'
 import { useSyncScroll } from '../../hooks/useSyncScroll'
@@ -18,6 +23,7 @@ import { useVariableBuffer } from '../../hooks/useVariableBuffer'
 import { useVariableDiff } from '../../hooks/useVariableDiff'
 import type { UserProfile } from '../../lib/api'
 import { useAuthStore } from '../../store/authStore'
+import { useSettingsStore } from '../../store/settingsStore'
 import { useUIStore } from '../../store/uiStore'
 import type { AdoVariable } from '../../types'
 import { PushReviewModal } from '../modals/PushReviewModal'
@@ -106,7 +112,7 @@ function ProfileAvatar({ profile }: { profile: UserProfile }): React.JSX.Element
           {/* Org row */}
           <div className="px-4 py-3">
             <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
-              {t('sidebar.projects')}
+              {t('toolbar.organization')}
             </span>
             <p className="mt-0.5 truncate text-sm text-slate-300">{profile.orgName}</p>
           </div>
@@ -148,10 +154,39 @@ export function ComparisonArea(): React.JSX.Element {
   const rightDeletedKeys = useUIStore((s) => s.rightDeletedKeys)
 
   const { t } = useTranslation()
+  const {
+    confirmBeforeDiscard,
+    syncScrollEnabled,
+    compactMode,
+    warnOnSecretOverwrite,
+    defaultPaneSplit
+  } = useSettingsStore()
+
+  // Initialize sync scroll from persisted setting on first mount.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally runs once on mount
+  useEffect(() => {
+    setSyncScroll(syncScrollEnabled)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Derive Panel sizes from the pane-split setting.
+  const leftDefaultSize = defaultPaneSplit === '60/40' ? 60 : defaultPaneSplit === '40/60' ? 40 : 50
+  const rightDefaultSize = 100 - leftDefaultSize
+
+  // Imperative ref so we can call setLayout when the split setting changes.
+  // v4 API: setLayout takes a { [panelId]: percentage } map.
+  const panelGroupRef = useGroupRef()
+  useEffect(() => {
+    panelGroupRef.current?.setLayout({
+      'left-pane': leftDefaultSize,
+      'right-pane': rightDefaultSize
+    })
+  }, [leftDefaultSize, rightDefaultSize, panelGroupRef])
 
   // Which pane's review modal is currently open (null = closed)
   const [reviewSide, setReviewSide] = useState<'left' | 'right' | null>(null)
   const [showSettings, setShowSettings] = useState(false)
+  // When confirmBeforeDiscard is on, holds the pending discard side until confirmed.
+  const [discardConfirmSide, setDiscardConfirmSide] = useState<'left' | 'right' | null>(null)
 
   // Increment to signal DiffTable to clear its local pendingChanges state.
   const [leftClearToken, setLeftClearToken] = useState(0)
@@ -171,6 +206,14 @@ export function ComparisonArea(): React.JSX.Element {
   }, [scrollToAddedKeyLeft, scrollToAddedKeyRight])
 
   function discardSide(side: 'left' | 'right'): void {
+    if (confirmBeforeDiscard) {
+      setDiscardConfirmSide(side)
+      return
+    }
+    executeDiscard(side)
+  }
+
+  function executeDiscard(side: 'left' | 'right'): void {
     clearOwnEdits(side)
     clearAddedVars(side)
     clearDeletedKeys(side)
@@ -329,24 +372,6 @@ export function ComparisonArea(): React.JSX.Element {
           className="flex items-center gap-2"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
-          {/* Sync scroll toggle */}
-          <Tooltip
-            content={syncScroll ? t('toolbar.disableSyncScroll') : t('toolbar.enableSyncScroll')}
-            side="bottom"
-          >
-            <button
-              onClick={() => setSyncScroll(!syncScroll)}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                syncScroll
-                  ? 'bg-blue-600/20 text-blue-400 ring-1 ring-blue-500/30'
-                  : 'text-slate-500 hover:bg-slate-800 hover:text-slate-300'
-              }`}
-            >
-              <Merge className="h-3.5 w-3.5" />
-              {t('toolbar.syncScroll')}
-            </button>
-          </Tooltip>
-
           {/* Swap panes */}
           <Tooltip content={t('toolbar.swapTooltip')} side="bottom">
             <button
@@ -427,11 +452,20 @@ export function ComparisonArea(): React.JSX.Element {
         </div>
       </div>
 
-      {/* Split view — 400px min width per panel; horizontal scroll when narrow */}
+      {/* Split view — 450px min width per panel; horizontal scroll when narrow */}
       <div className="min-h-0 flex-1 overflow-x-auto">
-        <PanelGroup orientation="horizontal" className="min-h-0 h-full min-w-[800px]">
+        <PanelGroup
+          groupRef={panelGroupRef}
+          orientation="horizontal"
+          className="min-h-0 h-full min-w-[800px]"
+        >
           {/* Left / Source */}
-          <Panel defaultSize={50} minSize={25} id="left-pane" style={{ minWidth: 400 }}>
+          <Panel
+            defaultSize={leftDefaultSize}
+            minSize={450}
+            id="left-pane"
+            style={{ minWidth: 450 }}
+          >
             <div className="flex h-full min-w-[400px] flex-col border-r border-slate-800">
               <PaneHeader
                 side="left"
@@ -461,6 +495,8 @@ export function ComparisonArea(): React.JSX.Element {
                   onDiscard={() => discardSide('left')}
                   peerHasChanges={rightPendingCount > 0}
                   cloudKeysForPane={leftGroup?.variables ? Object.keys(leftGroup.variables) : []}
+                  compact={compactMode}
+                  warnOnSecretOverwrite={warnOnSecretOverwrite}
                 />
               ) : (
                 <EmptyPane label="Left" />
@@ -488,8 +524,12 @@ export function ComparisonArea(): React.JSX.Element {
           </PanelResizeHandle>
 
           {/* Right / Target */}
-          {/* Right / Target */}
-          <Panel defaultSize={50} minSize={25} id="right-pane" style={{ minWidth: 400 }}>
+          <Panel
+            defaultSize={rightDefaultSize}
+            minSize={450}
+            id="right-pane"
+            style={{ minWidth: 450 }}
+          >
             <div className="flex h-full min-w-[400px] flex-col">
               <PaneHeader
                 side="right"
@@ -519,6 +559,8 @@ export function ComparisonArea(): React.JSX.Element {
                   onDiscard={() => discardSide('right')}
                   peerHasChanges={leftPendingCount > 0}
                   cloudKeysForPane={rightGroup?.variables ? Object.keys(rightGroup.variables) : []}
+                  compact={compactMode}
+                  warnOnSecretOverwrite={warnOnSecretOverwrite}
                 />
               ) : (
                 <EmptyPane label="Right" />
@@ -546,6 +588,36 @@ export function ComparisonArea(): React.JSX.Element {
       {/* ── Settings Modal ─────────────────────────────────────────────────── */}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
 
+      {/* ── Confirm Discard Dialog ─────────────────────────────────────────── */}
+      {discardConfirmSide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-slate-900 p-6 ring-1 ring-slate-700/50 shadow-2xl">
+            <div className="mb-1 flex items-center gap-2.5">
+              <Trash2 className="h-5 w-5 shrink-0 text-red-400" />
+              <h3 className="text-base font-semibold text-white">{t('diff.confirmDiscard')}</h3>
+            </div>
+            <p className="mt-1 text-sm text-slate-400">{t('diff.confirmDiscardDescription')}</p>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                onClick={() => setDiscardConfirmSide(null)}
+                className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-400 transition hover:border-slate-600 hover:text-slate-300"
+              >
+                {t('diff.confirmDiscardCancel')}
+              </button>
+              <button
+                onClick={() => {
+                  executeDiscard(discardConfirmSide)
+                  setDiscardConfirmSide(null)
+                }}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500"
+              >
+                {t('diff.confirmDiscardYes')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Push Review Modals ─────────────────────────────────────────────── */}
       {reviewSide === 'left' && (
         <PushReviewModal
@@ -554,7 +626,7 @@ export function ComparisonArea(): React.JSX.Element {
           draftChanges={leftBuffer.draftChanges}
           mergedVariables={leftBuffer.mergedVariables}
           onClose={() => setReviewSide(null)}
-          onDiscardAll={() => discardSide('left')}
+          onDiscardAll={() => executeDiscard('left')}
           onConfirmPush={(vars) => executePush('left', vars)}
         />
       )}
@@ -565,7 +637,7 @@ export function ComparisonArea(): React.JSX.Element {
           draftChanges={rightBuffer.draftChanges}
           mergedVariables={rightBuffer.mergedVariables}
           onClose={() => setReviewSide(null)}
-          onDiscardAll={() => discardSide('right')}
+          onDiscardAll={() => executeDiscard('right')}
           onConfirmPush={(vars) => executePush('right', vars)}
         />
       )}

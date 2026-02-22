@@ -14,6 +14,7 @@
     "rememberToken": "Ricorda il token tra le sessioni",
     "patStored": "Il tuo PAT è archiviato in modo sicuro nel portachiavi del sistema operativo",
     "patStoredSession": "Il tuo PAT è archiviato solo per questa sessione",
+    "recentOrgs": "Organizzazioni recenti",
     "toast": {
       "missingFields": "Compila tutti i campi",
       "success": "Connessione avvenuta con successo",
@@ -78,7 +79,12 @@
     "noVariables": "Nessuna variabile da visualizzare",
     "addVariable": "Aggiungi variabile",
     "empty": "vuoto",
-    "clickToSetSecret": "Clicca per impostare o modificare il valore segreto"
+    "clickToSetSecret": "Clicca per impostare o modificare il valore segreto",
+    "confirmDiscard": "Annullare tutte le modifiche locali?",
+    "confirmDiscardDescription": "Verranno eliminati definitivamente tutte le modifiche, le aggiunte e le eliminazioni non salvate per questo pannello.",
+    "confirmDiscardYes": "Sì, annulla",
+    "confirmDiscardCancel": "Annulla",
+    "warnSecretOverwrite": "\"{{key}}\" è segreto nel pannello di destinazione — il valore sarà vuoto"
   },
   "pane": {
     "left": "Sinistro",
@@ -111,6 +117,7 @@
     "unload": "Scarica",
     "unloadTooltip": "Scarica entrambi i pannelli",
     "avatarAlt": "Avatar utente",
+    "organization": "Organizzazione",
     "importedVariables": "{{count}} variabile/i importata/e — rivedi e pubblica quando sei pronto"
   },
   "appMenu": {
@@ -121,16 +128,43 @@
     "title": "Impostazioni",
     "sections": {
       "appearance": "Aspetto",
-      "general": "Generale"
+      "behavior": "Comportamento",
+      "exportImport": "Esporta / Importa",
+      "connection": "Connessione"
     },
     "appearance": {
       "language": "Lingua",
       "languageDescription": "Scegli la lingua di visualizzazione dell'applicazione",
-      "english": "English",
-      "spanish": "Español"
+      "paneSplit": "Layout pannelli predefinito",
+      "paneSplitDescription": "Proporzione iniziale al caricamento di due gruppi",
+      "split5050": "50 / 50",
+      "split6040": "60 / 40",
+      "split4060": "40 / 60",
+      "compactMode": "Modalità compatta",
+      "compactModeDescription": "Riduce l'altezza delle righe per maggiore densità di variabili"
     },
-    "general": {
-      "comingSoon": "Altre impostazioni in arrivo."
+    "behavior": {
+      "confirmBeforeDiscard": "Conferma prima di annullare",
+      "confirmBeforeDiscardDescription": "Mostra una richiesta di conferma prima di annullare tutte le modifiche locali",
+      "syncScroll": "Scorrimento sincronizzato",
+      "syncScrollDescription": "Entrambi i pannelli scorrono insieme al caricamento di un gruppo",
+      "warnOnSecretOverwrite": "Avvisa in caso di sovrascrittura di segreti",
+      "warnOnSecretOverwriteDescription": "Mostra un avviso quando si sincronizza una chiave marcata come segreto nel pannello di destinazione"
+    },
+    "exportImport": {
+      "defaultFormat": "Formato di esportazione predefinito",
+      "defaultFormatDescription": "Formato preselezionato all'apertura del modale di esportazione",
+      "includeSecrets": "Includi segreti nell'esportazione",
+      "includeSecretsDescription": "Mostra *** come segnaposto per i segreti; disattiva per ometterli completamente"
+    },
+    "connection": {
+      "requestTimeout": "Timeout delle richieste",
+      "requestTimeoutDescription": "Tempo massimo di attesa per le risposte dell'API di Azure DevOps",
+      "seconds": "s",
+      "orgUrlHistory": "Cronologia URL organizzazione",
+      "orgUrlHistoryDescription": "Gli URL utilizzati in precedenza appaiono come suggerimenti nella schermata di accesso",
+      "clearHistory": "Cancella cronologia",
+      "noHistory": "Nessun URL salvato"
     }
   },
   "modals": {

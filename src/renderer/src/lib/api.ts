@@ -89,3 +89,7 @@ export async function updateVariableGroup(
 ): Promise<void> {
   await invoke('update_variable_group', { projectId, groupId, variables })
 }
+
+export async function setRequestTimeout(secs: number): Promise<void> {
+  await invoke('set_request_timeout', { secs })
+}

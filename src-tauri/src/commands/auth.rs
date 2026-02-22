@@ -3,7 +3,7 @@ use keyring::Entry;
 use tauri::{AppHandle, State};
 use tauri_plugin_store::StoreExt;
 
-use crate::{AppCredentials, ClientState, CredentialsState, build_cached_clients, extract_org_name};
+use crate::{AppCredentials, AppTimeoutState, ClientState, CredentialsState, build_cached_clients, extract_org_name};
 
 fn minimal_profile(org_name: String) -> UserProfile {
     UserProfile { display_name: String::new(), email: String::new(), avatar_data_url: None, org_name }
@@ -159,15 +159,22 @@ pub struct UserProfile {
 ///
 /// This command never returns an Err; the UI always gets at least the org name.
 #[tauri::command]
-pub async fn get_user_profile(state: State<'_, CredentialsState>) -> Result<UserProfile, String> {
+pub async fn get_user_profile(
+    state: State<'_, CredentialsState>,
+    timeout_state: State<'_, AppTimeoutState>,
+) -> Result<UserProfile, String> {
     let (org_name, org_url, pat) = {
         let lock = state.0.lock().expect("credentials lock poisoned");
         let creds = lock.as_ref().ok_or_else(|| "Not authenticated".to_string())?;
         (creds.org_name.clone(), creds.org_url.clone(), creds.pat.clone())
     };
 
+    let timeout_secs = *timeout_state.0.lock().expect("timeout lock poisoned");
     let auth = base64::engine::general_purpose::STANDARD.encode(format!(":{pat}"));
-    let http = reqwest::Client::new();
+    let http = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(timeout_secs))
+        .build()
+        .unwrap_or_default();
 
     // ── 1. VSSPS Profile API (requires vso.profile scope) ─────────────────────
     let profile_url = format!("{VSSPS_BASE}/_apis/profile/profiles/me?api-version=7.1");
@@ -265,6 +272,18 @@ async fn fetch_avatar_as_data_url(
     let bytes = resp.bytes().await.ok()?;
     let encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
     Some(format!("data:{content_type};base64,{encoded}"))
+}
+
+/// Update the runtime request timeout (in seconds).
+/// Called by the frontend when the user changes the timeout in Settings.
+#[tauri::command]
+pub async fn set_request_timeout(
+    timeout_state: State<'_, AppTimeoutState>,
+    secs: u64,
+) -> Result<(), String> {
+    let clamped = secs.clamp(5, 120);
+    *timeout_state.0.lock().map_err(|e| e.to_string())? = clamped;
+    Ok(())
 }
 
 /// Fetch the identity avatar using the org-scoped `_api/_common/identityImage`

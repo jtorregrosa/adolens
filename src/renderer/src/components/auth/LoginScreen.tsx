@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { clearCredentials, getProjects, saveCredentials } from '../../lib/api'
 import { useAuthStore } from '../../store/authStore'
+import { useSettingsStore } from '../../store/settingsStore'
 import { TitleBar } from '../layout/TitleBar'
 
 export function LoginScreen(): React.JSX.Element {
@@ -16,6 +17,7 @@ export function LoginScreen(): React.JSX.Element {
   const [rememberToken, setRememberToken] = useState(false)
   const [loading, setLoading] = useState(false)
   const setAuthenticated = useAuthStore((s) => s.setAuthenticated)
+  const { orgUrlHistory, addOrgUrlToHistory } = useSettingsStore()
 
   const handleLogin = async (): Promise<void> => {
     if (!orgUrl.trim() || !pat.trim()) {
@@ -29,6 +31,7 @@ export function LoginScreen(): React.JSX.Element {
     try {
       await saveCredentials(normalizedUrl, pat.trim(), rememberToken)
       await getProjects()
+      addOrgUrlToHistory(normalizedUrl)
       setAuthenticated(normalizedUrl)
       toast.success(t('login.toast.success'))
     } catch (err) {
@@ -75,12 +78,20 @@ export function LoginScreen(): React.JSX.Element {
               </label>
               <input
                 type="url"
+                list="org-url-history"
                 value={orgUrl}
                 onChange={(e) => setOrgUrl(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={t('login.orgUrlPlaceholder')}
                 className="selectable w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
+              {orgUrlHistory.length > 0 && (
+                <datalist id="org-url-history">
+                  {orgUrlHistory.map((url) => (
+                    <option key={url} value={url} />
+                  ))}
+                </datalist>
+              )}
             </div>
 
             <div>

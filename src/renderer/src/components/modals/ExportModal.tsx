@@ -3,6 +3,7 @@ import { Check, Copy, Download, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import { useSettingsStore } from '../../store/settingsStore'
 import type { AdoVariable } from '../../types'
 import { type ExportFormat, FORMAT_OPTIONS, serializeVariables, tokenizeLine } from './exportUtils'
 
@@ -26,10 +27,14 @@ interface Props {
 
 export function ExportModal({ variables, groupName, onClose }: Props): React.JSX.Element {
   const { t } = useTranslation()
-  const [format, setFormat] = useState<ExportFormat>('json')
+  const { defaultExportFormat, includeSecretsInExport } = useSettingsStore()
+  const [format, setFormat] = useState<ExportFormat>(defaultExportFormat)
   const [copied, setCopied] = useState(false)
 
-  const content = useMemo(() => serializeVariables(variables, format), [variables, format])
+  const content = useMemo(
+    () => serializeVariables(variables, format, includeSecretsInExport),
+    [variables, format, includeSecretsInExport]
+  )
   const lines = content.split('\n')
   const fmt = FORMAT_OPTIONS.find((f) => f.id === format)!
   const baseName = groupName ? groupName.replace(/[^a-zA-Z0-9_-]/g, '_') : 'variables'
@@ -37,14 +42,19 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
   const secretCount = Object.values(variables).filter((v) => v.isSecret).length
 
   async function handleCopy(): Promise<void> {
-    await navigator.clipboard.writeText(serializeVariables(variables, format))
+    await navigator.clipboard.writeText(
+      serializeVariables(variables, format, includeSecretsInExport)
+    )
     setCopied(true)
     toast.success(t('modals.export.toast.copied'))
     setTimeout(() => setCopied(false), 2000)
   }
 
   function handleSave(): void {
-    downloadText(serializeVariables(variables, format), `${baseName}.${fmt.ext}`)
+    downloadText(
+      serializeVariables(variables, format, includeSecretsInExport),
+      `${baseName}.${fmt.ext}`
+    )
     toast.success(t('modals.export.toast.saved', { filename: `${baseName}.${fmt.ext}` }))
   }
 

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { useUIStore } from '../../store/uiStore'
 import type {
   AdoVariableGroup,
@@ -67,6 +68,10 @@ interface Props {
   cloudKeysForPane?: string[]
   /** When set, scroll to this row (added variable key) and trigger flash animation. */
   scrollToAddedKey?: string | null
+  /** Reduce row height for higher variable density. */
+  compact?: boolean
+  /** Warn via toast when syncing a key that is marked as secret on the target side. */
+  warnOnSecretOverwrite?: boolean
 }
 
 const SECRET_PLACEHOLDER = '••••••••'
@@ -90,7 +95,9 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
     onDiscard,
     peerHasChanges = false,
     cloudKeysForPane = [],
-    scrollToAddedKey = null
+    scrollToAddedKey = null,
+    compact = false,
+    warnOnSecretOverwrite = false
   },
   ref
 ) {
@@ -262,6 +269,9 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   const copyRowToOtherSide = useCallback(
     (key: string, value: string | undefined, isSecret?: boolean) => {
       const targetSide = side === 'left' ? 'right' : 'left'
+      if (warnOnSecretOverwrite && otherGroup?.variables[key]?.isSecret) {
+        toast.warning(t('diff.warnSecretOverwrite', { key }))
+      }
       const newValue = isSecret ? '' : (value ?? '')
       const change: PendingChange = {
         key,
@@ -272,7 +282,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
       }
       upsertOwnEdit(targetSide, change)
     },
-    [side, upsertOwnEdit]
+    [side, upsertOwnEdit, warnOnSecretOverwrite, otherGroup, t]
   )
 
   const setRowSecret = useCallback(
@@ -679,7 +689,9 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                     {side === 'left' ? deleteCell : copyCell}
 
                     {/* Key cell — min-h-6 keeps row height consistent with value cell */}
-                    <td className="w-5/12 max-w-0 overflow-hidden px-4 py-2 align-middle">
+                    <td
+                      className={`w-5/12 max-w-0 overflow-hidden px-4 align-middle ${compact ? 'py-0.5' : 'py-2'}`}
+                    >
                       {row.status === 'ghost' || !variable ? (
                         <span className="mono block min-h-6 truncate py-0.5 text-sm invisible">
                           &nbsp;
@@ -737,7 +749,9 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                     </td>
 
                     {/* Value cell — min-h-6 keeps row height consistent */}
-                    <td className="max-w-0 overflow-hidden px-4 py-2 align-middle">
+                    <td
+                      className={`max-w-0 overflow-hidden px-4 align-middle ${compact ? 'py-0.5' : 'py-2'}`}
+                    >
                       {row.status === 'ghost' || !variable ? (
                         <span className="mono block min-h-6 truncate py-0.5 text-sm invisible">
                           &nbsp;

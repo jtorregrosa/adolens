@@ -14,6 +14,7 @@
     "rememberToken": "Remember token between sessions",
     "patStored": "Your PAT is stored securely in the OS keychain",
     "patStoredSession": "Your PAT is only stored for this session",
+    "recentOrgs": "Recent organizations",
     "toast": {
       "missingFields": "Please fill in all fields",
       "success": "Connected successfully",
@@ -78,7 +79,12 @@
     "noVariables": "No variables to display",
     "addVariable": "Add variable",
     "empty": "empty",
-    "clickToSetSecret": "Click to set or change secret value"
+    "clickToSetSecret": "Click to set or change secret value",
+    "confirmDiscard": "Discard all local changes?",
+    "confirmDiscardDescription": "This will permanently remove all unsaved edits, additions, and deletions for this pane.",
+    "confirmDiscardYes": "Yes, discard",
+    "confirmDiscardCancel": "Cancel",
+    "warnSecretOverwrite": "\"{{key}}\" is secret on the target side — value will be empty"
   },
   "pane": {
     "left": "Left",
@@ -111,6 +117,7 @@
     "unload": "Unload",
     "unloadTooltip": "Unload both panes",
     "avatarAlt": "User avatar",
+    "organization": "Organization",
     "importedVariables": "{{count}} variable(s) imported — review and push when ready"
   },
   "appMenu": {
@@ -121,16 +128,43 @@
     "title": "Settings",
     "sections": {
       "appearance": "Appearance",
-      "general": "General"
+      "behavior": "Behavior",
+      "exportImport": "Export / Import",
+      "connection": "Connection"
     },
     "appearance": {
       "language": "Language",
       "languageDescription": "Choose the application display language",
-      "english": "English",
-      "spanish": "Spanish"
+      "paneSplit": "Default pane layout",
+      "paneSplitDescription": "Initial size ratio when two groups are loaded",
+      "split5050": "50 / 50",
+      "split6040": "60 / 40",
+      "split4060": "40 / 60",
+      "compactMode": "Compact mode",
+      "compactModeDescription": "Reduce row height for higher variable density"
     },
-    "general": {
-      "comingSoon": "More settings coming soon."
+    "behavior": {
+      "confirmBeforeDiscard": "Confirm before discarding",
+      "confirmBeforeDiscardDescription": "Show a confirmation prompt before discarding all local changes",
+      "syncScroll": "Synchronized scrolling",
+      "syncScrollDescription": "Both panes scroll together when a group is loaded",
+      "warnOnSecretOverwrite": "Warn on secret overwrite",
+      "warnOnSecretOverwriteDescription": "Show a warning when syncing a key that is marked as secret on the target side"
+    },
+    "exportImport": {
+      "defaultFormat": "Default export format",
+      "defaultFormatDescription": "Pre-selected format when the export modal opens",
+      "includeSecrets": "Include secrets in export",
+      "includeSecretsDescription": "Show *** placeholders for secrets; disable to omit them entirely"
+    },
+    "connection": {
+      "requestTimeout": "Request timeout",
+      "requestTimeoutDescription": "Maximum time to wait for Azure DevOps API responses",
+      "seconds": "s",
+      "orgUrlHistory": "Organization URL history",
+      "orgUrlHistoryDescription": "Previously used URLs appear as suggestions on the login screen",
+      "clearHistory": "Clear history",
+      "noHistory": "No URLs saved yet"
     }
   },
   "modals": {
