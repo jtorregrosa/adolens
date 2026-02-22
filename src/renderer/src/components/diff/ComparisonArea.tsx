@@ -1,14 +1,28 @@
-import { ArrowLeftRight, GripVertical, Merge, RefreshCw, Unplug } from 'lucide-react'
+import {
+  ArrowLeftRight,
+  GripVertical,
+  Info,
+  Merge,
+  MoreHorizontal,
+  RefreshCw,
+  Settings,
+  Unplug
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels'
 import { toast } from 'sonner'
 import { useUpdateVariableGroup, useVariableGroup } from '../../hooks/useADOApi'
 import { useSyncScroll } from '../../hooks/useSyncScroll'
 import { useVariableBuffer } from '../../hooks/useVariableBuffer'
 import { useVariableDiff } from '../../hooks/useVariableDiff'
+import type { UserProfile } from '../../lib/api'
+import { useAuthStore } from '../../store/authStore'
 import { useUIStore } from '../../store/uiStore'
 import type { AdoVariable } from '../../types'
 import { PushReviewModal } from '../modals/PushReviewModal'
+import { SettingsModal } from '../modals/SettingsModal'
+import { AppDropdownMenu } from '../ui/AppDropdownMenu'
 import { Tooltip } from '../ui/Tooltip'
 import { DiffStats } from './DiffStats'
 import { DiffTable } from './DiffTable'
@@ -16,7 +30,96 @@ import { EmptyPane } from './EmptyPane'
 import { PaneActionBar } from './PaneActionBar'
 import { PaneHeader } from './PaneHeader'
 
+// ─── Profile avatar + popover ─────────────────────────────────────────────────
+
+import * as Popover from '@radix-ui/react-popover'
+
+function ProfileAvatar({ profile }: { profile: UserProfile }): React.JSX.Element {
+  const { t } = useTranslation()
+
+  const hasName = profile.displayName.trim().length > 0
+  const initials = hasName
+    ? profile.displayName
+        .split(' ')
+        .slice(0, 2)
+        .map((n) => n[0] ?? '')
+        .join('')
+        .toUpperCase()
+    : profile.orgName.slice(0, 2).toUpperCase()
+
+  const avatar = profile.avatarDataUrl ? (
+    <img
+      src={profile.avatarDataUrl}
+      alt={t('toolbar.avatarAlt')}
+      className="h-7 w-7 rounded-full object-cover"
+    />
+  ) : (
+    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-[9px] font-bold text-white">
+      {initials}
+    </div>
+  )
+
+  return (
+    <Popover.Root>
+      <Popover.Trigger asChild>
+        <button className="shrink-0 rounded-full ring-1 ring-slate-700 transition hover:ring-blue-500 focus:outline-none">
+          {avatar}
+        </button>
+      </Popover.Trigger>
+
+      <Popover.Portal>
+        <Popover.Content
+          side="bottom"
+          align="end"
+          sideOffset={8}
+          className={[
+            'z-50 w-64 overflow-hidden rounded-xl border border-slate-700/60',
+            'bg-slate-900/95 shadow-2xl backdrop-blur-xl',
+            'animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2'
+          ].join(' ')}
+        >
+          {/* Header strip with avatar + name */}
+          <div className="flex items-center gap-3 border-b border-slate-700/60 px-4 py-4">
+            <div className="shrink-0 rounded-full ring-2 ring-slate-700">
+              {profile.avatarDataUrl ? (
+                <img
+                  src={profile.avatarDataUrl}
+                  alt={t('toolbar.avatarAlt')}
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                  {initials}
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
+              {hasName && (
+                <p className="truncate text-sm font-semibold text-slate-100">
+                  {profile.displayName}
+                </p>
+              )}
+              {profile.email && <p className="truncate text-xs text-slate-400">{profile.email}</p>}
+            </div>
+          </div>
+
+          {/* Org row */}
+          <div className="px-4 py-3">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
+              {t('sidebar.projects')}
+            </span>
+            <p className="mt-0.5 truncate text-sm text-slate-300">{profile.orgName}</p>
+          </div>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 export function ComparisonArea(): React.JSX.Element {
+  const profile = useAuthStore((s) => s.profile)
   const {
     leftPane,
     rightPane,
@@ -44,8 +147,11 @@ export function ComparisonArea(): React.JSX.Element {
   const leftDeletedKeys = useUIStore((s) => s.leftDeletedKeys)
   const rightDeletedKeys = useUIStore((s) => s.rightDeletedKeys)
 
+  const { t } = useTranslation()
+
   // Which pane's review modal is currently open (null = closed)
   const [reviewSide, setReviewSide] = useState<'left' | 'right' | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
 
   // Increment to signal DiffTable to clear its local pendingChanges state.
   const [leftClearToken, setLeftClearToken] = useState(0)
@@ -208,9 +314,7 @@ export function ComparisonArea(): React.JSX.Element {
       upsertOwnEdit(side, { key, side, originalValue: undefined, newValue: v.value ?? '' })
     }
     const count = Object.keys(imported).length
-    toast.success(
-      `${count} variable${count !== 1 ? 's' : ''} imported — review and push when ready`
-    )
+    toast.success(t('toolbar.importedVariables', { count }))
   }
 
   return (
@@ -227,9 +331,7 @@ export function ComparisonArea(): React.JSX.Element {
         >
           {/* Sync scroll toggle */}
           <Tooltip
-            content={
-              syncScroll ? 'Disable synchronized scrolling' : 'Enable synchronized scrolling'
-            }
+            content={syncScroll ? t('toolbar.disableSyncScroll') : t('toolbar.enableSyncScroll')}
             side="bottom"
           >
             <button
@@ -241,12 +343,12 @@ export function ComparisonArea(): React.JSX.Element {
               }`}
             >
               <Merge className="h-3.5 w-3.5" />
-              Sync Scroll
+              {t('toolbar.syncScroll')}
             </button>
           </Tooltip>
 
           {/* Swap panes */}
-          <Tooltip content="Swap Left and Right panes" side="bottom">
+          <Tooltip content={t('toolbar.swapTooltip')} side="bottom">
             <button
               onClick={() => {
                 const {
@@ -262,12 +364,12 @@ export function ComparisonArea(): React.JSX.Element {
               className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-800 hover:text-slate-300"
             >
               <ArrowLeftRight className="h-3.5 w-3.5" />
-              Swap
+              {t('toolbar.swap')}
             </button>
           </Tooltip>
 
           {/* Refresh */}
-          <Tooltip content="Refresh both panes" side="bottom">
+          <Tooltip content={t('toolbar.refreshTooltip')} side="bottom">
             <button
               onClick={() => {
                 refetchLeft()
@@ -276,22 +378,52 @@ export function ComparisonArea(): React.JSX.Element {
               className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-800 hover:text-slate-300"
             >
               <RefreshCw className="h-3.5 w-3.5" />
-              Refresh
+              {t('toolbar.refresh')}
             </button>
           </Tooltip>
 
           {/* Unload panes */}
           {(hasLeft || hasRight) && (
-            <Tooltip content="Unload both panes" side="bottom">
+            <Tooltip content={t('toolbar.unloadTooltip')} side="bottom">
               <button
                 onClick={clearPanes}
                 className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:bg-red-500/10 hover:text-red-400"
               >
                 <Unplug className="h-3.5 w-3.5" />
-                Unload
+                {t('toolbar.unload')}
               </button>
             </Tooltip>
           )}
+        </div>
+
+        {/* Profile badge + app menu — right-aligned, outside the drag region */}
+        <div
+          className="ml-auto flex items-center gap-1"
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        >
+          {profile && <ProfileAvatar profile={profile} />}
+
+          <AppDropdownMenu
+            items={[
+              {
+                label: t('appMenu.settings'),
+                icon: <Settings className="h-3.5 w-3.5" />,
+                onSelect: () => setShowSettings(true)
+              },
+              {
+                label: t('appMenu.about'),
+                icon: <Info className="h-3.5 w-3.5" />,
+                onSelect: () => {}
+              }
+            ]}
+          >
+            <button
+              className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-300"
+              aria-label="Open menu"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </AppDropdownMenu>
         </div>
       </div>
 
@@ -410,6 +542,9 @@ export function ComparisonArea(): React.JSX.Element {
           </Panel>
         </PanelGroup>
       </div>
+
+      {/* ── Settings Modal ─────────────────────────────────────────────────── */}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
 
       {/* ── Push Review Modals ─────────────────────────────────────────────── */}
       {reviewSide === 'left' && (

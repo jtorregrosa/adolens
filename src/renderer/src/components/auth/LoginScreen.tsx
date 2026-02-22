@@ -1,6 +1,6 @@
 import appIcon from '@renderer/assets/icon.png'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Loader2, LogIn } from 'lucide-react'
+import { Eye, EyeOff, Loader2, LogIn, Shield, ShieldOff } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -13,6 +13,7 @@ export function LoginScreen(): React.JSX.Element {
   const [orgUrl, setOrgUrl] = useState('')
   const [pat, setPat] = useState('')
   const [showPat, setShowPat] = useState(false)
+  const [rememberToken, setRememberToken] = useState(false)
   const [loading, setLoading] = useState(false)
   const setAuthenticated = useAuthStore((s) => s.setAuthenticated)
 
@@ -26,7 +27,7 @@ export function LoginScreen(): React.JSX.Element {
     setLoading(true)
 
     try {
-      await saveCredentials(normalizedUrl, pat.trim())
+      await saveCredentials(normalizedUrl, pat.trim(), rememberToken)
       await getProjects()
       setAuthenticated(normalizedUrl)
       toast.success(t('login.toast.success'))
@@ -93,7 +94,7 @@ export function LoginScreen(): React.JSX.Element {
                   onChange={(e) => setPat(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="••••••••••••••••••••"
-                  className="selectable w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-4 pr-10 text-sm text-white placeholder-slate-500 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  className="selectable w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-4 pr-10 text-sm text-white placeholder-slate-500 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 [&::-ms-reveal]:hidden [&::-webkit-contacts-auto-fill-button]:hidden [&::-webkit-credentials-auto-fill-button]:hidden"
                 />
                 <button
                   type="button"
@@ -105,6 +106,32 @@ export function LoginScreen(): React.JSX.Element {
               </div>
               <p className="mt-1.5 text-xs text-slate-500">{t('login.patHint')}</p>
             </div>
+
+            {/* Remember token toggle */}
+            <button
+              type="button"
+              onClick={() => setRememberToken((v) => !v)}
+              className="flex w-full items-center justify-between rounded-lg border border-slate-700/60 bg-slate-800/50 px-3 py-2.5 transition hover:bg-slate-800"
+            >
+              <div className="flex items-center gap-2.5">
+                {rememberToken ? (
+                  <Shield className="h-4 w-4 shrink-0 text-blue-400" />
+                ) : (
+                  <ShieldOff className="h-4 w-4 shrink-0 text-slate-500" />
+                )}
+                <span className="text-sm font-medium text-slate-300">
+                  {t('login.rememberToken')}
+                </span>
+              </div>
+              {/* Pill toggle */}
+              <div
+                className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${rememberToken ? 'bg-blue-600' : 'bg-slate-700'}`}
+              >
+                <div
+                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${rememberToken ? 'translate-x-4' : 'translate-x-0.5'}`}
+                />
+              </div>
+            </button>
 
             <button
               onClick={handleLogin}
@@ -120,7 +147,9 @@ export function LoginScreen(): React.JSX.Element {
             </button>
           </div>
 
-          <p className="mt-6 text-center text-xs text-slate-600">{t('login.patStored')}</p>
+          <p className="mt-6 text-center text-xs text-slate-600">
+            {rememberToken ? t('login.patStored') : t('login.patStoredSession')}
+          </p>
         </motion.div>
       </div>
     </div>

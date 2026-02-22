@@ -24,6 +24,9 @@ serde_json = "1"
 # auth format (Credential::from_pat) and provides typed models.
 azure_devops_rust_api = { version = "0.34", features = ["core", "distributed_task"] }
 
+reqwest = { version = "0.12", default-features = false, features = ["native-tls", "json"] }
+base64 = "0.22"
+
 keyring = { version = "3", features = [] }
 tokio = { version = "1", features = ["rt"] }
 

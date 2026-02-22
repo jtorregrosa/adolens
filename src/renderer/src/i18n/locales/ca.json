@@ -1,0 +1,224 @@
+{
+  "app": {
+    "name": "ADOLens",
+    "titleBar": "ADOLens"
+  },
+  "login": {
+    "subtitle": "Eina d'inspecció de biblioteques d'Azure DevOps",
+    "orgUrl": "URL de l'organització",
+    "orgUrlPlaceholder": "https://dev.azure.com/la-teva-org",
+    "pat": "Token d'accés personal",
+    "patHint": "Requereix accés de lectura i escriptura als grups de variables (àmbit Library)",
+    "connect": "Connectar",
+    "connecting": "Connectant...",
+    "rememberToken": "Recorda el token entre sessions",
+    "patStored": "El teu PAT s'emmagatzema de forma segura al clauer del sistema operatiu",
+    "patStoredSession": "El teu PAT només s'emmagatzema durant aquesta sessió",
+    "toast": {
+      "missingFields": "Si us plau, omple tots els camps",
+      "success": "Connexió correcta",
+      "error": "Error d'autenticació: {{message}}"
+    }
+  },
+  "titleBar": {
+    "minimize": "Minimitza",
+    "maximize": "Maximitza",
+    "restore": "Restaura",
+    "close": "Tanca"
+  },
+  "sidebar": {
+    "projects": "Projectes",
+    "expandSidebar": "Expandir la barra lateral",
+    "collapseSidebar": "Plegar la barra lateral",
+    "searchProjects": "Cerca projectes...",
+    "loadingProjects": "Carregant projectes...",
+    "failedToLoadProjects": "Error en carregar els projectes",
+    "favorites": "Favorits",
+    "allProjects": "Tots els projectes",
+    "allLibraries": "Totes les biblioteques",
+    "searchLibraries": "Cerca biblioteques",
+    "loading": "Carregant...",
+    "noGroupsFound": "No s'han trobat grups",
+    "disconnect": "Desconnectar",
+    "loadLeft": "Carregar al panell esquerre",
+    "loadRight": "Carregar al panell dret",
+    "markFavorite": "Marcar com a favorit",
+    "removeFavorite": "Eliminar dels favorits",
+    "exportVariables": "Exportar variables…",
+    "cloneLibrary": "Clonar biblioteca…",
+    "loadLeftPane": "Carregar al panell esquerre",
+    "loadRightPane": "Carregar al panell dret",
+    "removeFromFavorites": "Eliminar dels favorits",
+    "addToFavorites": "Afegir als favorits",
+    "groupLoaded": "{{name}} carregat al panell {{side}}",
+    "left": "Esquerre",
+    "right": "Dret",
+    "toast": {
+      "loggedOut": "Sessió tancada"
+    }
+  },
+  "diff": {
+    "pendingChanges": "{{count}} canvi(s) pendent(s)",
+    "zeroPendingChanges": "0 canvi(s) pendent(s)",
+    "reviewAndPush": "Revisar i publicar",
+    "discard": "Descartar",
+    "bulk": "Massiu:",
+    "syncAllRight": "Sincronitzar tot → Dreta",
+    "syncAllLeft": "Sincronitzar tot ← Esquerra",
+    "key": "Clau",
+    "value": "Valor",
+    "copyToRight": "Copiar a la dreta",
+    "copyToLeft": "Copiar a l'esquerra",
+    "copySecretNote": " (el valor estarà buit)",
+    "restoreVariable": "Restaurar variable",
+    "deleteVariable": "Eliminar variable",
+    "removeUndoAdd": "Eliminar (desfer addició)",
+    "removeSecret": "Eliminar secret",
+    "setAsSecret": "Establir com a secret",
+    "noVariables": "No hi ha variables per mostrar",
+    "addVariable": "Afegir variable",
+    "empty": "buit",
+    "clickToSetSecret": "Fes clic per establir o canviar el valor del secret"
+  },
+  "pane": {
+    "left": "Esquerre",
+    "right": "Dret",
+    "noGroupSelected": "Cap grup seleccionat",
+    "empty": "Panell {{label}} buit",
+    "emptyHint": "Selecciona un grup de variables de la barra lateral (botons E / D)",
+    "vars": "vars",
+    "onlyHere": "només aquí",
+    "modified": "modificat",
+    "identical": "idèntic"
+  },
+  "actionBar": {
+    "reviewAndPush": "Revisar i publicar",
+    "stagedChanges": "{{count}} canvi{{plural}} en preparació",
+    "export": "Exportar",
+    "import": "Importar",
+    "toast": {
+      "noVariablesToExport": "No hi ha variables per exportar"
+    }
+  },
+  "toolbar": {
+    "syncScroll": "Sincronitzar desplaçament",
+    "enableSyncScroll": "Activar desplaçament sincronitzat",
+    "disableSyncScroll": "Desactivar desplaçament sincronitzat",
+    "swap": "Intercanviar",
+    "swapTooltip": "Intercanviar panells esquerre i dret",
+    "refresh": "Actualitzar",
+    "refreshTooltip": "Actualitzar ambdós panells",
+    "unload": "Descarregar",
+    "unloadTooltip": "Descarregar ambdós panells",
+    "avatarAlt": "Avatar de l'usuari",
+    "importedVariables": "{{count}} variable(s) importada(es) — revisa i publica quan estiguis a punt"
+  },
+  "appMenu": {
+    "settings": "Configuració",
+    "about": "Sobre"
+  },
+  "settings": {
+    "title": "Configuració",
+    "sections": {
+      "appearance": "Aparença",
+      "general": "General"
+    },
+    "appearance": {
+      "language": "Idioma",
+      "languageDescription": "Tria l'idioma de visualització de l'aplicació",
+      "english": "English",
+      "spanish": "Español"
+    },
+    "general": {
+      "comingSoon": "Més configuració properament."
+    }
+  },
+  "modals": {
+    "review": {
+      "title": "Revisar canvis",
+      "subtitle": "Es confirmaran {{count}} canvi(s) a Azure DevOps",
+      "warning": "Això sobreescriurà el grup de variables mitjançant PUT /distributedtask/variablegroups. Aquesta acció no es pot desfer.",
+      "key": "Clau",
+      "before": "Abans",
+      "after": "Després",
+      "secret": "secret",
+      "secretOverwritten": "secret (sobreescrit)",
+      "empty": "buit",
+      "cancel": "Cancel·lar",
+      "commit": "Confirmar canvis",
+      "committing": "Confirmant…"
+    },
+    "push": {
+      "title": "Revisar canvis locals",
+      "noChanges": "No s'han detectat canvis locals",
+      "changesCount": "{{count}} canvi{{plural}} pendent(s) per a ",
+      "thisLibrary": "aquesta biblioteca",
+      "discardAll": "Descartar tot",
+      "warning": "Publicar sobreescriurà el grup de variables mitjançant PUT /distributedtask/variablegroups. Aquesta acció no es pot desfer.",
+      "emptyHint": "Edita valors de variables o claus, sincronitza claus de l'altre panell o afegeix/elimina variables per preparar canvis aquí.",
+      "modifiedVariables": "Variables modificades",
+      "renamedVariables": "Variables reanomenades",
+      "addedVariables": "Variables afegides",
+      "deletedVariables": "Variables eliminades",
+      "variableKey": "Clau de variable",
+      "oldValue": "Valor anterior",
+      "newValue": "Valor nou",
+      "oldKey": "Clau anterior",
+      "newKey": "Clau nova",
+      "currentValue": "Valor actual",
+      "value": "Valor",
+      "secret": "secret",
+      "secretOverwritten": "secret (sobreescrit)",
+      "empty": "(buit)",
+      "close": "Tancar",
+      "cancel": "Cancel·lar",
+      "confirmPush": "Confirmar i publicar a ADO",
+      "pushing": "Publicant…",
+      "new": "NOU",
+      "del": "ELIM",
+      "toast": {
+        "discarded": "Canvis locals descartats",
+        "pushFailed": "Error en publicar: {{message}}"
+      }
+    },
+    "export": {
+      "title": "Exportar variables",
+      "variableCount": "{{count}} variable(s)",
+      "secretCount": "({{count}} secret(s), mostrat(s) com ***)",
+      "close": "Tancar",
+      "copy": "Copiar al portapapers",
+      "copied": "Copiat!",
+      "save": "Desar fitxer",
+      "toast": {
+        "copied": "Copiat al portapapers",
+        "saved": "Desat com a {{filename}}"
+      }
+    },
+    "import": {
+      "title": "Importar variables",
+      "subtitle": "Formats admesos: JSON, Clau=Valor, PowerShell, Bash",
+      "chooseFile": "Triar fitxer",
+      "noFileChosen": "Cap fitxer seleccionat",
+      "variablesDetected": "{{count}} variable{{plural}} detectada(es)",
+      "as": "com",
+      "noVariablesDetected": "No s'han detectat variables — prova un altre format",
+      "chooseFileHint": "Tria un fitxer per previsualitzar el seu contingut",
+      "cancel": "Cancel·lar",
+      "import": "Importar",
+      "importCount": "Importar {{count}} variable{{plural}}",
+      "toast": {
+        "readError": "Error en llegir el fitxer",
+        "noVariables": "No s'ha pogut analitzar cap variable d'aquest fitxer"
+      }
+    },
+    "clone": {
+      "title": "Clonar biblioteca",
+      "description": "Es crearà una nova biblioteca amb les mateixes variables amb el nom indicat. Els valors secrets es conservaran.",
+      "nameLabel": "Nom de la nova biblioteca",
+      "namePlaceholder": "Introdueix un nom…",
+      "cancel": "Cancel·lar",
+      "clone": "Clonar biblioteca",
+      "cloning": "Clonant…"
+    }
+  }
+}

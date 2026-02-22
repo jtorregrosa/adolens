@@ -1,0 +1,224 @@
+{
+  "app": {
+    "name": "ADOLens",
+    "titleBar": "ADOLens"
+  },
+  "login": {
+    "subtitle": "Ferramenta de inspección de bibliotecas de Azure DevOps",
+    "orgUrl": "URL da organización",
+    "orgUrlPlaceholder": "https://dev.azure.com/a-túa-org",
+    "pat": "Token de acceso persoal",
+    "patHint": "Require acceso de lectura e escritura nos grupos de variables (ámbito Library)",
+    "connect": "Conectar",
+    "connecting": "Conectando...",
+    "rememberToken": "Lembrar o token entre sesións",
+    "patStored": "O teu PAT gárdase de forma segura no chaveiro do sistema operativo",
+    "patStoredSession": "O teu PAT só se almacena durante esta sesión",
+    "toast": {
+      "missingFields": "Por favor, enche todos os campos",
+      "success": "Conexión exitosa",
+      "error": "Fallo de autenticación: {{message}}"
+    }
+  },
+  "titleBar": {
+    "minimize": "Minimizar",
+    "maximize": "Maximizar",
+    "restore": "Restaurar",
+    "close": "Pechar"
+  },
+  "sidebar": {
+    "projects": "Proxectos",
+    "expandSidebar": "Expandir barra lateral",
+    "collapseSidebar": "Contraer barra lateral",
+    "searchProjects": "Buscar proxectos...",
+    "loadingProjects": "Cargando proxectos...",
+    "failedToLoadProjects": "Erro ao cargar os proxectos",
+    "favorites": "Favoritos",
+    "allProjects": "Todos os proxectos",
+    "allLibraries": "Todas as bibliotecas",
+    "searchLibraries": "Buscar bibliotecas",
+    "loading": "Cargando...",
+    "noGroupsFound": "Non se atoparon grupos",
+    "disconnect": "Desconectar",
+    "loadLeft": "Cargar no panel esquerdo",
+    "loadRight": "Cargar no panel dereito",
+    "markFavorite": "Marcar como favorito",
+    "removeFavorite": "Eliminar dos favoritos",
+    "exportVariables": "Exportar variables…",
+    "cloneLibrary": "Clonar biblioteca…",
+    "loadLeftPane": "Cargar no panel esquerdo",
+    "loadRightPane": "Cargar no panel dereito",
+    "removeFromFavorites": "Eliminar dos favoritos",
+    "addToFavorites": "Engadir aos favoritos",
+    "groupLoaded": "{{name}} cargado no panel {{side}}",
+    "left": "Esquerdo",
+    "right": "Dereito",
+    "toast": {
+      "loggedOut": "Sesión pechada"
+    }
+  },
+  "diff": {
+    "pendingChanges": "{{count}} cambio(s) pendente(s)",
+    "zeroPendingChanges": "0 cambio(s) pendente(s)",
+    "reviewAndPush": "Revisar e publicar",
+    "discard": "Descartar",
+    "bulk": "Masivo:",
+    "syncAllRight": "Sincronizar todo → Dereita",
+    "syncAllLeft": "Sincronizar todo ← Esquerda",
+    "key": "Chave",
+    "value": "Valor",
+    "copyToRight": "Copiar á dereita",
+    "copyToLeft": "Copiar á esquerda",
+    "copySecretNote": " (o valor estará baleiro)",
+    "restoreVariable": "Restaurar variable",
+    "deleteVariable": "Eliminar variable",
+    "removeUndoAdd": "Eliminar (desfacer adición)",
+    "removeSecret": "Eliminar segredo",
+    "setAsSecret": "Establecer como segredo",
+    "noVariables": "Non hai variables para mostrar",
+    "addVariable": "Engadir variable",
+    "empty": "baleiro",
+    "clickToSetSecret": "Fai clic para establecer ou cambiar o valor do segredo"
+  },
+  "pane": {
+    "left": "Esquerdo",
+    "right": "Dereito",
+    "noGroupSelected": "Ningún grupo seleccionado",
+    "empty": "Panel {{label}} baleiro",
+    "emptyHint": "Selecciona un grupo de variables da barra lateral (botóns E / D)",
+    "vars": "vars",
+    "onlyHere": "só aquí",
+    "modified": "modificado",
+    "identical": "idéntico"
+  },
+  "actionBar": {
+    "reviewAndPush": "Revisar e publicar",
+    "stagedChanges": "{{count}} cambio{{plural}} en preparación",
+    "export": "Exportar",
+    "import": "Importar",
+    "toast": {
+      "noVariablesToExport": "Non hai variables para exportar"
+    }
+  },
+  "toolbar": {
+    "syncScroll": "Sincronizar desprazamento",
+    "enableSyncScroll": "Activar desprazamento sincronizado",
+    "disableSyncScroll": "Desactivar desprazamento sincronizado",
+    "swap": "Intercambiar",
+    "swapTooltip": "Intercambiar paneis esquerdo e dereito",
+    "refresh": "Actualizar",
+    "refreshTooltip": "Actualizar ambos os paneis",
+    "unload": "Descargar",
+    "unloadTooltip": "Descargar ambos os paneis",
+    "avatarAlt": "Avatar do usuario",
+    "importedVariables": "{{count}} variable(s) importada(s) — revisa e publica cando esteas listo"
+  },
+  "appMenu": {
+    "settings": "Configuración",
+    "about": "Sobre"
+  },
+  "settings": {
+    "title": "Configuración",
+    "sections": {
+      "appearance": "Aparencia",
+      "general": "Xeral"
+    },
+    "appearance": {
+      "language": "Idioma",
+      "languageDescription": "Escolle o idioma de visualización da aplicación",
+      "english": "English",
+      "spanish": "Español"
+    },
+    "general": {
+      "comingSoon": "Máis configuración en breve."
+    }
+  },
+  "modals": {
+    "review": {
+      "title": "Revisar cambios",
+      "subtitle": "Confirmaranse {{count}} cambio(s) en Azure DevOps",
+      "warning": "Isto sobreescribirá o grupo de variables mediante PUT /distributedtask/variablegroups. Esta acción non se pode desfacer.",
+      "key": "Chave",
+      "before": "Antes",
+      "after": "Despois",
+      "secret": "segredo",
+      "secretOverwritten": "segredo (sobreescrito)",
+      "empty": "baleiro",
+      "cancel": "Cancelar",
+      "commit": "Confirmar cambios",
+      "committing": "Confirmando…"
+    },
+    "push": {
+      "title": "Revisar cambios locais",
+      "noChanges": "Non se detectaron cambios locais",
+      "changesCount": "{{count}} cambio{{plural}} pendente(s) para ",
+      "thisLibrary": "esta biblioteca",
+      "discardAll": "Descartar todo",
+      "warning": "Publicar sobreescribirá o grupo de variables mediante PUT /distributedtask/variablegroups. Esta acción non se pode desfacer.",
+      "emptyHint": "Edita valores de variables ou chaves, sincroniza chaves do outro panel ou engade/elimina variables para preparar cambios aquí.",
+      "modifiedVariables": "Variables modificadas",
+      "renamedVariables": "Variables renomeadas",
+      "addedVariables": "Variables engadidas",
+      "deletedVariables": "Variables eliminadas",
+      "variableKey": "Chave de variable",
+      "oldValue": "Valor anterior",
+      "newValue": "Valor novo",
+      "oldKey": "Chave anterior",
+      "newKey": "Chave nova",
+      "currentValue": "Valor actual",
+      "value": "Valor",
+      "secret": "segredo",
+      "secretOverwritten": "segredo (sobreescrito)",
+      "empty": "(baleiro)",
+      "close": "Pechar",
+      "cancel": "Cancelar",
+      "confirmPush": "Confirmar e publicar en ADO",
+      "pushing": "Publicando…",
+      "new": "NOVO",
+      "del": "ELIM",
+      "toast": {
+        "discarded": "Cambios locais descartados",
+        "pushFailed": "Erro ao publicar: {{message}}"
+      }
+    },
+    "export": {
+      "title": "Exportar variables",
+      "variableCount": "{{count}} variable(s)",
+      "secretCount": "({{count}} segredo(s), mostrado(s) como ***)",
+      "close": "Pechar",
+      "copy": "Copiar ao portapapeis",
+      "copied": "Copiado!",
+      "save": "Gardar ficheiro",
+      "toast": {
+        "copied": "Copiado ao portapapeis",
+        "saved": "Gardado como {{filename}}"
+      }
+    },
+    "import": {
+      "title": "Importar variables",
+      "subtitle": "Formatos admitidos: JSON, Chave=Valor, PowerShell, Bash",
+      "chooseFile": "Escoller ficheiro",
+      "noFileChosen": "Ningún ficheiro seleccionado",
+      "variablesDetected": "{{count}} variable{{plural}} detectada(s)",
+      "as": "como",
+      "noVariablesDetected": "Non se detectaron variables — proba outro formato",
+      "chooseFileHint": "Escolle un ficheiro para previsualizar o seu contido",
+      "cancel": "Cancelar",
+      "import": "Importar",
+      "importCount": "Importar {{count}} variable{{plural}}",
+      "toast": {
+        "readError": "Erro ao ler o ficheiro",
+        "noVariables": "Non se puido analizar ningunha variable deste ficheiro"
+      }
+    },
+    "clone": {
+      "title": "Clonar biblioteca",
+      "description": "Crearase unha nova biblioteca coas mesmas variables co nome indicado. Os valores secretos conservaranse.",
+      "nameLabel": "Nome da nova biblioteca",
+      "namePlaceholder": "Introduce un nome…",
+      "cancel": "Cancelar",
+      "clone": "Clonar biblioteca",
+      "cloning": "Clonando…"
+    }
+  }
+}

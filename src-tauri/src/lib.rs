@@ -3,7 +3,7 @@ mod commands;
 use azure_devops_rust_api::{core, distributed_task, Credential};
 use commands::{
     ado::{clone_variable_group, get_projects, get_variable_group, get_variable_groups, update_variable_group},
-    auth::{clear_credentials, load_credentials, save_credentials},
+    auth::{clear_credentials, get_user_profile, load_credentials, save_credentials},
     preferences::{load_favorites, save_favorites},
 };
 use std::sync::{Arc, Mutex};
@@ -87,6 +87,7 @@ pub fn run() {
             save_credentials,
             load_credentials,
             clear_credentials,
+            get_user_profile,
             get_projects,
             get_variable_groups,
             get_variable_group,

@@ -9,8 +9,19 @@ export type { AdoProject, AdoVariableGroup }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
-export async function saveCredentials(orgUrl: string, pat: string): Promise<void> {
-  await invoke('save_credentials', { orgUrl, pat })
+export interface UserProfile {
+  displayName: string
+  email: string
+  avatarDataUrl: string | null
+  orgName: string
+}
+
+export async function saveCredentials(
+  orgUrl: string,
+  pat: string,
+  remember: boolean
+): Promise<void> {
+  await invoke('save_credentials', { orgUrl, pat, remember })
 }
 
 export async function loadCredentials(): Promise<{ orgUrl: string } | null> {
@@ -23,6 +34,10 @@ export async function loadCredentials(): Promise<{ orgUrl: string } | null> {
 
 export async function clearCredentials(): Promise<void> {
   await invoke('clear_credentials')
+}
+
+export async function getUserProfile(): Promise<UserProfile> {
+  return invoke<UserProfile>('get_user_profile')
 }
 
 // ─── Favorites ────────────────────────────────────────────────────────────────

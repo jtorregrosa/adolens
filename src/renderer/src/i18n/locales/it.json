@@ -1,0 +1,224 @@
+{
+  "app": {
+    "name": "ADOLens",
+    "titleBar": "ADOLens"
+  },
+  "login": {
+    "subtitle": "Strumento di ispezione delle librerie di Azure DevOps",
+    "orgUrl": "URL dell'organizzazione",
+    "orgUrlPlaceholder": "https://dev.azure.com/la-tua-org",
+    "pat": "Token di accesso personale",
+    "patHint": "Richiede accesso in lettura e scrittura ai gruppi di variabili (ambito Library)",
+    "connect": "Connetti",
+    "connecting": "Connessione in corso...",
+    "rememberToken": "Ricorda il token tra le sessioni",
+    "patStored": "Il tuo PAT è archiviato in modo sicuro nel portachiavi del sistema operativo",
+    "patStoredSession": "Il tuo PAT è archiviato solo per questa sessione",
+    "toast": {
+      "missingFields": "Compila tutti i campi",
+      "success": "Connessione avvenuta con successo",
+      "error": "Autenticazione non riuscita: {{message}}"
+    }
+  },
+  "titleBar": {
+    "minimize": "Minimizza",
+    "maximize": "Massimizza",
+    "restore": "Ripristina",
+    "close": "Chiudi"
+  },
+  "sidebar": {
+    "projects": "Progetti",
+    "expandSidebar": "Espandi la barra laterale",
+    "collapseSidebar": "Comprimi la barra laterale",
+    "searchProjects": "Cerca progetti...",
+    "loadingProjects": "Caricamento progetti...",
+    "failedToLoadProjects": "Impossibile caricare i progetti",
+    "favorites": "Preferiti",
+    "allProjects": "Tutti i progetti",
+    "allLibraries": "Tutte le librerie",
+    "searchLibraries": "Cerca librerie",
+    "loading": "Caricamento...",
+    "noGroupsFound": "Nessun gruppo trovato",
+    "disconnect": "Disconnetti",
+    "loadLeft": "Carica nel pannello sinistro",
+    "loadRight": "Carica nel pannello destro",
+    "markFavorite": "Aggiungi ai preferiti",
+    "removeFavorite": "Rimuovi dai preferiti",
+    "exportVariables": "Esporta variabili…",
+    "cloneLibrary": "Clona libreria…",
+    "loadLeftPane": "Carica nel pannello sinistro",
+    "loadRightPane": "Carica nel pannello destro",
+    "removeFromFavorites": "Rimuovi dai preferiti",
+    "addToFavorites": "Aggiungi ai preferiti",
+    "groupLoaded": "{{name}} caricato nel pannello {{side}}",
+    "left": "Sinistro",
+    "right": "Destro",
+    "toast": {
+      "loggedOut": "Disconnesso"
+    }
+  },
+  "diff": {
+    "pendingChanges": "{{count}} modifica/e in sospeso",
+    "zeroPendingChanges": "0 modifiche in sospeso",
+    "reviewAndPush": "Rivedi e pubblica",
+    "discard": "Annulla",
+    "bulk": "Globale:",
+    "syncAllRight": "Sincronizza tutto → Destra",
+    "syncAllLeft": "Sincronizza tutto ← Sinistra",
+    "key": "Chiave",
+    "value": "Valore",
+    "copyToRight": "Copia a destra",
+    "copyToLeft": "Copia a sinistra",
+    "copySecretNote": " (il valore sarà vuoto)",
+    "restoreVariable": "Ripristina variabile",
+    "deleteVariable": "Elimina variabile",
+    "removeUndoAdd": "Rimuovi (annulla aggiunta)",
+    "removeSecret": "Rimuovi segreto",
+    "setAsSecret": "Imposta come segreto",
+    "noVariables": "Nessuna variabile da visualizzare",
+    "addVariable": "Aggiungi variabile",
+    "empty": "vuoto",
+    "clickToSetSecret": "Clicca per impostare o modificare il valore segreto"
+  },
+  "pane": {
+    "left": "Sinistro",
+    "right": "Destro",
+    "noGroupSelected": "Nessun gruppo selezionato",
+    "empty": "Pannello {{label}} vuoto",
+    "emptyHint": "Seleziona un gruppo di variabili dalla barra laterale (pulsanti S / D)",
+    "vars": "var",
+    "onlyHere": "solo qui",
+    "modified": "modificato",
+    "identical": "identico"
+  },
+  "actionBar": {
+    "reviewAndPush": "Rivedi e pubblica",
+    "stagedChanges": "{{count}} modifica{{plural}} in staging",
+    "export": "Esporta",
+    "import": "Importa",
+    "toast": {
+      "noVariablesToExport": "Nessuna variabile da esportare"
+    }
+  },
+  "toolbar": {
+    "syncScroll": "Scorrimento sincronizzato",
+    "enableSyncScroll": "Attiva scorrimento sincronizzato",
+    "disableSyncScroll": "Disattiva scorrimento sincronizzato",
+    "swap": "Scambia",
+    "swapTooltip": "Scambia i pannelli sinistro e destro",
+    "refresh": "Aggiorna",
+    "refreshTooltip": "Aggiorna entrambi i pannelli",
+    "unload": "Scarica",
+    "unloadTooltip": "Scarica entrambi i pannelli",
+    "avatarAlt": "Avatar utente",
+    "importedVariables": "{{count}} variabile/i importata/e — rivedi e pubblica quando sei pronto"
+  },
+  "appMenu": {
+    "settings": "Impostazioni",
+    "about": "Informazioni"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "sections": {
+      "appearance": "Aspetto",
+      "general": "Generale"
+    },
+    "appearance": {
+      "language": "Lingua",
+      "languageDescription": "Scegli la lingua di visualizzazione dell'applicazione",
+      "english": "English",
+      "spanish": "Español"
+    },
+    "general": {
+      "comingSoon": "Altre impostazioni in arrivo."
+    }
+  },
+  "modals": {
+    "review": {
+      "title": "Rivedi modifiche",
+      "subtitle": "{{count}} modifica/e verrà/verranno salvata/e in Azure DevOps",
+      "warning": "Questa operazione sovrascriverà il gruppo di variabili tramite PUT /distributedtask/variablegroups. L'azione non può essere annullata.",
+      "key": "Chiave",
+      "before": "Prima",
+      "after": "Dopo",
+      "secret": "segreto",
+      "secretOverwritten": "segreto (sovrascritto)",
+      "empty": "vuoto",
+      "cancel": "Annulla",
+      "commit": "Conferma modifiche",
+      "committing": "Salvataggio in corso…"
+    },
+    "push": {
+      "title": "Rivedi modifiche locali",
+      "noChanges": "Nessuna modifica locale rilevata",
+      "changesCount": "{{count}} modifica{{plural}} in sospeso per ",
+      "thisLibrary": "questa libreria",
+      "discardAll": "Annulla tutto",
+      "warning": "La pubblicazione sovrascriverà il gruppo di variabili tramite PUT /distributedtask/variablegroups. L'azione non può essere annullata.",
+      "emptyHint": "Modifica i valori delle variabili o le chiavi, sincronizza le chiavi dall'altro pannello o aggiungi/elimina variabili per preparare le modifiche qui.",
+      "modifiedVariables": "Variabili modificate",
+      "renamedVariables": "Variabili rinominate",
+      "addedVariables": "Variabili aggiunte",
+      "deletedVariables": "Variabili eliminate",
+      "variableKey": "Chiave variabile",
+      "oldValue": "Valore precedente",
+      "newValue": "Nuovo valore",
+      "oldKey": "Chiave precedente",
+      "newKey": "Nuova chiave",
+      "currentValue": "Valore corrente",
+      "value": "Valore",
+      "secret": "segreto",
+      "secretOverwritten": "segreto (sovrascritto)",
+      "empty": "(vuoto)",
+      "close": "Chiudi",
+      "cancel": "Annulla",
+      "confirmPush": "Conferma e pubblica su ADO",
+      "pushing": "Pubblicazione in corso…",
+      "new": "NUOVO",
+      "del": "ELIM",
+      "toast": {
+        "discarded": "Modifiche locali annullate",
+        "pushFailed": "Pubblicazione non riuscita: {{message}}"
+      }
+    },
+    "export": {
+      "title": "Esporta variabili",
+      "variableCount": "{{count}} variabile/i",
+      "secretCount": "({{count}} segret/i, mostrat/i come ***)",
+      "close": "Chiudi",
+      "copy": "Copia negli appunti",
+      "copied": "Copiato!",
+      "save": "Salva file",
+      "toast": {
+        "copied": "Copiato negli appunti",
+        "saved": "Salvato come {{filename}}"
+      }
+    },
+    "import": {
+      "title": "Importa variabili",
+      "subtitle": "Formati supportati: JSON, Chiave=Valore, PowerShell, Bash",
+      "chooseFile": "Scegli file",
+      "noFileChosen": "Nessun file selezionato",
+      "variablesDetected": "{{count}} variabile{{plural}} rilevata/e",
+      "as": "come",
+      "noVariablesDetected": "Nessuna variabile rilevata — prova un formato diverso",
+      "chooseFileHint": "Scegli un file per visualizzarne l'anteprima",
+      "cancel": "Annulla",
+      "import": "Importa",
+      "importCount": "Importa {{count}} variabile{{plural}}",
+      "toast": {
+        "readError": "Impossibile leggere il file",
+        "noVariables": "Nessuna variabile trovata nel file"
+      }
+    },
+    "clone": {
+      "title": "Clona libreria",
+      "description": "Verrà creata una nuova libreria con le stesse variabili con il nome indicato. I valori segreti verranno mantenuti.",
+      "nameLabel": "Nome della nuova libreria",
+      "namePlaceholder": "Inserisci un nome…",
+      "cancel": "Annulla",
+      "clone": "Clona libreria",
+      "cloning": "Clonazione in corso…"
+    }
+  }
+}

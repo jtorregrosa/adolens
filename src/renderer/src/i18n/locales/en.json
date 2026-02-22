@@ -1,17 +1,19 @@
 {
   "app": {
     "name": "ADOLens",
-    "titleBar": "ADO Lens"
+    "titleBar": "ADOLens"
   },
   "login": {
-    "subtitle": "Azure DevOps Variable Group Comparison Tool",
+    "subtitle": "Azure DevOps Library Inspector Tool",
     "orgUrl": "Organization URL",
     "orgUrlPlaceholder": "https://dev.azure.com/your-org",
     "pat": "Personal Access Token",
     "patHint": "Requires Read & Write access on Variable Groups (Library scope)",
     "connect": "Connect",
     "connecting": "Connecting...",
+    "rememberToken": "Remember token between sessions",
     "patStored": "Your PAT is stored securely in the OS keychain",
+    "patStoredSession": "Your PAT is only stored for this session",
     "toast": {
       "missingFields": "Please fill in all fields",
       "success": "Connected successfully",
@@ -96,6 +98,39 @@
     "import": "Import",
     "toast": {
       "noVariablesToExport": "No variables to export"
+    }
+  },
+  "toolbar": {
+    "syncScroll": "Sync Scroll",
+    "enableSyncScroll": "Enable synchronized scrolling",
+    "disableSyncScroll": "Disable synchronized scrolling",
+    "swap": "Swap",
+    "swapTooltip": "Swap Left and Right panes",
+    "refresh": "Refresh",
+    "refreshTooltip": "Refresh both panes",
+    "unload": "Unload",
+    "unloadTooltip": "Unload both panes",
+    "avatarAlt": "User avatar",
+    "importedVariables": "{{count}} variable(s) imported — review and push when ready"
+  },
+  "appMenu": {
+    "settings": "Settings",
+    "about": "About"
+  },
+  "settings": {
+    "title": "Settings",
+    "sections": {
+      "appearance": "Appearance",
+      "general": "General"
+    },
+    "appearance": {
+      "language": "Language",
+      "languageDescription": "Choose the application display language",
+      "english": "English",
+      "spanish": "Spanish"
+    },
+    "general": {
+      "comingSoon": "More settings coming soon."
     }
   },
   "modals": {
