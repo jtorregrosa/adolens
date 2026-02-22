@@ -36,8 +36,8 @@ export function AppContextMenu({ items, children }: AppContextMenuProps): React.
             'p-1'
           ].join(' ')}
         >
-          {items.map((item, idx) => (
-            <div key={idx}>
+          {items.map((item) => (
+            <div key={item.label}>
               {item.dividerBefore && (
                 <ContextMenu.Separator className="my-1 h-px bg-slate-700/60" />
               )}

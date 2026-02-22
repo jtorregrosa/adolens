@@ -1,8 +1,16 @@
 {
-  "name": "ado-lens",
-  "version": "1.0.0",
+  "name": "adolens",
+  "version": "1.0.0-rc.1",
   "description": "Azure DevOps Variable Group Comparison Tool",
   "type": "module",
+  "packageManager": "pnpm@10.19.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@biomejs/biome",
+      "@tauri-apps/cli"
+    ]
+  },
   "author": "Jorge Torregrosa Lloret",
   "homepage": "https://github.com/ado-lens/ado-lens",
   "scripts": {
@@ -12,17 +20,18 @@
     "build:vite": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write .",
-    "lint": "eslint --cache ."
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "check": "biome check --write ."
   },
   "dependencies": {
-    "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-shell": "^2",
-    "@tauri-apps/plugin-store": "^2",
     "@radix-ui/react-context-menu": "^2.2.16",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tailwindcss/vite": "^4.2.0",
     "@tanstack/react-query": "^5.90.21",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-shell": "^2",
+    "@tauri-apps/plugin-store": "^2",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.575.0",
     "react-resizable-panels": "^4.6.4",
@@ -31,15 +40,12 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.4",
     "@tauri-apps/cli": "^2",
+    "@types/node": "^25.3.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "prettier": "^3.7.4",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "typescript": "^5.9.3",

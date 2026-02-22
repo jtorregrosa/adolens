@@ -2,48 +2,24 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Main Process",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceRoot}",
-      "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron-vite",
-      "windows": {
-        "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron-vite.cmd"
-      },
-      "runtimeArgs": ["--sourcemap"],
-      "env": {
-        "REMOTE_DEBUGGING_PORT": "9222"
-      }
-    },
-    {
-      "name": "Attach to Main Process",
-      "type": "node",
-      "request": "attach",
-      "port": 5858,
-      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
-      "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/out/main/**/*.js"],
-      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
-    },
-    {
-      "name": "Debug Renderer Process",
-      "port": 9222,
-      "request": "attach",
+      "name": "Debug WebView (Renderer)",
       "type": "chrome",
-      "webRoot": "${workspaceFolder}/src/renderer",
-      "timeout": 60000,
-      "presentation": {
-        "hidden": true
-      }
-    }
-  ],
-  "compounds": [
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}/src/renderer/src",
+      "timeout": 60000
+    },
     {
-      "name": "Debug All",
-      "configurations": ["Debug Main Process", "Debug Renderer Process"],
-      "presentation": {
-        "order": 1
-      }
+      "name": "Debug Rust Backend",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/src-tauri/target/debug/ADOLens.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS": "--remote-debugging-port=9222"
+      },
+      "preLaunchTask": "cargo build"
     }
   ]
 }

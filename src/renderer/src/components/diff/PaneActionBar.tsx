@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { CloudUpload, FileJson, FileUp } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import type { AdoVariable } from '../../types'
 import { ExportModal } from '../modals/ExportModal'
@@ -17,7 +17,13 @@ interface Props {
   onImport: (variables: Record<string, AdoVariable>) => void
 }
 
-export function PaneActionBar({ pendingCount, onPush, variables, groupName, onImport }: Props): React.JSX.Element {
+export function PaneActionBar({
+  pendingCount,
+  onPush,
+  variables,
+  groupName,
+  onImport
+}: Props): React.JSX.Element {
   const [exportOpen, setExportOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
 
@@ -39,14 +45,17 @@ export function PaneActionBar({ pendingCount, onPush, variables, groupName, onIm
     <>
       <div className="flex shrink-0 items-center justify-center border-t border-slate-800 bg-slate-950 px-4 py-2">
         <div className="flex items-center gap-1 rounded-full border border-white/10 bg-slate-900/80 px-2 py-1.5 shadow-sm backdrop-blur-md">
-
           {/* ── Push Changes ──────────────────────────────────── */}
           <ActionButton
             label="Review & Push"
             onClick={onPush}
             disabled={!hasChanges}
             badgeCount={pendingCount}
-            indicatorTitle={hasChanges ? `${pendingCount} staged change${pendingCount !== 1 ? 's' : ''}` : undefined}
+            indicatorTitle={
+              hasChanges
+                ? `${pendingCount} staged change${pendingCount !== 1 ? 's' : ''}`
+                : undefined
+            }
           >
             <CloudUpload
               className={`h-4 w-4 transition-colors ${

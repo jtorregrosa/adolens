@@ -2,32 +2,39 @@ use keyring::Entry;
 use tauri::{AppHandle, State};
 use tauri_plugin_store::StoreExt;
 
-use crate::{AppCredentials, CredentialsState, extract_org_name};
+use crate::{AppCredentials, ClientState, CredentialsState, build_cached_clients, extract_org_name};
 
-const KEYRING_SERVICE: &str = "ado-lens";
+const KEYRING_SERVICE: &str = "ADOLens";
 const KEYRING_USER: &str = "pat";
 const STORE_FILE: &str = "config.json";
 const ORG_URL_KEY: &str = "orgUrl";
 
-/// Save credentials: store in managed state for the session,
-/// persist orgUrl to the app store and PAT to the OS keychain.
+/// Save credentials: populate managed state and SDK client cache, then persist
+/// orgUrl to the app store and PAT to the OS keychain.
 #[tauri::command]
 pub async fn save_credentials(
     app: AppHandle,
     state: State<'_, CredentialsState>,
+    client_state: State<'_, ClientState>,
     org_url: String,
     pat: String,
 ) -> Result<(), String> {
     let org_name = extract_org_name(&org_url);
 
-    // Put in memory immediately so subsequent commands work without disk I/O.
+    // Populate credential state for auth commands.
     {
-        let mut lock = state.0.lock().unwrap();
+        let mut lock = state.0.lock().expect("credentials lock poisoned");
         *lock = Some(AppCredentials {
             org_url: org_url.clone(),
-            org_name,
+            org_name: org_name.clone(),
             pat: pat.clone(),
         });
+    }
+
+    // Build and cache SDK clients so ado commands reuse the connection pool.
+    {
+        let mut lock = client_state.0.lock().expect("client lock poisoned");
+        *lock = Some(build_cached_clients(&org_url, &org_name, &pat));
     }
 
     // Persist orgUrl to store.
@@ -42,12 +49,13 @@ pub async fn save_credentials(
     Ok(())
 }
 
-/// Load persisted credentials, populate managed state, and return them to
-/// the frontend so it can restore its auth context on startup.
+/// Load persisted credentials, populate managed state and SDK client cache,
+/// and return only the orgUrl to the frontend (PAT stays in Rust memory).
 #[tauri::command]
 pub async fn load_credentials(
     app: AppHandle,
     state: State<'_, CredentialsState>,
+    client_state: State<'_, ClientState>,
 ) -> Result<CredentialsPayload, String> {
     let store = app.store(STORE_FILE).map_err(|e| e.to_string())?;
     let org_url = store
@@ -62,27 +70,39 @@ pub async fn load_credentials(
 
     let org_name = extract_org_name(&org_url);
 
-    // Populate state so ADO commands work immediately without re-reading.
+    // Populate credential state.
     {
-        let mut lock = state.0.lock().unwrap();
+        let mut lock = state.0.lock().expect("credentials lock poisoned");
         *lock = Some(AppCredentials {
             org_url: org_url.clone(),
-            org_name,
+            org_name: org_name.clone(),
             pat: pat.clone(),
         });
     }
 
-    Ok(CredentialsPayload { org_url, pat })
+    // Build and cache SDK clients.
+    {
+        let mut lock = client_state.0.lock().expect("client lock poisoned");
+        *lock = Some(build_cached_clients(&org_url, &org_name, &pat));
+    }
+
+    // Return only orgUrl — the PAT never leaves the Rust process.
+    Ok(CredentialsPayload { org_url })
 }
 
-/// Clear all stored credentials from memory, store, and keychain.
+/// Clear all stored credentials from memory, SDK client cache, store, and keychain.
 #[tauri::command]
 pub async fn clear_credentials(
     app: AppHandle,
     state: State<'_, CredentialsState>,
+    client_state: State<'_, ClientState>,
 ) -> Result<(), String> {
     {
-        let mut lock = state.0.lock().unwrap();
+        let mut lock = state.0.lock().expect("credentials lock poisoned");
+        *lock = None;
+    }
+    {
+        let mut lock = client_state.0.lock().expect("client lock poisoned");
         *lock = None;
     }
 
@@ -100,6 +120,6 @@ pub async fn clear_credentials(
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CredentialsPayload {
+    /// Only the org URL is sent to the frontend; the PAT stays in Rust memory.
     pub org_url: String,
-    pub pat: String,
 }

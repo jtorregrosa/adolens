@@ -1,8 +1,8 @@
 [package]
-name = "ado-lens"
-version = "1.0.0"
+name = "ADOLens"
+version = "1.0.0-rc.1"
 description = "Azure DevOps Variable Group Comparison Tool"
-authors = ["ADO Lens"]
+authors = ["Jorge Torregrosa Lloret"]
 edition = "2021"
 
 [lib]

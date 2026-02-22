@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Default permissions for ADO Lens",
+  "description": "Default permissions for ADOLens",
   "local": true,
   "windows": ["main"],
   "permissions": [

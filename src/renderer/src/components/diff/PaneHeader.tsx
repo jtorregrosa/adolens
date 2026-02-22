@@ -1,4 +1,4 @@
-import { Layers, FolderOpen } from 'lucide-react'
+import { FolderOpen, Layers } from 'lucide-react'
 
 interface Props {
   side: 'left' | 'right'
@@ -9,13 +9,11 @@ interface Props {
 export function PaneHeader({ side, projectName, groupName }: Props): React.JSX.Element {
   const label = side === 'left' ? 'Left' : 'Right'
 
-  const borderBg = side === 'left'
-    ? 'border-blue-500/20 bg-blue-500/5'
-    : 'border-fuchsia-500/20 bg-fuchsia-500/5'
+  const borderBg =
+    side === 'left' ? 'border-blue-500/20 bg-blue-500/5' : 'border-fuchsia-500/20 bg-fuchsia-500/5'
 
-  const labelStyle = side === 'left'
-    ? 'bg-blue-500/20 text-blue-400'
-    : 'bg-fuchsia-500/20 text-fuchsia-400'
+  const labelStyle =
+    side === 'left' ? 'bg-blue-500/20 text-blue-400' : 'bg-fuchsia-500/20 text-fuchsia-400'
 
   const breadcrumbs = projectName ? (
     <div className="flex min-w-0 items-center gap-1.5 text-xs text-slate-400">
@@ -34,7 +32,9 @@ export function PaneHeader({ side, projectName, groupName }: Props): React.JSX.E
   )
 
   const labelEl = (
-    <span className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider ${labelStyle}`}>
+    <span
+      className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider ${labelStyle}`}
+    >
       {label}
     </span>
   )

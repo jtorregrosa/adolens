@@ -1,6 +1,6 @@
 import { Search, X } from 'lucide-react'
-import { useUIStore } from '../../store/uiStore'
 import { useEffect, useRef } from 'react'
+import { useUIStore } from '../../store/uiStore'
 
 export function SearchBar(): React.JSX.Element {
   const { searchQuery, setSearchQuery } = useUIStore()

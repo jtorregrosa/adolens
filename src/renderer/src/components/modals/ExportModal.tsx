@@ -1,82 +1,9 @@
-import { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Copy, Download, Check, Braces, List, Terminal, Hash } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Check, Copy, Download, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import type { AdoVariable } from '../../types'
-
-// ─── Formats ─────────────────────────────────────────────────────────────────
-
-export type ExportFormat = 'json' | 'keyvalue' | 'powershell' | 'bash'
-
-interface FormatOption {
-  id: ExportFormat
-  label: string
-  ext: string
-  icon: React.ReactNode
-}
-
-export const FORMAT_OPTIONS: FormatOption[] = [
-  { id: 'json',       label: 'JSON',       ext: 'json', icon: <Braces   className="h-3.5 w-3.5" /> },
-  { id: 'keyvalue',   label: 'Key=Value',  ext: 'env',  icon: <List     className="h-3.5 w-3.5" /> },
-  { id: 'powershell', label: 'PowerShell', ext: 'ps1',  icon: <Terminal className="h-3.5 w-3.5" /> },
-  { id: 'bash',       label: 'Bash',       ext: 'sh',   icon: <Hash     className="h-3.5 w-3.5" /> },
-]
-
-const SECRET_MASK = '***'
-
-/** Serialize all variables; secrets appear with *** as their value. */
-export function serializeVariables(
-  variables: Record<string, AdoVariable>,
-  format: ExportFormat
-): string {
-  const entries = Object.entries(variables)
-  const val = (v: AdoVariable): string => (v.isSecret ? SECRET_MASK : (v.value ?? ''))
-
-  switch (format) {
-    case 'json': {
-      const obj: Record<string, string> = {}
-      for (const [k, v] of entries) obj[k] = val(v)
-      return JSON.stringify(obj, null, 2)
-    }
-    case 'keyvalue':
-      return entries.map(([k, v]) => `${k}=${val(v)}`).join('\n')
-    case 'powershell':
-      return entries
-        .map(([k, v]) => `$env:${k} = "${val(v).replace(/"/g, '`"')}"`)
-        .join('\n')
-    case 'bash':
-      return entries
-        .map(([k, v]) => `export ${k}="${val(v).replace(/"/g, '\\"')}"`)
-        .join('\n')
-  }
-}
-
-/** Plain-text version for clipboard/file — secrets excluded. */
-function serializeForExport(
-  variables: Record<string, AdoVariable>,
-  format: ExportFormat
-): string {
-  const entries = Object.entries(variables)
-  const val = (v: AdoVariable): string => (v.isSecret ? SECRET_MASK : (v.value ?? ''))
-
-  switch (format) {
-    case 'json': {
-      const obj: Record<string, string> = {}
-      for (const [k, v] of entries) obj[k] = val(v)
-      return JSON.stringify(obj, null, 2)
-    }
-    case 'keyvalue':
-      return entries.map(([k, v]) => `${k}=${val(v)}`).join('\n')
-    case 'powershell':
-      return entries
-        .map(([k, v]) => `$env:${k} = "${val(v).replace(/"/g, '`"')}"`)
-        .join('\n')
-    case 'bash':
-      return entries
-        .map(([k, v]) => `export ${k}="${val(v).replace(/"/g, '\\"')}"`)
-        .join('\n')
-  }
-}
+import { type ExportFormat, FORMAT_OPTIONS, serializeVariables, tokenizeLine } from './exportUtils'
 
 function downloadText(content: string, filename: string): void {
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
@@ -86,113 +13,6 @@ function downloadText(content: string, filename: string): void {
   a.download = filename
   a.click()
   URL.revokeObjectURL(url)
-}
-
-// ─── Syntax highlighter ──────────────────────────────────────────────────────
-
-export type Token = { text: string; cls: string }
-
-export const T = {
-  punct:   'text-slate-500',
-  key:     'text-blue-300',
-  str:     'text-emerald-300',
-  secret:  'text-slate-500 italic',
-  num:     'text-amber-300',
-  bool:    'text-orange-400',
-  kw:      'text-purple-400',
-  op:      'text-slate-500',
-  plain:   'text-slate-300',
-}
-
-function isSecret(text: string): boolean {
-  return text === SECRET_MASK
-}
-
-function highlightJSON(line: string): Token[] {
-  // e.g.   "KEY": "VALUE",   OR  {  }  ,
-  const keyValMatch = line.match(/^(\s*)("(?:[^"\\]|\\.)*")(\s*:\s*)("(?:[^"\\]|\\.)*"|-?\d[\d.eE+\-]*|true|false|null)(,?)$/)
-  if (keyValMatch) {
-    const [, indent, rawKey, colon, rawValue, comma] = keyValMatch
-    const unquotedVal = rawValue.startsWith('"') ? rawValue.slice(1, -1) : rawValue
-    const valCls = rawValue.startsWith('"')
-      ? (isSecret(unquotedVal) ? T.secret : T.str)
-      : (rawValue === 'true' || rawValue === 'false' || rawValue === 'null') ? T.bool : T.num
-    return [
-      { text: indent, cls: T.plain },
-      { text: rawKey, cls: T.key },
-      { text: colon, cls: T.op },
-      { text: rawValue, cls: valCls },
-      { text: comma, cls: T.punct },
-    ]
-  }
-  // standalone string line (first/last line value)
-  const strOnlyMatch = line.match(/^(\s*)("(?:[^"\\]|\\.)*")(,?)$/)
-  if (strOnlyMatch) {
-    const [, indent, rawStr, comma] = strOnlyMatch
-    const inner = rawStr.slice(1, -1)
-    return [
-      { text: indent, cls: T.plain },
-      { text: rawStr, cls: isSecret(inner) ? T.secret : T.str },
-      { text: comma, cls: T.punct },
-    ]
-  }
-  // fallback: colorize { } , individually
-  return line.split('').map((ch) => ({
-    text: ch,
-    cls: '{}[],'.includes(ch) ? T.punct : T.plain,
-  }))
-}
-
-function highlightKeyValue(line: string): Token[] {
-  const eq = line.indexOf('=')
-  if (eq === -1) return [{ text: line, cls: T.plain }]
-  const k = line.slice(0, eq)
-  const v = line.slice(eq + 1)
-  return [
-    { text: k, cls: T.key },
-    { text: '=', cls: T.op },
-    { text: v, cls: isSecret(v) ? T.secret : T.str },
-  ]
-}
-
-function highlightPowershell(line: string): Token[] {
-  // $env:KEY = "VALUE"
-  const m = line.match(/^(\$env:)([^=\s]+)(\s*=\s*)(")(.*)(")$/)
-  if (!m) return [{ text: line, cls: T.plain }]
-  const [, prefix, key, eq, q1, val, q2] = m
-  return [
-    { text: prefix, cls: T.kw },
-    { text: key, cls: T.key },
-    { text: eq, cls: T.op },
-    { text: q1, cls: T.punct },
-    { text: val, cls: isSecret(val) ? T.secret : T.str },
-    { text: q2, cls: T.punct },
-  ]
-}
-
-function highlightBash(line: string): Token[] {
-  // export KEY="VALUE"
-  const m = line.match(/^(export )([^=]+)(=)(")(.*)(")$/)
-  if (!m) return [{ text: line, cls: T.plain }]
-  const [, kw, key, eq, q1, val, q2] = m
-  return [
-    { text: kw, cls: T.kw },
-    { text: key, cls: T.key },
-    { text: eq, cls: T.op },
-    { text: q1, cls: T.punct },
-    { text: val, cls: isSecret(val) ? T.secret : T.str },
-    { text: q2, cls: T.punct },
-  ]
-}
-
-export function tokenizeLine(line: string, format: ExportFormat): Token[] {
-  if (!line.trim()) return [{ text: line || ' ', cls: T.plain }]
-  switch (format) {
-    case 'json':       return highlightJSON(line)
-    case 'keyvalue':   return highlightKeyValue(line)
-    case 'powershell': return highlightPowershell(line)
-    case 'bash':       return highlightBash(line)
-  }
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -215,14 +35,14 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
   const secretCount = Object.values(variables).filter((v) => v.isSecret).length
 
   async function handleCopy(): Promise<void> {
-    await navigator.clipboard.writeText(serializeForExport(variables, format))
+    await navigator.clipboard.writeText(serializeVariables(variables, format))
     setCopied(true)
     toast.success('Copied to clipboard')
     setTimeout(() => setCopied(false), 2000)
   }
 
   function handleSave(): void {
-    downloadText(serializeForExport(variables, format), `${baseName}.${fmt.ext}`)
+    downloadText(serializeVariables(variables, format), `${baseName}.${fmt.ext}`)
     toast.success(`Saved as ${baseName}.${fmt.ext}`)
   }
 
@@ -233,7 +53,9 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-        onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose()
+        }}
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
@@ -252,7 +74,12 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
                 {secretCount > 0 && (
                   <span className="ml-1 text-slate-600">({secretCount} secret, shown as ***)</span>
                 )}
-                {groupName && <> — <span className="text-slate-400">{groupName}</span></>}
+                {groupName && (
+                  <>
+                    {' '}
+                    — <span className="text-slate-400">{groupName}</span>
+                  </>
+                )}
               </p>
             </div>
             <button
@@ -277,7 +104,9 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
               >
                 {opt.icon}
                 {opt.label}
-                <span className={`font-mono ${format === opt.id ? 'text-blue-600' : 'text-slate-700'}`}>
+                <span
+                  className={`font-mono ${format === opt.id ? 'text-blue-600' : 'text-slate-700'}`}
+                >
                   .{opt.ext}
                 </span>
               </button>
@@ -289,6 +118,7 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
             <table className="w-full border-collapse font-mono text-xs leading-[1.6]">
               <tbody>
                 {lines.map((line, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: stable ordered lines from serialized content
                   <tr key={i} className="group hover:bg-white/[0.03]">
                     {/* Line number */}
                     <td
@@ -300,7 +130,10 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
                     {/* Highlighted line */}
                     <td className="whitespace-pre px-4 py-0">
                       {tokenizeLine(line, format).map((tok, j) => (
-                        <span key={j} className={tok.cls}>{tok.text}</span>
+                        // biome-ignore lint/suspicious/noArrayIndexKey: stable ordered tokens per line
+                        <span key={j} className={tok.cls}>
+                          {tok.text}
+                        </span>
                       ))}
                     </td>
                   </tr>
@@ -341,4 +174,3 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
     </AnimatePresence>
   )
 }
-

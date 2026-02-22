@@ -1,5 +1,5 @@
+import appIcon from '@renderer/assets/icon.png'
 import { motion } from 'framer-motion'
-import appIcon from '@resources/icon.png'
 
 export function SplashView(): React.JSX.Element {
   return (
@@ -37,9 +37,18 @@ export function SplashView(): React.JSX.Element {
         transition={{ delay: 0.3 }}
         className="flex items-center gap-2"
       >
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" style={{ animationDelay: '0ms' }} />
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" style={{ animationDelay: '150ms' }} />
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" style={{ animationDelay: '300ms' }} />
+        <span
+          className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400"
+          style={{ animationDelay: '0ms' }}
+        />
+        <span
+          className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400"
+          style={{ animationDelay: '150ms' }}
+        />
+        <span
+          className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400"
+          style={{ animationDelay: '300ms' }}
+        />
       </motion.div>
     </motion.div>
   )

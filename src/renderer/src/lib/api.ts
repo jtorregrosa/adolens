@@ -13,9 +13,9 @@ export async function saveCredentials(orgUrl: string, pat: string): Promise<void
   await invoke('save_credentials', { orgUrl, pat })
 }
 
-export async function loadCredentials(): Promise<{ orgUrl: string; pat: string } | null> {
+export async function loadCredentials(): Promise<{ orgUrl: string } | null> {
   try {
-    return await invoke<{ orgUrl: string; pat: string }>('load_credentials')
+    return await invoke<{ orgUrl: string }>('load_credentials')
   } catch {
     return null
   }

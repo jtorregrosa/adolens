@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useAuthStore } from './store/authStore'
-import { useUIStore } from './store/uiStore'
-import { SplashView } from './components/SplashView'
+import { useEffect, useState } from 'react'
 import { LoginScreen } from './components/auth/LoginScreen'
 import { ResizableLayout } from './components/layout/ResizableLayout'
+import { SplashView } from './components/SplashView'
 import { loadCredentials, loadFavorites } from './lib/api'
+import { useAuthStore } from './store/authStore'
+import { useUIStore } from './store/uiStore'
 
-const SPLASH_MIN_MS = 5000
+const SPLASH_MIN_MS = 1000
 
 function App(): React.JSX.Element {
   const { isAuthenticated, setAuthenticated } = useAuthStore()
@@ -36,7 +36,9 @@ function App(): React.JSX.Element {
       timeoutId = setTimeout(() => setShowSplash(false), remaining)
     })
 
-    return () => { if (timeoutId !== undefined) clearTimeout(timeoutId) }
+    return () => {
+      if (timeoutId !== undefined) clearTimeout(timeoutId)
+    }
   }, [setAuthenticated, hydrateUiStore])
 
   return (

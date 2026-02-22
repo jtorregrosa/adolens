@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Copy, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useCloneVariableGroup } from '../../hooks/useADOApi'
 
 interface CloneLibraryModalProps {
@@ -80,9 +80,7 @@ export function CloneLibraryModal({
             </p>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-slate-300">
-                New library name
-              </label>
+              <label className="block text-xs font-medium text-slate-300">New library name</label>
               <input
                 ref={inputRef}
                 value={name}
@@ -113,14 +111,13 @@ export function CloneLibraryModal({
                     <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
                       <circle
                         className="opacity-25"
-                        cx="12" cy="12" r="10"
-                        stroke="currentColor" strokeWidth="4"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
                       />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"
-                      />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                     </svg>
                     Cloning…
                   </span>

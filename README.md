@@ -1,12 +1,12 @@
-# ADO Lens
+# ADOLens
 
-A professional Electron desktop application for comparing, synchronizing, and editing **Azure DevOps Variable Groups** between different projects or pipelines using a high-performance split-screen interface.
+A desktop application for comparing, synchronizing, and editing **Azure DevOps Variable Groups** between different projects or pipelines using a high-performance split-screen interface.
 
 ## Features
 
 | Feature | Details |
 |---|---|
-| **Secure Auth** | PAT encrypted via Electron `safeStorage`, org URL in `electron-store` |
+| **Secure Auth** | PAT stored in OS keychain via `keyring`; org URL persisted with `tauri-plugin-store` |
 | **Split-Screen Diff** | Left (Source) vs Right (Target) panes with synchronized scrolling |
 | **Visual Diff Engine** | Identical / Modified (amber) / Added (green) / Removed (red) / Ghost rows for alignment |
 | **Inline Editing** | Double-click any value cell to edit in-place |
@@ -15,25 +15,25 @@ A professional Electron desktop application for comparing, synchronizing, and ed
 | **Review Modal** | Before/After diff summary before committing via ADO REST API PUT |
 | **Keyboard Shortcuts** | `Ctrl+F` to search keys, `Escape` to cancel edit |
 | **Resizable Panels** | Draggable sidebar and comparison panes |
+| **Clone Library** | Clone a variable group to a new name within the same project |
 
 ## Tech Stack
 
-- **Electron 39** — Main/Renderer separation via `contextBridge`
-- **React 18 + TypeScript** (strict mode)
+- **Tauri 2** — Rust backend + WebView2 frontend, custom frameless window
+- **React 19 + TypeScript** (strict mode)
 - **Tailwind CSS v4** — Dark mode by default
 - **Zustand** — UI state (sidebar, pane selections)
 - **TanStack Query v5** — Server state (ADO API fetching/caching)
 - **react-resizable-panels v4** — 3-pane resizable layout
 - **lucide-react** – Iconography, **sonner** – Toasts, **framer-motion** – Transitions
-- **azure-devops-node-api** – ADO REST API client (main process)
+- **azure_devops_rust_api** – ADO REST API client (Rust backend)
 
 ## Getting Started
 
 ```bash
-npm install
-npm run dev          # Launch dev server + Electron
-npm run build        # Typecheck + production build
-npm run build:win    # Windows installer
+pnpm install
+pnpm dev             # Launch Tauri dev window (Vite + Rust hot-reload)
+pnpm build           # Production build + bundle
 ```
 
 ## Usage
@@ -47,35 +47,8 @@ npm run build:win    # Windows installer
 
 ## Security
 
-PATs are encrypted via Electron `safeStorage` (OS keychain). All ADO API calls run in the main process. The renderer only communicates via typed `contextBridge` IPC channels.
+PATs are stored securely in the **OS keychain** via the `keyring` crate. All ADO API calls run in the Rust backend process. The frontend communicates via Tauri's typed `invoke` IPC.
 
 ## Recommended IDE Setup
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-
-## Project Setup
-
-### Install
-
-```bash
-$ npm install
-```
-
-### Development
-
-```bash
-$ npm run dev
-```
-
-### Build
-
-```bash
-# For windows
-$ npm run build:win
-
-# For macOS
-$ npm run build:mac
-
-# For Linux
-$ npm run build:linux
-```
+- [VSCode](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)

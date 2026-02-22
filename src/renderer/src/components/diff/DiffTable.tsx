@@ -1,25 +1,30 @@
-import { forwardRef, useState, useCallback, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ChevronsLeft,
+  ChevronsRight,
+  CloudUpload,
+  Loader2,
   Lock,
   LockOpen,
-  ArrowRight,
-  ArrowLeft,
-  Check,
-  X,
-  ChevronsRight,
-  ChevronsLeft,
-  Loader2,
-  Trash2,
-  RotateCcw,
   Plus,
-  CloudUpload
+  RotateCcw,
+  Trash2,
+  X
 } from 'lucide-react'
-import type { DiffVariableRow, AdoVariableGroup, DraftNewVariable, PendingChange } from '../../types'
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { useUIStore } from '../../store/uiStore'
-import { Tooltip } from '../ui/Tooltip'
-import { AppContextMenu } from '../ui/AppContextMenu'
+import type {
+  AdoVariableGroup,
+  DiffVariableRow,
+  DraftNewVariable,
+  PendingChange
+} from '../../types'
 import type { ContextMenuItem } from '../ui/AppContextMenu'
+import { AppContextMenu } from '../ui/AppContextMenu'
+import { Tooltip } from '../ui/Tooltip'
 import { NewPropertyRow } from './NewPropertyRow'
 
 interface Props {
@@ -66,7 +71,26 @@ interface Props {
 const SECRET_PLACEHOLDER = '••••••••'
 
 export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
-  { side, rows, isLoading, otherGroup, onOpenReview, clearToken, addedVars = [], onAddVar, onDeleteNewVar, onUpdateNewVar, deletedKeys = [], onDeleteVar, onRemoveLocalVar, onRestoreVar, onDiscard, peerHasChanges = false, cloudKeysForPane = [], scrollToAddedKey = null },
+  {
+    side,
+    rows,
+    isLoading,
+    otherGroup,
+    onOpenReview,
+    clearToken,
+    addedVars = [],
+    onAddVar,
+    onDeleteNewVar,
+    onUpdateNewVar,
+    deletedKeys = [],
+    onDeleteVar,
+    onRemoveLocalVar,
+    onRestoreVar,
+    onDiscard,
+    peerHasChanges = false,
+    cloudKeysForPane = [],
+    scrollToAddedKey = null
+  },
   ref
 ) {
   const addedRowRef = useRef<HTMLTableRowElement | null>(null)
@@ -75,7 +99,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   const { searchQuery, upsertOwnEdit, removeOwnEdit } = useUIStore()
   // Subscribe to own-side edits from Zustand so the notification bar count
   // reflects cross-pane copies that arrive via the global store (not local state).
-  const ownEdits = useUIStore((s) => side === 'left' ? s.leftOwnEdits : s.rightOwnEdits)
+  const ownEdits = useUIStore((s) => (side === 'left' ? s.leftOwnEdits : s.rightOwnEdits))
   const [editingKey, setEditingKey] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   // ── Key-name editing ────────────────────────────────────────────────────
@@ -86,16 +110,18 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   // When the parent signals a discard or post-push, wipe all local pending state.
   useEffect(() => {
     if (clearToken > 0) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       setPendingChanges([])
       setEditingKey(null)
       setEditingKeyFor(null)
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [clearToken])
 
   // When scrollToAddedKey or flashRow is set, scroll the row into view and trigger type-specific flash.
   useEffect(() => {
     const key = scrollToAddedKey ?? flashRow?.key
-    const flashType: FlashRowType = scrollToAddedKey ? 'added' : flashRow?.type ?? 'added'
+    const flashType: FlashRowType = scrollToAddedKey ? 'added' : (flashRow?.type ?? 'added')
     if (!key) return
     const el = addedRowRef.current
     if (!el) return
@@ -129,13 +155,16 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
     setEditValue('')
   }, [])
 
-  const startKeyEdit = useCallback((originalKey: string) => {
-    // If currently editing a value, close it first.
-    setEditingKey(null)
-    const existingRename = ownEdits.find((e) => e.key === originalKey && e.newKey)
-    setEditKeyValue(existingRename?.newKey ?? originalKey)
-    setEditingKeyFor(originalKey)
-  }, [ownEdits])
+  const startKeyEdit = useCallback(
+    (originalKey: string) => {
+      // If currently editing a value, close it first.
+      setEditingKey(null)
+      const existingRename = ownEdits.find((e) => e.key === originalKey && e.newKey)
+      setEditKeyValue(existingRename?.newKey ?? originalKey)
+      setEditingKeyFor(originalKey)
+    },
+    [ownEdits]
+  )
 
   const cancelKeyEdit = useCallback(() => {
     setEditingKeyFor(null)
@@ -143,7 +172,11 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   }, [])
 
   const commitKeyEdit = useCallback(
-    (originalKey: string, variable: { value?: string; isSecret?: boolean } | undefined | null, takenKeys: Set<string>) => {
+    (
+      originalKey: string,
+      variable: { value?: string; isSecret?: boolean } | undefined | null,
+      takenKeys: Set<string>
+    ) => {
       const trimmed = editKeyValue.trim()
       if (!trimmed || (takenKeys.has(trimmed) && trimmed !== originalKey)) {
         // Invalid — cancel without saving.
@@ -165,7 +198,9 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
           originalValue: variable?.value,
           newValue: currentValue,
           ...(isKeyChanged ? { newKey: trimmed } : {}),
-          ...(currentPendingEdit?.isSecret !== undefined ? { isSecret: currentPendingEdit.isSecret } : {})
+          ...(currentPendingEdit?.isSecret !== undefined
+            ? { isSecret: currentPendingEdit.isSecret }
+            : {})
         }
         setPendingChanges((prev) => {
           const without = prev.filter((c) => !(c.key === originalKey && c.side === side))
@@ -185,7 +220,11 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   )
 
   const commitEdit = useCallback(
-    (key: string, originalValue: string | undefined, variable?: { value?: string; isSecret?: boolean } | null) => {
+    (
+      key: string,
+      originalValue: string | undefined,
+      variable?: { value?: string; isSecret?: boolean } | null
+    ) => {
       const existingEdit = ownEdits.find((e) => e.key === key)
       const existingRename = existingEdit?.newKey
       const isSecret = existingEdit?.isSecret ?? variable?.isSecret ?? false
@@ -196,7 +235,11 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
           originalValue,
           newValue: editValue,
           ...(existingRename ? { newKey: existingRename } : {}),
-          ...(isSecret ? { isSecret: true } : existingEdit?.isSecret !== undefined ? { isSecret: existingEdit.isSecret } : {})
+          ...(isSecret
+            ? { isSecret: true }
+            : existingEdit?.isSecret !== undefined
+              ? { isSecret: existingEdit.isSecret }
+              : {})
         }
         setPendingChanges((prev) => {
           const without = prev.filter((c) => !(c.key === key && c.side === side))
@@ -231,7 +274,11 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   )
 
   const setRowSecret = useCallback(
-    (key: string, isSecret: boolean, variable: { value?: string; isSecret?: boolean } | undefined | null) => {
+    (
+      key: string,
+      isSecret: boolean,
+      variable: { value?: string; isSecret?: boolean } | undefined | null
+    ) => {
       const existing = ownEdits.find((e) => e.key === key)
       const currentValue = existing?.newValue ?? variable?.value ?? ''
       // When removing secret, clear the value in the table (ADO does not expose secret values; we send empty).
@@ -296,7 +343,9 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
     )
   }
 
-  const pendingCount = pendingChanges.filter((c) => c.side === (side === 'left' ? 'right' : 'left')).length
+  const pendingCount = pendingChanges.filter(
+    (c) => c.side === (side === 'left' ? 'right' : 'left')
+  ).length
   // Total: own-side edits from Zustand (includes copies FROM the other pane) +
   // locally-added variables + staged deletions.
   const totalPendingCount = ownEdits.length + addedVars.length + deletedKeys.length
@@ -401,7 +450,11 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                 return (
                   <NewPropertyRow
                     key={addedVar.key}
-                    ref={scrollToAddedKey === addedVar.key || flashRow?.key === addedVar.key ? addedRowRef : undefined}
+                    ref={
+                      scrollToAddedKey === addedVar.key || flashRow?.key === addedVar.key
+                        ? addedRowRef
+                        : undefined
+                    }
                     side={side}
                     variable={addedVar}
                     existingKeys={addedVarKeys}
@@ -446,7 +499,8 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
 
               const canDelete = !!variable && row.status !== 'ghost'
               const isInCloud = cloudKeysForPaneSet.has(row.key)
-              const effectiveSecret = ownEdits.find((e) => e.key === row.key)?.isSecret ?? variable?.isSecret ?? false
+              const effectiveSecret =
+                ownEdits.find((e) => e.key === row.key)?.isSecret ?? variable?.isSecret ?? false
 
               const handleRemoveOrDelete = (): void => {
                 if (isDeleted) {
@@ -465,8 +519,16 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                 ...(canDelete
                   ? [
                       {
-                        label: isDeleted ? 'Restore variable' : isInCloud ? 'Delete variable' : 'Remove (undo add)',
-                        icon: isDeleted ? <RotateCcw className="h-3.5 w-3.5" /> : <Trash2 className="h-3.5 w-3.5" />,
+                        label: isDeleted
+                          ? 'Restore variable'
+                          : isInCloud
+                            ? 'Delete variable'
+                            : 'Remove (undo add)',
+                        icon: isDeleted ? (
+                          <RotateCcw className="h-3.5 w-3.5" />
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        ),
                         variant: (isDeleted ? 'default' : 'danger') as 'default' | 'danger',
                         onSelect: handleRemoveOrDelete
                       }
@@ -486,7 +548,11 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                 },
                 {
                   label: effectiveSecret ? 'Remove secret' : 'Set as secret',
-                  icon: effectiveSecret ? <LockOpen className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />,
+                  icon: effectiveSecret ? (
+                    <LockOpen className="h-3.5 w-3.5" />
+                  ) : (
+                    <Lock className="h-3.5 w-3.5" />
+                  ),
                   disabled: !variable || isDeleted,
                   dividerBefore: true,
                   onSelect: () => setRowSecret(row.key, !effectiveSecret, variable)
@@ -502,17 +568,30 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                 >
                   <div className="flex items-center justify-center">
                     {showCopyButton ? (
-                      <Tooltip content={`Copy to ${side === 'left' ? 'Right' : 'Left'}${variable?.isSecret ? ' (value will be empty)' : ''}`} side={side === 'left' ? 'right' : 'left'}>
+                      <Tooltip
+                        content={`Copy to ${side === 'left' ? 'Right' : 'Left'}${variable?.isSecret ? ' (value will be empty)' : ''}`}
+                        side={side === 'left' ? 'right' : 'left'}
+                      >
                         <button
-                          onClick={() => copyRowToOtherSide(row.key, variable?.value, variable?.isSecret)}
+                          onClick={() =>
+                            copyRowToOtherSide(row.key, variable?.value, variable?.isSecret)
+                          }
                           className="rounded p-1 text-slate-500 transition hover:bg-slate-700 hover:text-slate-300"
                         >
-                          {side === 'left' ? <ArrowRight className="h-3.5 w-3.5" /> : <ArrowLeft className="h-3.5 w-3.5" />}
+                          {side === 'left' ? (
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          ) : (
+                            <ArrowLeft className="h-3.5 w-3.5" />
+                          )}
                         </button>
                       </Tooltip>
                     ) : (
                       <button className="invisible rounded p-1">
-                        {side === 'left' ? <ArrowRight className="h-3.5 w-3.5" /> : <ArrowLeft className="h-3.5 w-3.5" />}
+                        {side === 'left' ? (
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        ) : (
+                          <ArrowLeft className="h-3.5 w-3.5" />
+                        )}
                       </button>
                     )}
                   </div>
@@ -527,9 +606,12 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                   }`}
                 >
                   <div className="flex items-center justify-center">
-                    {canDelete && (
-                      isDeleted ? (
-                        <Tooltip content="Restore variable" side={side === 'left' ? 'left' : 'right'}>
+                    {canDelete &&
+                      (isDeleted ? (
+                        <Tooltip
+                          content="Restore variable"
+                          side={side === 'left' ? 'left' : 'right'}
+                        >
                           <button
                             onClick={() => onRestoreVar?.(row.key)}
                             className="rounded p-1 text-red-500 transition hover:bg-red-500/10 hover:text-red-400"
@@ -538,7 +620,10 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                           </button>
                         </Tooltip>
                       ) : (
-                        <Tooltip content={isInCloud ? 'Delete variable' : 'Remove (undo add)'} side={side === 'left' ? 'left' : 'right'}>
+                        <Tooltip
+                          content={isInCloud ? 'Delete variable' : 'Remove (undo add)'}
+                          side={side === 'left' ? 'left' : 'right'}
+                        >
                           <button
                             onClick={handleRemoveOrDelete}
                             className="rounded p-1 text-transparent transition group-hover:text-slate-600 hover:!text-red-400 hover:bg-red-500/10"
@@ -546,8 +631,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                             <Trash2 className="h-3 w-3" />
                           </button>
                         </Tooltip>
-                      )
-                    )}
+                      ))}
                   </div>
                 </td>
               )
@@ -559,7 +643,8 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                   : otherGroup
                     ? row.status
                     : 'identical'
-              const isAddedToThisLibrary = !!variable && !isDeleted && !cloudKeysForPaneSet.has(row.key)
+              const isAddedToThisLibrary =
+                !!variable && !isDeleted && !cloudKeysForPaneSet.has(row.key)
               const hasOwnValueEdit = ownEdits.some((e) => e.key === row.key) && !isKeyRenamed
               const rowHighlightClass = isDeleted
                 ? 'diff-row-deleted'
@@ -578,130 +663,160 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
               return (
                 <AppContextMenu key={`${row.key}-${idx}`} items={rowMenuItems}>
                   <tr
-                    ref={scrollToAddedKey === row.key || flashRow?.key === row.key ? addedRowRef : undefined}
+                    ref={
+                      scrollToAddedKey === row.key || flashRow?.key === row.key
+                        ? addedRowRef
+                        : undefined
+                    }
                     className={`border-b border-slate-800/50 ${rowHighlightClass} group`}
                   >
-                  {/* Left pane: delete on outer-left, copy on outer-right (near separator) */}
-                  {/* Right pane: copy on outer-left (near separator), delete on outer-right */}
-                  {side === 'left' ? deleteCell : copyCell}
+                    {/* Left pane: delete on outer-left, copy on outer-right (near separator) */}
+                    {/* Right pane: copy on outer-left (near separator), delete on outer-right */}
+                    {side === 'left' ? deleteCell : copyCell}
 
-                  {/* Key cell — min-h-6 keeps row height consistent with value cell */}
-                  <td className="w-5/12 max-w-0 overflow-hidden px-4 py-2 align-middle">
-                    {row.status === 'ghost' || !variable ? (
-                      <span className="mono block min-h-6 truncate py-0.5 text-sm invisible">&nbsp;</span>
-                    ) : isDeleted ? (
-                      <Tooltip content={row.key} side="top" delayDuration={800}>
-                        <span className="mono selectable block min-h-6 w-fit max-w-full truncate py-0.5 text-sm text-slate-400 line-through">
-                          {row.key}
+                    {/* Key cell — min-h-6 keeps row height consistent with value cell */}
+                    <td className="w-5/12 max-w-0 overflow-hidden px-4 py-2 align-middle">
+                      {row.status === 'ghost' || !variable ? (
+                        <span className="mono block min-h-6 truncate py-0.5 text-sm invisible">
+                          &nbsp;
                         </span>
-                      </Tooltip>
-                    ) : isEditingKeyName ? (
-                      <div className="flex items-center gap-1">
-                        <input
-                          autoFocus
-                          className={`selectable mono flex-1 rounded border px-2 py-0.5 text-sm text-white outline-none bg-slate-800 ${
-                            keyInputInvalid
-                              ? 'border-red-500'
-                              : 'border-blue-500'
-                          }`}
-                          value={editKeyValue}
-                          onChange={(e) => setEditKeyValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') commitKeyEdit(row.key, variable, takenKeys)
-                            if (e.key === 'Escape') cancelKeyEdit()
-                          }}
-                        />
-                        <button
-                          onClick={() => commitKeyEdit(row.key, variable, takenKeys)}
-                          disabled={keyInputInvalid}
-                          className="rounded p-0.5 text-emerald-400 hover:bg-emerald-400/10 disabled:opacity-30"
-                        >
-                          <Check className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={cancelKeyEdit}
-                          className="rounded p-0.5 text-red-400 hover:bg-red-400/10"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <Tooltip content={isKeyRenamed ? `${row.key} → ${displayKey}` : displayKey} side="top" delayDuration={800}>
-                        <span
-                          className={`mono selectable block min-h-6 w-fit max-w-full cursor-text truncate rounded py-0.5 text-sm text-slate-300 ${
-                            isKeyRenamed ? 'font-bold' : ''
-                          }`}
-                          onClick={() => !isDeleted && startKeyEdit(row.key)}
-                        >
-                          {displayKey}
-                        </span>
-                      </Tooltip>
-                    )}
-                  </td>
-
-                  {/* Value cell — min-h-6 keeps row height consistent */}
-                  <td className="max-w-0 overflow-hidden px-4 py-2 align-middle">
-                    {row.status === 'ghost' || !variable ? (
-                      <span className="mono block min-h-6 truncate py-0.5 text-sm invisible">&nbsp;</span>
-                    ) : isDeleted ? (
-                      <span className="mono block min-h-6 truncate py-0.5 text-sm text-slate-400 line-through">
-                        {variable.isSecret ? SECRET_PLACEHOLDER : (variable.value || <span className="text-slate-500 italic">empty</span>)}
-                      </span>
-                    ) : effectiveSecret ? (
-                      <Tooltip content="Click to set or change secret value" side="top" delayDuration={800}>
-                        <div
-                          className="flex min-h-6 cursor-text items-center gap-1.5 rounded text-slate-500 hover:text-slate-400"
-                          onClick={() => startEdit(row.key, undefined)}
-                        >
-                          <Lock className="h-3 w-3 shrink-0" />
-                          <span className="mono text-sm">{SECRET_PLACEHOLDER}</span>
+                      ) : isDeleted ? (
+                        <Tooltip content={row.key} side="top" delayDuration={800}>
+                          <span className="mono selectable block min-h-6 w-fit max-w-full truncate py-0.5 text-sm text-slate-400 line-through">
+                            {row.key}
+                          </span>
+                        </Tooltip>
+                      ) : isEditingKeyName ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            autoFocus
+                            className={`selectable mono flex-1 rounded border px-2 py-0.5 text-sm text-white outline-none bg-slate-800 ${
+                              keyInputInvalid ? 'border-red-500' : 'border-blue-500'
+                            }`}
+                            value={editKeyValue}
+                            onChange={(e) => setEditKeyValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') commitKeyEdit(row.key, variable, takenKeys)
+                              if (e.key === 'Escape') cancelKeyEdit()
+                            }}
+                          />
+                          <button
+                            onClick={() => commitKeyEdit(row.key, variable, takenKeys)}
+                            disabled={keyInputInvalid}
+                            className="rounded p-0.5 text-emerald-400 hover:bg-emerald-400/10 disabled:opacity-30"
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={cancelKeyEdit}
+                            className="rounded p-0.5 text-red-400 hover:bg-red-400/10"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </div>
-                      </Tooltip>
-                    ) : isEditing ? (
-                      <div className="flex items-center gap-1">
-                        <input
-                          autoFocus
-                          className="selectable mono flex-1 rounded border border-blue-500 bg-slate-800 px-2 py-0.5 text-sm text-white outline-none"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') commitEdit(row.key, variable?.value)
-                            if (e.key === 'Escape') cancelEdit()
-                          }}
-                        />
-                        <button
-                          onClick={() => commitEdit(row.key, variable?.value)}
-                          className="rounded p-0.5 text-emerald-400 hover:bg-emerald-400/10"
+                      ) : (
+                        <Tooltip
+                          content={isKeyRenamed ? `${row.key} → ${displayKey}` : displayKey}
+                          side="top"
+                          delayDuration={800}
                         >
-                          <Check className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="rounded p-0.5 text-red-400 hover:bg-red-400/10"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <Tooltip content={displayValue != null && displayValue !== '' ? displayValue : '(empty)'} side="top" delayDuration={800}>
-                        <span
-                          className={`mono selectable block min-h-6 w-full min-w-0 cursor-text truncate rounded text-sm text-slate-300 py-0.5 ${
-                            ownEdits.some((e) => e.key === row.key) || (otherGroup && row.status === 'modified') ? 'font-bold' : ''
-                          }`}
-                          onClick={() => startEdit(row.key, displayValue)}
-                        >
-                          {displayValue != null && displayValue !== '' ? displayValue : <span className="text-slate-600 italic">empty</span>}
-                        </span>
-                      </Tooltip>
-                    )}
-                  </td>
+                          <span
+                            className={`mono selectable block min-h-6 w-fit max-w-full cursor-text truncate rounded py-0.5 text-sm text-slate-300 ${
+                              isKeyRenamed ? 'font-bold' : ''
+                            }`}
+                            onClick={() => !isDeleted && startKeyEdit(row.key)}
+                          >
+                            {displayKey}
+                          </span>
+                        </Tooltip>
+                      )}
+                    </td>
 
-                  {side === 'left' ? copyCell : deleteCell}
-                </tr>
+                    {/* Value cell — min-h-6 keeps row height consistent */}
+                    <td className="max-w-0 overflow-hidden px-4 py-2 align-middle">
+                      {row.status === 'ghost' || !variable ? (
+                        <span className="mono block min-h-6 truncate py-0.5 text-sm invisible">
+                          &nbsp;
+                        </span>
+                      ) : isDeleted ? (
+                        <span className="mono block min-h-6 truncate py-0.5 text-sm text-slate-400 line-through">
+                          {variable.isSecret
+                            ? SECRET_PLACEHOLDER
+                            : variable.value || (
+                                <span className="text-slate-500 italic">empty</span>
+                              )}
+                        </span>
+                      ) : effectiveSecret ? (
+                        <Tooltip
+                          content="Click to set or change secret value"
+                          side="top"
+                          delayDuration={800}
+                        >
+                          <div
+                            className="flex min-h-6 cursor-text items-center gap-1.5 rounded text-slate-500 hover:text-slate-400"
+                            onClick={() => startEdit(row.key, undefined)}
+                          >
+                            <Lock className="h-3 w-3 shrink-0" />
+                            <span className="mono text-sm">{SECRET_PLACEHOLDER}</span>
+                          </div>
+                        </Tooltip>
+                      ) : isEditing ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            autoFocus
+                            className="selectable mono flex-1 rounded border border-blue-500 bg-slate-800 px-2 py-0.5 text-sm text-white outline-none"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') commitEdit(row.key, variable?.value)
+                              if (e.key === 'Escape') cancelEdit()
+                            }}
+                          />
+                          <button
+                            onClick={() => commitEdit(row.key, variable?.value)}
+                            className="rounded p-0.5 text-emerald-400 hover:bg-emerald-400/10"
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            className="rounded p-0.5 text-red-400 hover:bg-red-400/10"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <Tooltip
+                          content={
+                            displayValue != null && displayValue !== '' ? displayValue : '(empty)'
+                          }
+                          side="top"
+                          delayDuration={800}
+                        >
+                          <span
+                            className={`mono selectable block min-h-6 w-full min-w-0 cursor-text truncate rounded text-sm text-slate-300 py-0.5 ${
+                              ownEdits.some((e) => e.key === row.key) ||
+                              (otherGroup && row.status === 'modified')
+                                ? 'font-bold'
+                                : ''
+                            }`}
+                            onClick={() => startEdit(row.key, displayValue)}
+                          >
+                            {displayValue != null && displayValue !== '' ? (
+                              displayValue
+                            ) : (
+                              <span className="text-slate-600 italic">empty</span>
+                            )}
+                          </span>
+                        </Tooltip>
+                      )}
+                    </td>
+
+                    {side === 'left' ? copyCell : deleteCell}
+                  </tr>
                 </AppContextMenu>
               )
             })}
-
 
             {/* Inline “Add variable” footer row */}
             {onAddVar && (
@@ -733,7 +848,6 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
           </div>
         )}
       </div>
-
     </div>
   )
 })

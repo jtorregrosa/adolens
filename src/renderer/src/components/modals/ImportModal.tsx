@@ -1,9 +1,9 @@
-import { useState, useRef, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, FolderOpen, Upload, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { AlertCircle, CheckCircle2, FolderOpen, Upload, X } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { AdoVariable } from '../../types'
-import { FORMAT_OPTIONS, type ExportFormat, tokenizeLine } from './ExportModal'
+import { type ExportFormat, FORMAT_OPTIONS, tokenizeLine } from './exportUtils'
 
 // ─── Parsers ─────────────────────────────────────────────────────────────────
 
@@ -67,15 +67,16 @@ function detectFormat(filename: string, content: string): ExportFormat {
   return 'keyvalue'
 }
 
-function parseVariables(
-  content: string,
-  format: ExportFormat
-): Record<string, AdoVariable> | null {
+function parseVariables(content: string, format: ExportFormat): Record<string, AdoVariable> | null {
   switch (format) {
-    case 'json':       return parseJSON(content)
-    case 'keyvalue':   return parseKeyValue(content)
-    case 'powershell': return parsePowershell(content)
-    case 'bash':       return parseBash(content)
+    case 'json':
+      return parseJSON(content)
+    case 'keyvalue':
+      return parseKeyValue(content)
+    case 'powershell':
+      return parsePowershell(content)
+    case 'bash':
+      return parseBash(content)
   }
 }
 
@@ -144,7 +145,9 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-        onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose()
+        }}
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
@@ -227,6 +230,7 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
               <table className="w-full border-collapse font-mono text-xs leading-[1.6]">
                 <tbody>
                   {lines.map((line, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: stable ordered lines from serialized content
                     <tr key={i} className="group hover:bg-white/[0.03]">
                       <td
                         className="select-none border-r border-slate-800 px-4 py-0 text-right text-slate-700 group-hover:text-slate-600"
@@ -236,7 +240,10 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
                       </td>
                       <td className="whitespace-pre px-4 py-0">
                         {tokenizeLine(line, format).map((tok, j) => (
-                          <span key={j} className={tok.cls}>{tok.text}</span>
+                          // biome-ignore lint/suspicious/noArrayIndexKey: stable ordered tokens per line
+                          <span key={j} className={tok.cls}>
+                            {tok.text}
+                          </span>
                         ))}
                       </td>
                     </tr>
@@ -267,7 +274,9 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
               ) : (
                 <>
                   <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
-                  <span className="text-amber-400">No variables detected — try a different format</span>
+                  <span className="text-amber-400">
+                    No variables detected — try a different format
+                  </span>
                 </>
               )}
             </div>

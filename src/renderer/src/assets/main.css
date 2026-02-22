@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ── ADO Lens global overrides ───────────────────────────────────────────── */
+/* ── ADOLens global overrides ───────────────────────────────────────────── */
 :root {
   color-scheme: dark;
 }
@@ -13,19 +13,28 @@ body,
   overflow: hidden;
   background-color: #0f172a;
   color: #e2e8f0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   user-select: none;
   -webkit-user-select: none;
 }
 
 /* Animated icons — hover scale app-wide, pulse on “Add variable” */
 @keyframes icon-pulse {
-  0%, 100% { opacity: 0.85; transform: scale(1); }
-  50%      { opacity: 1; transform: scale(1.1); }
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
 }
 button svg,
 [role="button"] svg {
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 button:hover:not(:disabled) svg,
 [role="button"]:hover:not([aria-disabled="true"]) svg {
@@ -37,8 +46,14 @@ button:hover:not(:disabled) svg,
 
 /* Marquee scroll for overflowing sidebar text — plays on parent hover */
 @keyframes marquee-scroll {
-  0%, 15%   { transform: translateX(0); }
-  85%, 100% { transform: translateX(-100%); }
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+  85%,
+  100% {
+    transform: translateX(-100%);
+  }
 }
 
 .marquee-wrap {
@@ -66,8 +81,8 @@ button:hover .marquee-text,
 
 /* Monospace for variable values */
 .mono {
-  font-family: 'JetBrains Mono', 'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Consolas,
-    monospace;
+  font-family:
+    "JetBrains Mono", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.8125rem;
 }
 
@@ -77,7 +92,7 @@ button:hover .marquee-text,
   transition: background 150ms;
 }
 [data-panel-resize-handle-id]:hover,
-[data-panel-resize-handle-id][data-resize-handle-state='drag'] {
+[data-panel-resize-handle-id][data-resize-handle-state="drag"] {
   background: #3b82f6;
 }
 
@@ -151,31 +166,59 @@ button:hover .marquee-text,
 
 /* Flash animations per row type — bright pulse then back to expected background */
 @keyframes diff-row-flash-added {
-  0% { background-color: rgba(34, 197, 94, 0.5); }
-  100% { background-color: rgba(34, 197, 94, 0.18); }
+  0% {
+    background-color: rgba(34, 197, 94, 0.5);
+  }
+  100% {
+    background-color: rgba(34, 197, 94, 0.18);
+  }
 }
 @keyframes diff-row-flash-deleted {
-  0% { background-color: rgba(239, 68, 68, 0.5); }
-  100% { background-color: rgba(239, 68, 68, 0.22); }
+  0% {
+    background-color: rgba(239, 68, 68, 0.5);
+  }
+  100% {
+    background-color: rgba(239, 68, 68, 0.22);
+  }
 }
 @keyframes diff-row-flash-renamed {
-  0% { background-color: rgba(59, 130, 246, 0.45); }
-  100% { background-color: rgba(59, 130, 246, 0.2); }
+  0% {
+    background-color: rgba(59, 130, 246, 0.45);
+  }
+  100% {
+    background-color: rgba(59, 130, 246, 0.2);
+  }
 }
 @keyframes diff-row-flash-modified {
-  0% { background-color: rgba(236, 72, 153, 0.25); }
-  100% { background-color: transparent; }
+  0% {
+    background-color: rgba(236, 72, 153, 0.25);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 @keyframes diff-row-flash-edited {
-  0% { background-color: rgba(234, 179, 8, 0.45); }
-  100% { background-color: rgba(234, 179, 8, 0.2); }
+  0% {
+    background-color: rgba(234, 179, 8, 0.45);
+  }
+  100% {
+    background-color: rgba(234, 179, 8, 0.2);
+  }
 }
-.diff-row-flash-added   { animation: diff-row-flash-added 1.2s ease-out forwards; }
-.diff-row-flash-deleted  { animation: diff-row-flash-deleted 1.2s ease-out forwards; }
-.diff-row-flash-renamed  { animation: diff-row-flash-renamed 1.2s ease-out forwards; }
-.diff-row-flash-modified { animation: diff-row-flash-modified 1.2s ease-out forwards; }
-.diff-row-flash-edited   { animation: diff-row-flash-edited 1.2s ease-out forwards; }
-.diff-row-removed {
+.diff-row-flash-added {
+  animation: diff-row-flash-added 1.2s ease-out forwards;
+}
+.diff-row-flash-deleted {
+  animation: diff-row-flash-deleted 1.2s ease-out forwards;
+}
+.diff-row-flash-renamed {
+  animation: diff-row-flash-renamed 1.2s ease-out forwards;
+}
+.diff-row-flash-modified {
+  animation: diff-row-flash-modified 1.2s ease-out forwards;
+}
+.diff-row-flash-edited {
+  animation: diff-row-flash-edited 1.2s ease-out forwards;
 }
 .diff-row-deleted {
   background-color: rgba(239, 68, 68, 0.22);
@@ -193,11 +236,7 @@ button:hover .marquee-text,
 
 /* Light hover overlay on diff rows */
 .diff-table tbody tr:hover {
-  background-image: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.06),
-    rgba(255, 255, 255, 0.06)
-  );
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.06));
 }
 
 /* Highlighted value cell */
@@ -212,7 +251,7 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-image: url('./wavy-lines.svg');
+  background-image: url("./wavy-lines.svg");
   background-size: cover;
   user-select: none;
 }
@@ -335,7 +374,7 @@ code {
   bottom: 30px;
   margin: 0 auto;
   padding: 15px 0;
-  font-family: 'Menlo', 'Lucida Console', monospace;
+  font-family: "Menlo", "Lucida Console", monospace;
   display: inline-flex;
   overflow: hidden;
   align-items: center;

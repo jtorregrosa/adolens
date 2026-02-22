@@ -1,7 +1,7 @@
+import { AnimatePresence, motion } from 'framer-motion'
+import { AlertTriangle, Check, Loader2, Lock, X } from 'lucide-react'
 import { useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check, Loader2, AlertTriangle, Lock } from 'lucide-react'
-import type { PendingChange, AdoVariable } from '../../types'
+import type { AdoVariable, PendingChange } from '../../types'
 
 interface Props {
   pendingChanges: PendingChange[]

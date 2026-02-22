@@ -1,5 +1,5 @@
-import { forwardRef, useState, useCallback } from 'react'
-import { Trash2, Check, X } from 'lucide-react'
+import { Check, Trash2, X } from 'lucide-react'
+import { forwardRef, useCallback, useState } from 'react'
 import type { DraftNewVariable } from '../../types'
 
 interface Props {
@@ -20,10 +20,7 @@ export const NewPropertyRow = forwardRef<HTMLTableRowElement, Props>(function Ne
   const [editKeyValue, setEditKeyValue] = useState(variable.key)
   const [editValue, setEditValue] = useState(variable.value)
 
-  const takenKeys = new Set([
-    ...cloudKeys,
-    ...existingKeys.filter((k) => k !== variable.key)
-  ])
+  const takenKeys = new Set([...cloudKeys, ...existingKeys.filter((k) => k !== variable.key)])
   const keyInputInvalid =
     editKeyValue.trim() === '' ||
     (takenKeys.has(editKeyValue.trim()) && editKeyValue.trim() !== variable.key)

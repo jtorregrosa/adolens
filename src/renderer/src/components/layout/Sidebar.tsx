@@ -1,33 +1,33 @@
-import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  ChevronRight,
+  AlertCircle,
   ChevronDown,
+  ChevronRight,
+  Copy,
+  Download,
   FolderOpen,
   Layers,
-  Search,
   Loader2,
-  AlertCircle,
   LogOut,
+  PanelLeft,
   PanelLeftClose,
   PanelLeftOpen,
-  Star,
-  Download,
-  PanelLeft,
   PanelRight,
-  StarOff,
-  Copy
+  Search,
+  Star,
+  StarOff
 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
+import { useProjects, useVariableGroup, useVariableGroups } from '../../hooks/useADOApi'
+import { clearCredentials } from '../../lib/api'
 import { useAuthStore } from '../../store/authStore'
 import { useUIStore } from '../../store/uiStore'
-import { useProjects, useVariableGroups, useVariableGroup } from '../../hooks/useADOApi'
-import { clearCredentials } from '../../lib/api'
-import { toast } from 'sonner'
-import { AppContextMenu } from '../ui/AppContextMenu'
-import type { ContextMenuItem } from '../ui/AppContextMenu'
-import { Tooltip } from '../ui/Tooltip'
-import { ExportModal } from '../modals/ExportModal'
 import { CloneLibraryModal } from '../modals/CloneLibraryModal'
+import { ExportModal } from '../modals/ExportModal'
+import type { ContextMenuItem } from '../ui/AppContextMenu'
+import { AppContextMenu } from '../ui/AppContextMenu'
+import { Tooltip } from '../ui/Tooltip'
 
 // --- Library row ------------------------------------------------------------
 
@@ -103,7 +103,10 @@ function LibraryRow({
         <div className="flex shrink-0 items-center gap-1">
           <Tooltip content={isFavorite ? 'Remove from favorites' : 'Add to favorites'} side="top">
             <button
-              onClick={(e) => { e.stopPropagation(); onToggleFavorite() }}
+              onClick={(e) => {
+                e.stopPropagation()
+                onToggleFavorite()
+              }}
               className={`rounded p-0.5 transition ${
                 isFavorite
                   ? 'text-yellow-400 opacity-100'
@@ -164,12 +167,16 @@ function ProjectNode({
     exportGroupId !== null ? projectId : null,
     exportGroupId
   )
-  const { setLeftPane, setRightPane, leftPane, rightPane, toggleFavoriteLibrary, isFavoriteLibrary } =
-    useUIStore()
+  const {
+    setLeftPane,
+    setRightPane,
+    leftPane,
+    rightPane,
+    toggleFavoriteLibrary,
+    isFavoriteLibrary
+  } = useUIStore()
 
-  const filtered = (groups ?? []).filter((g) =>
-    g.name.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = (groups ?? []).filter((g) => g.name.toLowerCase().includes(search.toLowerCase()))
 
   const favLibraries = filtered
     .filter((g) => isFavoriteLibrary(g.id!))
@@ -248,7 +255,10 @@ function ProjectNode({
         <ExportModal
           variables={exportGroup.variables}
           groupName={exportGroupName}
-          onClose={() => { setExportGroupId(null); setExportGroupName(null) }}
+          onClose={() => {
+            setExportGroupId(null)
+            setExportGroupName(null)
+          }}
         />
       )}
 
@@ -258,7 +268,10 @@ function ProjectNode({
           projectId={projectId}
           groupId={cloneGroupId}
           sourceName={cloneGroupName}
-          onClose={() => { setCloneGroupId(null); setCloneGroupName(null) }}
+          onClose={() => {
+            setCloneGroupId(null)
+            setCloneGroupName(null)
+          }}
         />
       )}
 
@@ -296,7 +309,8 @@ function ProjectNode({
                   <AnimatePresence>
                     {favLibraries.map((g) => {
                       const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
-                      const isRight = rightPane.groupId === g.id && rightPane.projectId === projectId
+                      const isRight =
+                        rightPane.groupId === g.id && rightPane.projectId === projectId
                       return (
                         <motion.div
                           key={g.id}
@@ -398,12 +412,12 @@ export function Sidebar(): React.JSX.Element {
   const scrollRef = useRef<HTMLDivElement>(null)
   const { data: projects, isLoading, isError } = useProjects()
 
-  const updateScrollShades = (): void => {
+  const updateScrollShades = useCallback((): void => {
     const el = scrollRef.current
     if (!el) return
     setScrollShadeTop(el.scrollTop > 0)
     setScrollShadeBottom(el.scrollTop + el.clientHeight < el.scrollHeight - 1)
-  }
+  }, [])
 
   useEffect(() => {
     const el = scrollRef.current
@@ -416,7 +430,7 @@ export function Sidebar(): React.JSX.Element {
       el.removeEventListener('scroll', updateScrollShades)
       ro.disconnect()
     }
-  }, [sidebarCollapsed, projects, projectSearch])
+  }, [updateScrollShades])
 
   const handleLogout = async (): Promise<void> => {
     await clearCredentials()
@@ -425,9 +439,7 @@ export function Sidebar(): React.JSX.Element {
   }
 
   const all = projects ?? []
-  const filtered = all.filter((p) =>
-    p.name!.toLowerCase().includes(projectSearch.toLowerCase())
-  )
+  const filtered = all.filter((p) => p.name!.toLowerCase().includes(projectSearch.toLowerCase()))
   const favoriteProjects = filtered
     .filter((p) => isFavoriteProject(p.id!))
     .sort((a, b) => a.name!.localeCompare(b.name!))
@@ -483,7 +495,8 @@ export function Sidebar(): React.JSX.Element {
                 scrollShadeTop ? 'opacity-100' : 'opacity-0'
               }`}
               style={{
-                background: 'linear-gradient(to bottom, var(--sidebar-bg, rgb(15 23 42)) 0%, transparent 100%)'
+                background:
+                  'linear-gradient(to bottom, var(--sidebar-bg, rgb(15 23 42)) 0%, transparent 100%)'
               }}
             />
             {/* Bottom scroll shade */}
@@ -493,71 +506,69 @@ export function Sidebar(): React.JSX.Element {
                 scrollShadeBottom ? 'opacity-100' : 'opacity-0'
               }`}
               style={{
-                background: 'linear-gradient(to top, var(--sidebar-bg, rgb(15 23 42)) 0%, transparent 100%)'
+                background:
+                  'linear-gradient(to top, var(--sidebar-bg, rgb(15 23 42)) 0%, transparent 100%)'
               }}
             />
-            <div
-              ref={scrollRef}
-              className="scrollbar-hide h-full overflow-y-auto px-1 pb-2"
-            >
-            {isLoading && (
-              <div className="flex items-center gap-2 p-3 text-xs text-slate-500">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Loading projects...
-              </div>
-            )}
-            {isError && (
-              <div className="flex items-start gap-2 rounded-md bg-red-900/20 p-3 text-xs text-red-400">
-                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                Failed to load projects
-              </div>
-            )}
+            <div ref={scrollRef} className="scrollbar-hide h-full overflow-y-auto px-1 pb-2">
+              {isLoading && (
+                <div className="flex items-center gap-2 p-3 text-xs text-slate-500">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Loading projects...
+                </div>
+              )}
+              {isError && (
+                <div className="flex items-start gap-2 rounded-md bg-red-900/20 p-3 text-xs text-red-400">
+                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  Failed to load projects
+                </div>
+              )}
 
-            {/* Favorites section */}
-            {hasFavorites && (
-              <>
-                <SectionHeader label="Favorites" />
-                <AnimatePresence>
-                  {favoriteProjects.map((p) => (
-                    <motion.div
-                      key={p.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <ProjectNode
-                        projectId={p.id!}
-                        projectName={p.name!}
-                        isFavorite={true}
-                        onToggleFavorite={() => toggleFavoriteProject(p.id!)}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                <SectionHeader label="All Projects" />
-              </>
-            )}
+              {/* Favorites section */}
+              {hasFavorites && (
+                <>
+                  <SectionHeader label="Favorites" />
+                  <AnimatePresence>
+                    {favoriteProjects.map((p) => (
+                      <motion.div
+                        key={p.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ProjectNode
+                          projectId={p.id!}
+                          projectName={p.name!}
+                          isFavorite={true}
+                          onToggleFavorite={() => toggleFavoriteProject(p.id!)}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  <SectionHeader label="All Projects" />
+                </>
+              )}
 
-            {/* Regular projects */}
-            <AnimatePresence>
-              {regularProjects.map((p) => (
-                <motion.div
-                  key={p.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <ProjectNode
-                    projectId={p.id!}
-                    projectName={p.name!}
-                    isFavorite={false}
-                    onToggleFavorite={() => toggleFavoriteProject(p.id!)}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
+              {/* Regular projects */}
+              <AnimatePresence>
+                {regularProjects.map((p) => (
+                  <motion.div
+                    key={p.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ProjectNode
+                      projectId={p.id!}
+                      projectName={p.name!}
+                      isFavorite={false}
+                      onToggleFavorite={() => toggleFavoriteProject(p.id!)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           </div>
 

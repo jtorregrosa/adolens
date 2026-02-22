@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react'
-import { Group as PanelGroup, Panel, Separator as PanelResizeHandle } from 'react-resizable-panels'
-import { GripVertical, ArrowLeftRight, Merge, RefreshCw, Unplug } from 'lucide-react'
-import { Tooltip } from '../ui/Tooltip'
+import { ArrowLeftRight, GripVertical, Merge, RefreshCw, Unplug } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels'
 import { toast } from 'sonner'
-import type { AdoVariable } from '../../types'
-import { useUIStore } from '../../store/uiStore'
-import { useVariableGroup, useUpdateVariableGroup } from '../../hooks/useADOApi'
-import { useVariableDiff } from '../../hooks/useVariableDiff'
-import { useVariableBuffer } from '../../hooks/useVariableBuffer'
+import { useUpdateVariableGroup, useVariableGroup } from '../../hooks/useADOApi'
 import { useSyncScroll } from '../../hooks/useSyncScroll'
-import { DiffTable } from './DiffTable'
-import { PaneHeader } from './PaneHeader'
-import { EmptyPane } from './EmptyPane'
-import { DiffStats } from './DiffStats'
-import { PaneActionBar } from './PaneActionBar'
+import { useVariableBuffer } from '../../hooks/useVariableBuffer'
+import { useVariableDiff } from '../../hooks/useVariableDiff'
+import { useUIStore } from '../../store/uiStore'
+import type { AdoVariable } from '../../types'
 import { PushReviewModal } from '../modals/PushReviewModal'
+import { Tooltip } from '../ui/Tooltip'
+import { DiffStats } from './DiffStats'
+import { DiffTable } from './DiffTable'
+import { EmptyPane } from './EmptyPane'
+import { PaneActionBar } from './PaneActionBar'
+import { PaneHeader } from './PaneHeader'
 
 export function ComparisonArea(): React.JSX.Element {
   const {
@@ -119,8 +119,18 @@ export function ComparisonArea(): React.JSX.Element {
   const updateMutation = useUpdateVariableGroup()
 
   // ─ Local draft buffers (cloud state merged with user edits + added vars) ──────
-  const leftBuffer = useVariableBuffer(leftGroup?.variables, leftOwnEdits, leftAddedVars, leftDeletedKeys)
-  const rightBuffer = useVariableBuffer(rightGroup?.variables, rightOwnEdits, rightAddedVars, rightDeletedKeys)
+  const leftBuffer = useVariableBuffer(
+    leftGroup?.variables,
+    leftOwnEdits,
+    leftAddedVars,
+    leftDeletedKeys
+  )
+  const rightBuffer = useVariableBuffer(
+    rightGroup?.variables,
+    rightOwnEdits,
+    rightAddedVars,
+    rightDeletedKeys
+  )
 
   // Pending counts used to show the notification bar spacer in the opposite pane.
   const leftPendingCount = leftOwnEdits.length + leftAddedVars.length + leftDeletedKeys.length
@@ -150,8 +160,13 @@ export function ComparisonArea(): React.JSX.Element {
     clearOwnEdits(side)
     clearAddedVars(side)
     clearDeletedKeys(side)
-    if (side === 'left') { refetchLeft(); setLeftClearToken((t) => t + 1) }
-    else { refetchRight(); setRightClearToken((t) => t + 1) }
+    if (side === 'left') {
+      refetchLeft()
+      setLeftClearToken((t) => t + 1)
+    } else {
+      refetchRight()
+      setRightClearToken((t) => t + 1)
+    }
   }
 
   function handleAddVar(side: 'left' | 'right'): void {
@@ -171,7 +186,12 @@ export function ComparisonArea(): React.JSX.Element {
     else setScrollToAddedKeyRight(candidate)
   }
 
-  function handleUpdateNewVar(side: 'left' | 'right', oldKey: string, newKey: string, value: string): void {
+  function handleUpdateNewVar(
+    side: 'left' | 'right',
+    oldKey: string,
+    newKey: string,
+    value: string
+  ): void {
     if (oldKey !== newKey) {
       removeAddedVar(side, oldKey)
     }
@@ -188,9 +208,10 @@ export function ComparisonArea(): React.JSX.Element {
       upsertOwnEdit(side, { key, side, originalValue: undefined, newValue: v.value ?? '' })
     }
     const count = Object.keys(imported).length
-    toast.success(`${count} variable${count !== 1 ? 's' : ''} imported — review and push when ready`)
+    toast.success(
+      `${count} variable${count !== 1 ? 's' : ''} imported — review and push when ready`
+    )
   }
-
 
   return (
     <div className="flex h-full flex-col bg-slate-950">
@@ -205,7 +226,12 @@ export function ComparisonArea(): React.JSX.Element {
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
           {/* Sync scroll toggle */}
-          <Tooltip content={syncScroll ? 'Disable synchronized scrolling' : 'Enable synchronized scrolling'} side="bottom">
+          <Tooltip
+            content={
+              syncScroll ? 'Disable synchronized scrolling' : 'Enable synchronized scrolling'
+            }
+            side="bottom"
+          >
             <button
               onClick={() => setSyncScroll(!syncScroll)}
               className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition ${
@@ -223,7 +249,12 @@ export function ComparisonArea(): React.JSX.Element {
           <Tooltip content="Swap Left and Right panes" side="bottom">
             <button
               onClick={() => {
-                const { setLeftPane, setRightPane, leftPane: lp, rightPane: rp } = useUIStore.getState()
+                const {
+                  setLeftPane,
+                  setRightPane,
+                  leftPane: lp,
+                  rightPane: rp
+                } = useUIStore.getState()
                 const tmp = { ...lp }
                 setLeftPane({ ...rp })
                 setRightPane({ ...tmp })
@@ -267,112 +298,116 @@ export function ComparisonArea(): React.JSX.Element {
       {/* Split view — 400px min width per panel; horizontal scroll when narrow */}
       <div className="min-h-0 flex-1 overflow-x-auto">
         <PanelGroup orientation="horizontal" className="min-h-0 h-full min-w-[800px]">
-        {/* Left / Source */}
-        <Panel defaultSize={50} minSize={25} id="left-pane" style={{ minWidth: 400 }}>
-          <div className="flex h-full min-w-[400px] flex-col border-r border-slate-800">
-            <PaneHeader
-              side="left"
-              projectName={leftPane.projectName}
-              groupName={leftPane.groupName}
-            />
-            {hasLeft ? (
-              <DiffTable
-                ref={leftRef}
+          {/* Left / Source */}
+          <Panel defaultSize={50} minSize={25} id="left-pane" style={{ minWidth: 400 }}>
+            <div className="flex h-full min-w-[400px] flex-col border-r border-slate-800">
+              <PaneHeader
                 side="left"
-                rows={diff.rows}
-                isLoading={leftLoading}
-                otherGroup={rightGroup}
-                onOpenReview={() => setReviewSide('left')}
-                clearToken={leftClearToken}
-                addedVars={leftAddedVars}
-                scrollToAddedKey={scrollToAddedKeyLeft}
-                onAddVar={() => handleAddVar('left')}
-                onDeleteNewVar={(key) => handleDeleteNewVar('left', key)}
-                onUpdateNewVar={(oldKey, newKey, value) => handleUpdateNewVar('left', oldKey, newKey, value)}
-                deletedKeys={leftDeletedKeys}
-                onDeleteVar={(key) => markDeleted('left', key)}
-                onRemoveLocalVar={(key) => removeOwnEdit('left', key)}
-                onRestoreVar={(key) => unmarkDeleted('left', key)}
-                onDiscard={() => discardSide('left')}
-                peerHasChanges={rightPendingCount > 0}
-                cloudKeysForPane={leftGroup?.variables ? Object.keys(leftGroup.variables) : []}
-              />
-            ) : (
-              <EmptyPane label="Left" />
-            )}
-            {hasLeft && (
-              <PaneActionBar
-                side="left"
-                pendingCount={leftBuffer.pendingCount}
-                onPush={() => setReviewSide('left')}
-                variables={leftGroup?.variables}
+                projectName={leftPane.projectName}
                 groupName={leftPane.groupName}
-                onImport={(vars) => importVariables('left', vars)}
               />
-            )}
-            {hasBoth && (
-              <div className="flex h-8 w-full shrink-0 items-center border-t border-slate-800 px-4">
-                <DiffStats stats={diff.stats} side="left" />
-              </div>
-            )}
-          </div>
-        </Panel>
+              {hasLeft ? (
+                <DiffTable
+                  ref={leftRef}
+                  side="left"
+                  rows={diff.rows}
+                  isLoading={leftLoading}
+                  otherGroup={rightGroup}
+                  onOpenReview={() => setReviewSide('left')}
+                  clearToken={leftClearToken}
+                  addedVars={leftAddedVars}
+                  scrollToAddedKey={scrollToAddedKeyLeft}
+                  onAddVar={() => handleAddVar('left')}
+                  onDeleteNewVar={(key) => handleDeleteNewVar('left', key)}
+                  onUpdateNewVar={(oldKey, newKey, value) =>
+                    handleUpdateNewVar('left', oldKey, newKey, value)
+                  }
+                  deletedKeys={leftDeletedKeys}
+                  onDeleteVar={(key) => markDeleted('left', key)}
+                  onRemoveLocalVar={(key) => removeOwnEdit('left', key)}
+                  onRestoreVar={(key) => unmarkDeleted('left', key)}
+                  onDiscard={() => discardSide('left')}
+                  peerHasChanges={rightPendingCount > 0}
+                  cloudKeysForPane={leftGroup?.variables ? Object.keys(leftGroup.variables) : []}
+                />
+              ) : (
+                <EmptyPane label="Left" />
+              )}
+              {hasLeft && (
+                <PaneActionBar
+                  side="left"
+                  pendingCount={leftBuffer.pendingCount}
+                  onPush={() => setReviewSide('left')}
+                  variables={leftGroup?.variables}
+                  groupName={leftPane.groupName}
+                  onImport={(vars) => importVariables('left', vars)}
+                />
+              )}
+              {hasBoth && (
+                <div className="flex h-8 w-full shrink-0 items-center border-t border-slate-800 px-4">
+                  <DiffStats stats={diff.stats} side="left" />
+                </div>
+              )}
+            </div>
+          </Panel>
 
-        <PanelResizeHandle className="relative flex w-1.5 items-center justify-center bg-slate-800 transition hover:bg-blue-600">
-          <GripVertical className="h-4 w-4 text-slate-600" />
-        </PanelResizeHandle>
+          <PanelResizeHandle className="relative flex w-1.5 items-center justify-center bg-slate-800 transition hover:bg-blue-600">
+            <GripVertical className="h-4 w-4 text-slate-600" />
+          </PanelResizeHandle>
 
-        {/* Right / Target */}
-        {/* Right / Target */}
-        <Panel defaultSize={50} minSize={25} id="right-pane" style={{ minWidth: 400 }}>
-          <div className="flex h-full min-w-[400px] flex-col">
-            <PaneHeader
-              side="right"
-              projectName={rightPane.projectName}
-              groupName={rightPane.groupName}
-            />
-            {hasRight ? (
-              <DiffTable
-                ref={rightRef}
+          {/* Right / Target */}
+          {/* Right / Target */}
+          <Panel defaultSize={50} minSize={25} id="right-pane" style={{ minWidth: 400 }}>
+            <div className="flex h-full min-w-[400px] flex-col">
+              <PaneHeader
                 side="right"
-                rows={diff.rows}
-                isLoading={rightLoading}
-                otherGroup={leftGroup}
-                onOpenReview={() => setReviewSide('right')}
-                clearToken={rightClearToken}
-                addedVars={rightAddedVars}
-                scrollToAddedKey={scrollToAddedKeyRight}
-                onAddVar={() => handleAddVar('right')}
-                onDeleteNewVar={(key) => handleDeleteNewVar('right', key)}
-                onUpdateNewVar={(oldKey, newKey, value) => handleUpdateNewVar('right', oldKey, newKey, value)}
-                deletedKeys={rightDeletedKeys}
-                onDeleteVar={(key) => markDeleted('right', key)}
-                onRemoveLocalVar={(key) => removeOwnEdit('right', key)}
-                onRestoreVar={(key) => unmarkDeleted('right', key)}
-                onDiscard={() => discardSide('right')}
-                peerHasChanges={leftPendingCount > 0}
-                cloudKeysForPane={rightGroup?.variables ? Object.keys(rightGroup.variables) : []}
-              />
-            ) : (
-              <EmptyPane label="Right" />
-            )}
-            {hasRight && (
-              <PaneActionBar
-                side="right"
-                pendingCount={rightBuffer.pendingCount}
-                onPush={() => setReviewSide('right')}
-                variables={rightGroup?.variables}
+                projectName={rightPane.projectName}
                 groupName={rightPane.groupName}
-                onImport={(vars) => importVariables('right', vars)}
               />
-            )}
-            {hasBoth && (
-              <div className="flex h-8 w-full shrink-0 items-center border-t border-slate-800 px-4">
-                <DiffStats stats={diff.stats} side="right" />
-              </div>
-            )}
-          </div>
-        </Panel>
+              {hasRight ? (
+                <DiffTable
+                  ref={rightRef}
+                  side="right"
+                  rows={diff.rows}
+                  isLoading={rightLoading}
+                  otherGroup={leftGroup}
+                  onOpenReview={() => setReviewSide('right')}
+                  clearToken={rightClearToken}
+                  addedVars={rightAddedVars}
+                  scrollToAddedKey={scrollToAddedKeyRight}
+                  onAddVar={() => handleAddVar('right')}
+                  onDeleteNewVar={(key) => handleDeleteNewVar('right', key)}
+                  onUpdateNewVar={(oldKey, newKey, value) =>
+                    handleUpdateNewVar('right', oldKey, newKey, value)
+                  }
+                  deletedKeys={rightDeletedKeys}
+                  onDeleteVar={(key) => markDeleted('right', key)}
+                  onRemoveLocalVar={(key) => removeOwnEdit('right', key)}
+                  onRestoreVar={(key) => unmarkDeleted('right', key)}
+                  onDiscard={() => discardSide('right')}
+                  peerHasChanges={leftPendingCount > 0}
+                  cloudKeysForPane={rightGroup?.variables ? Object.keys(rightGroup.variables) : []}
+                />
+              ) : (
+                <EmptyPane label="Right" />
+              )}
+              {hasRight && (
+                <PaneActionBar
+                  side="right"
+                  pendingCount={rightBuffer.pendingCount}
+                  onPush={() => setReviewSide('right')}
+                  variables={rightGroup?.variables}
+                  groupName={rightPane.groupName}
+                  onImport={(vars) => importVariables('right', vars)}
+                />
+              )}
+              {hasBoth && (
+                <div className="flex h-8 w-full shrink-0 items-center border-t border-slate-800 px-4">
+                  <DiffStats stats={diff.stats} side="right" />
+                </div>
+              )}
+            </div>
+          </Panel>
         </PanelGroup>
       </div>
 

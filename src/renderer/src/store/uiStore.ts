@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import type { PendingChange, DraftNewVariable } from '../types'
 import { saveFavorites } from '../lib/api'
+import type { DraftNewVariable, PendingChange } from '../types'
 
 interface PaneSelection {
   projectId: string | null
@@ -116,17 +116,24 @@ export const useUIStore = create<UIState>((set, get) => ({
         ? { rightOwnEdits: [], rightAddedVars: [], rightDeletedKeys: [] }
         : {})
     })),
-  clearPanes: () => set({ leftPane: emptyPane, rightPane: emptyPane, leftOwnEdits: [], rightOwnEdits: [], leftAddedVars: [], rightAddedVars: [], leftDeletedKeys: [], rightDeletedKeys: [] }),
+  clearPanes: () =>
+    set({
+      leftPane: emptyPane,
+      rightPane: emptyPane,
+      leftOwnEdits: [],
+      rightOwnEdits: [],
+      leftAddedVars: [],
+      rightAddedVars: [],
+      leftDeletedKeys: [],
+      rightDeletedKeys: []
+    }),
 
   upsertOwnEdit: (side, change) =>
     set((s) => {
       const key = side === 'left' ? 'leftOwnEdits' : 'rightOwnEdits'
       const prev = s[key]
       return {
-        [key]: [
-          ...prev.filter((c) => c.key !== change.key),
-          change
-        ]
+        [key]: [...prev.filter((c) => c.key !== change.key), change]
       }
     }),
 
@@ -136,8 +143,7 @@ export const useUIStore = create<UIState>((set, get) => ({
       return { [storeKey]: s[storeKey].filter((c) => c.key !== key) }
     }),
 
-  clearOwnEdits: (side) =>
-    set(side === 'left' ? { leftOwnEdits: [] } : { rightOwnEdits: [] }),
+  clearOwnEdits: (side) => set(side === 'left' ? { leftOwnEdits: [] } : { rightOwnEdits: [] }),
 
   upsertAddedVar: (side, variable) =>
     set((s) => {
@@ -151,8 +157,7 @@ export const useUIStore = create<UIState>((set, get) => ({
       return { [k]: s[k].filter((v) => v.key !== key) }
     }),
 
-  clearAddedVars: (side) =>
-    set(side === 'left' ? { leftAddedVars: [] } : { rightAddedVars: [] }),
+  clearAddedVars: (side) => set(side === 'left' ? { leftAddedVars: [] } : { rightAddedVars: [] }),
 
   markDeleted: (side, key) =>
     set((s) => {

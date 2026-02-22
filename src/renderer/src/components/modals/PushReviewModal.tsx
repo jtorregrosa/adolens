@@ -1,6 +1,15 @@
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  AlertTriangle,
+  ArrowRight,
+  CloudUpload,
+  Loader2,
+  Lock,
+  PackageOpen,
+  Trash2,
+  X
+} from 'lucide-react'
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, CloudUpload, Trash2, Loader2, Lock, PackageOpen, AlertTriangle, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
 import type { DraftChange } from '../../hooks/useVariableBuffer'
 
@@ -123,8 +132,8 @@ export function PushReviewModal({
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span>
                 Pushing will overwrite the variable group via{' '}
-                <strong className="font-semibold">PUT /distributedtask/variablegroups</strong>.
-                This action cannot be undone.
+                <strong className="font-semibold">PUT /distributedtask/variablegroups</strong>. This
+                action cannot be undone.
               </span>
             </div>
           )}
@@ -136,7 +145,8 @@ export function PushReviewModal({
               <PackageOpen className="h-10 w-10 text-slate-700" />
               <p className="text-sm font-medium text-slate-400">No local changes detected</p>
               <p className="max-w-xs text-xs text-slate-600">
-                Edit variable values or keys, sync keys from the other pane, or add / delete variables to stage changes here.
+                Edit variable values or keys, sync keys from the other pane, or add / delete
+                variables to stage changes here.
               </p>
             </div>
           ) : (
@@ -144,7 +154,9 @@ export function PushReviewModal({
             <div className="mx-6 my-4 flex flex-col gap-4 max-h-96 overflow-auto">
               {/* ── Modified / synced variables ─────────────────────────── */}
               {(() => {
-                const modified = draftChanges.filter((c) => !c.isCreated && !c.isDeleted && !c.isRenamed)
+                const modified = draftChanges.filter(
+                  (c) => !c.isCreated && !c.isDeleted && !c.isRenamed
+                )
                 if (modified.length === 0) return null
                 return (
                   <div>
@@ -158,36 +170,53 @@ export function PushReviewModal({
                       <table className="w-full border-collapse text-sm">
                         <thead className="sticky top-0 bg-slate-800">
                           <tr>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Variable Key</th>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Old Value</th>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">New Value</th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              Variable Key
+                            </th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              Old Value
+                            </th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              New Value
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {modified.map((change) => (
-                            <tr key={change.key} className="border-t border-slate-800/80 hover:bg-slate-800/30">
+                            <tr
+                              key={change.key}
+                              className="border-t border-slate-800/80 hover:bg-slate-800/30"
+                            >
                               <td className="mono px-4 py-2.5 text-slate-200">{change.key}</td>
                               <td className="mono px-4 py-2.5">
                                 {change.isSecret ? (
                                   <span className="flex items-center gap-1 text-slate-600">
-                                    <Lock className="h-3 w-3" /><em>secret</em>
+                                    <Lock className="h-3 w-3" />
+                                    <em>secret</em>
                                   </span>
                                 ) : change.oldValue === undefined ? (
                                   <em className="text-slate-600">—</em>
                                 ) : (
                                   <span className="rounded bg-red-500/10 px-1.5 py-0.5 text-red-400 line-through">
-                                    {change.oldValue || <em className="not-italic text-slate-600 no-underline">(empty)</em>}
+                                    {change.oldValue || (
+                                      <em className="not-italic text-slate-600 no-underline">
+                                        (empty)
+                                      </em>
+                                    )}
                                   </span>
                                 )}
                               </td>
                               <td className="mono px-4 py-2.5">
                                 {change.isSecret ? (
                                   <span className="flex items-center gap-1 text-slate-600">
-                                    <Lock className="h-3 w-3" /><em>secret (overwritten)</em>
+                                    <Lock className="h-3 w-3" />
+                                    <em>secret (overwritten)</em>
                                   </span>
                                 ) : (
                                   <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-400">
-                                    {change.newValue || <em className="not-italic text-slate-600">(empty)</em>}
+                                    {change.newValue || (
+                                      <em className="not-italic text-slate-600">(empty)</em>
+                                    )}
                                   </span>
                                 )}
                               </td>
@@ -215,18 +244,29 @@ export function PushReviewModal({
                       <table className="w-full border-collapse text-sm">
                         <thead className="sticky top-0 bg-slate-800">
                           <tr>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Old Key</th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              Old Key
+                            </th>
                             <th className="w-6" />
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">New Key</th>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Value</th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              New Key
+                            </th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              Value
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {renamed.map((change) => {
                             const valueChanged = change.newValue !== change.oldValue
                             return (
-                              <tr key={change.key} className="border-t border-slate-800/80 hover:bg-slate-800/30">
-                                <td className="mono px-4 py-2.5 text-slate-500 line-through">{change.key}</td>
+                              <tr
+                                key={change.key}
+                                className="border-t border-slate-800/80 hover:bg-slate-800/30"
+                              >
+                                <td className="mono px-4 py-2.5 text-slate-500 line-through">
+                                  {change.key}
+                                </td>
                                 <td className="py-2.5 text-slate-600">
                                   <ArrowRight className="h-3.5 w-3.5" />
                                 </td>
@@ -238,15 +278,20 @@ export function PushReviewModal({
                                 <td className="mono px-4 py-2.5">
                                   {change.isSecret ? (
                                     <span className="flex items-center gap-1 text-slate-600">
-                                      <Lock className="h-3 w-3" /><em>secret</em>
+                                      <Lock className="h-3 w-3" />
+                                      <em>secret</em>
                                     </span>
                                   ) : valueChanged ? (
                                     <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-400">
-                                      {change.newValue || <em className="not-italic text-slate-600">(empty)</em>}
+                                      {change.newValue || (
+                                        <em className="not-italic text-slate-600">(empty)</em>
+                                      )}
                                     </span>
                                   ) : (
                                     <span className="text-slate-500">
-                                      {change.newValue || <em className="not-italic text-slate-600">(empty)</em>}
+                                      {change.newValue || (
+                                        <em className="not-italic text-slate-600">(empty)</em>
+                                      )}
                                     </span>
                                   )}
                                 </td>
@@ -275,13 +320,20 @@ export function PushReviewModal({
                       <table className="w-full border-collapse text-sm">
                         <thead className="sticky top-0 bg-slate-800">
                           <tr>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Variable Key</th>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Value</th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              Variable Key
+                            </th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              Value
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {created.map((change) => (
-                            <tr key={change.key} className="border-t border-slate-800/80 bg-emerald-950/10 hover:bg-emerald-950/20">
+                            <tr
+                              key={change.key}
+                              className="border-t border-slate-800/80 bg-emerald-950/10 hover:bg-emerald-950/20"
+                            >
                               <td className="mono px-4 py-2.5">
                                 <div className="flex items-center gap-2">
                                   <span className="rounded px-1 py-0.5 text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -292,7 +344,9 @@ export function PushReviewModal({
                               </td>
                               <td className="mono px-4 py-2.5">
                                 <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-400">
-                                  {change.newValue || <em className="not-italic text-slate-600">(empty)</em>}
+                                  {change.newValue || (
+                                    <em className="not-italic text-slate-600">(empty)</em>
+                                  )}
                                 </span>
                               </td>
                             </tr>
@@ -320,13 +374,20 @@ export function PushReviewModal({
                       <table className="w-full border-collapse text-sm">
                         <thead className="sticky top-0 bg-slate-800">
                           <tr>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Variable Key</th>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Current Value</th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              Variable Key
+                            </th>
+                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                              Current Value
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {deleted.map((change) => (
-                            <tr key={change.key} className="border-t border-slate-800/80 bg-red-950/10 hover:bg-red-950/20">
+                            <tr
+                              key={change.key}
+                              className="border-t border-slate-800/80 bg-red-950/10 hover:bg-red-950/20"
+                            >
                               <td className="mono px-4 py-2.5">
                                 <div className="flex items-center gap-2">
                                   <span className="rounded px-1 py-0.5 text-[10px] font-semibold bg-red-500/20 text-red-400 border border-red-500/30">
@@ -338,11 +399,14 @@ export function PushReviewModal({
                               <td className="mono px-4 py-2.5">
                                 {change.isSecret ? (
                                   <span className="flex items-center gap-1 text-slate-600">
-                                    <Lock className="h-3 w-3" /><em>secret</em>
+                                    <Lock className="h-3 w-3" />
+                                    <em>secret</em>
                                   </span>
                                 ) : (
                                   <span className="text-slate-500 line-through">
-                                    {change.oldValue || <em className="not-italic text-slate-600">(empty)</em>}
+                                    {change.oldValue || (
+                                      <em className="not-italic text-slate-600">(empty)</em>
+                                    )}
                                   </span>
                                 )}
                               </td>

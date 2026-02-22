@@ -1,11 +1,11 @@
-use azure_devops_rust_api::{core, distributed_task, Credential};
 use azure_devops_rust_api::distributed_task::models::VariableGroupParameters;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
+use std::sync::Arc;
 use tauri::State;
 
-use crate::{AppCredentials, CredentialsState};
+use crate::{CachedAdoClients, ClientState};
 
 // ─── Frontend-facing output types ─────────────────────────────────────────────
 
@@ -36,17 +36,10 @@ pub struct AdoVariableGroup {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-fn get_creds(state: &State<'_, CredentialsState>) -> Result<AppCredentials, String> {
-    state
-        .0
-        .lock()
-        .unwrap()
-        .clone()
-        .ok_or_else(|| "Not authenticated".to_string())
-}
-
-fn make_credential(pat: &str) -> Credential {
-    Credential::from_pat(pat.to_string())
+/// Clone the cached Arc — acquires the Mutex only for the duration of the clone,
+/// so the lock is never held across an async .await boundary.
+fn get_clients(state: &State<'_, ClientState>) -> Result<Arc<CachedAdoClients>, String> {
+    state.get()
 }
 
 /// Convert the SDK's `variables: Option<Value>` field to our typed map.
@@ -69,13 +62,13 @@ fn parse_variables(vars: Option<&Value>) -> HashMap<String, AdoVariable> {
 
 /// List all projects in the organisation.
 #[tauri::command]
-pub async fn get_projects(state: State<'_, CredentialsState>) -> Result<Vec<AdoProject>, String> {
-    let creds = get_creds(&state)?;
-    let client = core::ClientBuilder::new(make_credential(&creds.pat)).build();
+pub async fn get_projects(state: State<'_, ClientState>) -> Result<Vec<AdoProject>, String> {
+    let clients = get_clients(&state)?;
 
-    let result = client
+    let result = clients
+        .core
         .projects_client()
-        .list(&creds.org_name)
+        .list(&clients.org_name)
         .top(500)
         .await
         .map_err(|e| e.to_string())?;
@@ -94,38 +87,34 @@ pub async fn get_projects(state: State<'_, CredentialsState>) -> Result<Vec<AdoP
 /// List all variable groups for a project.
 #[tauri::command]
 pub async fn get_variable_groups(
-    state: State<'_, CredentialsState>,
+    state: State<'_, ClientState>,
     project_id: String,
 ) -> Result<Vec<AdoVariableGroup>, String> {
-    let creds = get_creds(&state)?;
-    let client = distributed_task::ClientBuilder::new(make_credential(&creds.pat)).build();
+    let clients = get_clients(&state)?;
 
-    let result = client
+    let result = clients
+        .distributed_task
         .variablegroups_client()
-        .get_variable_groups(&creds.org_name, &project_id)
+        .get_variable_groups(&clients.org_name, &project_id)
         .await
         .map_err(|e| e.to_string())?;
 
-    result
-        .value
-        .iter()
-        .map(|g| sdk_group_to_output(g))
-        .collect()
+    result.value.iter().map(sdk_group_to_output).collect()
 }
 
 /// Get a single variable group by ID.
 #[tauri::command]
 pub async fn get_variable_group(
-    state: State<'_, CredentialsState>,
+    state: State<'_, ClientState>,
     project_id: String,
     group_id: u32,
 ) -> Result<AdoVariableGroup, String> {
-    let creds = get_creds(&state)?;
-    let client = distributed_task::ClientBuilder::new(make_credential(&creds.pat)).build();
+    let clients = get_clients(&state)?;
 
-    let g = client
+    let g = clients
+        .distributed_task
         .variablegroups_client()
-        .get(&creds.org_name, &project_id, group_id as i32)
+        .get(&clients.org_name, &project_id, group_id as i32)
         .await
         .map_err(|e| e.to_string())?;
 
@@ -136,19 +125,18 @@ pub async fn get_variable_group(
 /// then PUT it back via VariableGroupParameters (preserves all ADO metadata).
 #[tauri::command]
 pub async fn update_variable_group(
-    state: State<'_, CredentialsState>,
+    state: State<'_, ClientState>,
     project_id: String,
     group_id: u32,
     variables: HashMap<String, UpdateVariable>,
 ) -> Result<(), String> {
-    let creds = get_creds(&state)?;
-    let credential = make_credential(&creds.pat);
-    let client = distributed_task::ClientBuilder::new(credential).build();
+    let clients = get_clients(&state)?;
 
     // Fetch the existing group so we can copy its required metadata fields.
-    let existing = client
+    let existing = clients
+        .distributed_task
         .variablegroups_client()
-        .get(&creds.org_name, &project_id, group_id as i32)
+        .get(&clients.org_name, &project_id, group_id as i32)
         .await
         .map_err(|e| e.to_string())?;
 
@@ -173,9 +161,10 @@ pub async fn update_variable_group(
         variables: Some(Value::Object(updated_vars)),
     };
 
-    client
+    clients
+        .distributed_task
         .variablegroups_client()
-        .update(&creds.org_name, params, group_id as i32)
+        .update(&clients.org_name, params, group_id as i32)
         .await
         .map_err(|e| e.to_string())?;
 
@@ -186,19 +175,18 @@ pub async fn update_variable_group(
 /// and a different name.
 #[tauri::command]
 pub async fn clone_variable_group(
-    state: State<'_, CredentialsState>,
+    state: State<'_, ClientState>,
     project_id: String,
     group_id: u32,
     new_name: String,
 ) -> Result<AdoVariableGroup, String> {
-    let creds = get_creds(&state)?;
-    let credential = make_credential(&creds.pat);
-    let client = distributed_task::ClientBuilder::new(credential).build();
+    let clients = get_clients(&state)?;
 
     // Fetch the source group to copy its variables and metadata.
-    let source = client
+    let source = clients
+        .distributed_task
         .variablegroups_client()
-        .get(&creds.org_name, &project_id, group_id as i32)
+        .get(&clients.org_name, &project_id, group_id as i32)
         .await
         .map_err(|e| e.to_string())?;
 
@@ -211,9 +199,10 @@ pub async fn clone_variable_group(
         variables: source.variables.clone(),
     };
 
-    let created = client
+    let created = clients
+        .distributed_task
         .variablegroups_client()
-        .add(&creds.org_name, params)
+        .add(&clients.org_name, params)
         .await
         .map_err(|e| e.to_string())?;
 
