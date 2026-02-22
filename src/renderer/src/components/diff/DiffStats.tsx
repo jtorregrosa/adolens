@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { DiffModel } from '../../types'
 
 interface Props {
@@ -23,8 +24,8 @@ const Chip = ({
 }
 
 export function DiffStats({ stats, side }: Props): React.JSX.Element {
-  // Left owns: identical + modified + removed vars
-  // Right owns: identical + modified + added vars
+  const { t } = useTranslation()
+
   const total =
     side === 'left'
       ? stats.identical + stats.modified + stats.removed
@@ -37,21 +38,29 @@ export function DiffStats({ stats, side }: Props): React.JSX.Element {
         isLeft ? 'bg-blue-500/20 text-blue-400' : 'bg-fuchsia-500/20 text-fuchsia-400'
       }`}
     >
-      {isLeft ? 'Left' : 'Right'}
+      {isLeft ? t('pane.left') : t('pane.right')}
     </span>
   )
   const statsEl = (
     <div className="flex min-w-0 items-center gap-1.5">
       <span className="rounded-full border border-slate-700 px-2 py-0.5 text-xs font-semibold text-slate-400">
-        {total} vars
+        {total} {t('pane.vars')}
       </span>
       <Chip
         count={isLeft ? stats.removed : stats.added}
-        label="only here"
+        label={t('pane.onlyHere')}
         color={isLeft ? 'bg-blue-500/20 text-blue-400' : 'bg-fuchsia-500/20 text-fuchsia-400'}
       />
-      <Chip count={stats.modified} label="modified" color="bg-amber-500/20 text-amber-400" />
-      <Chip count={stats.identical} label="identical" color="bg-slate-700 text-slate-400" />
+      <Chip
+        count={stats.modified}
+        label={t('pane.modified')}
+        color="bg-amber-500/20 text-amber-400"
+      />
+      <Chip
+        count={stats.identical}
+        label={t('pane.identical')}
+        color="bg-slate-700 text-slate-400"
+      />
     </div>
   )
 

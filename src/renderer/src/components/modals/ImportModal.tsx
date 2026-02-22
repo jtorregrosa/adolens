@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, CheckCircle2, FolderOpen, Upload, X } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import type { AdoVariable } from '../../types'
 import { type ExportFormat, FORMAT_OPTIONS, tokenizeLine } from './exportUtils'
@@ -88,6 +89,7 @@ interface Props {
 }
 
 export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [content, setContent] = useState<string>('')
@@ -117,8 +119,8 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
       setFormat(detected)
     }
     reader.onerror = () => {
-      setParseError('Failed to read file')
-      toast.error('Failed to read file')
+      setParseError(t('modals.import.toast.readError'))
+      toast.error(t('modals.import.toast.readError'))
     }
     reader.readAsText(file)
 
@@ -128,7 +130,7 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
 
   function handleImport(): void {
     if (!parsed || varCount === 0) {
-      toast.warning('No variables could be parsed from this file')
+      toast.warning(t('modals.import.toast.noVariables'))
       return
     }
     onImport(parsed)
@@ -160,10 +162,8 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
           {/* ── Header ──────────────────────────────────────────── */}
           <div className="flex shrink-0 items-center justify-between border-b border-slate-800 px-6 py-4">
             <div>
-              <h2 className="text-base font-semibold text-white">Import Variables</h2>
-              <p className="mt-0.5 text-xs text-slate-500">
-                Supported formats: JSON, Key=Value, PowerShell, Bash
-              </p>
+              <h2 className="text-base font-semibold text-white">{t('modals.import.title')}</h2>
+              <p className="mt-0.5 text-xs text-slate-500">{t('modals.import.subtitle')}</p>
             </div>
             <button
               onClick={onClose}
@@ -187,13 +187,13 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
               className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:border-slate-500 hover:text-white"
             >
               <FolderOpen className="h-3.5 w-3.5" />
-              Choose File
+              {t('modals.import.chooseFile')}
             </button>
 
             {fileName ? (
               <span className="min-w-0 truncate text-xs text-slate-400">{fileName}</span>
             ) : (
-              <span className="text-xs text-slate-600">No file chosen</span>
+              <span className="text-xs text-slate-600">{t('modals.import.noFileChosen')}</span>
             )}
 
             {/* Format selector (auto-detected, but user can override) */}
@@ -224,7 +224,7 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
               /* Empty state */
               <div className="flex h-full flex-col items-center justify-center gap-3 py-16 text-slate-600">
                 <FolderOpen className="h-10 w-10 opacity-30" />
-                <p className="text-sm">Choose a file to preview its contents</p>
+                <p className="text-sm">{t('modals.import.chooseFileHint')}</p>
               </div>
             ) : (
               <table className="w-full border-collapse font-mono text-xs leading-[1.6]">
@@ -265,18 +265,19 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
                 <>
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
                   <span className="text-emerald-400">
-                    {varCount} variable{varCount !== 1 ? 's' : ''} detected
+                    {t('modals.import.variablesDetected', {
+                      count: varCount,
+                      plural: varCount !== 1 ? 's' : ''
+                    })}
                   </span>
                   <span className="ml-1 text-slate-600">
-                    as <span className="text-slate-400">{fmt.label}</span>
+                    {t('modals.import.as')} <span className="text-slate-400">{fmt.label}</span>
                   </span>
                 </>
               ) : (
                 <>
                   <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
-                  <span className="text-amber-400">
-                    No variables detected — try a different format
-                  </span>
+                  <span className="text-amber-400">{t('modals.import.noVariablesDetected')}</span>
                 </>
               )}
             </div>
@@ -288,7 +289,7 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
               onClick={onClose}
               className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-400 transition hover:border-slate-600 hover:text-slate-300"
             >
-              Cancel
+              {t('modals.import.cancel')}
             </button>
             <button
               onClick={handleImport}
@@ -296,7 +297,12 @@ export function ImportModal({ onClose, onImport }: Props): React.JSX.Element {
               className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Upload className="h-4 w-4" />
-              Import {varCount > 0 ? `${varCount} variable${varCount !== 1 ? 's' : ''}` : ''}
+              {varCount > 0
+                ? t('modals.import.importCount', {
+                    count: varCount,
+                    plural: varCount !== 1 ? 's' : ''
+                  })
+                : t('modals.import.import')}
             </button>
           </div>
         </motion.div>

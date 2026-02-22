@@ -18,6 +18,7 @@ import {
   StarOff
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useProjects, useVariableGroup, useVariableGroups } from '../../hooks/useADOApi'
 import { clearCredentials } from '../../lib/api'
@@ -55,19 +56,20 @@ function LibraryRow({
   isLeft,
   isRight
 }: LibraryRowProps): React.JSX.Element {
+  const { t } = useTranslation()
   const libraryMenuItems: ContextMenuItem[] = [
     {
-      label: 'Load into Left Pane',
+      label: t('sidebar.loadLeft'),
       icon: <PanelLeft className="h-3.5 w-3.5" />,
       onSelect: () => onSelect('left')
     },
     {
-      label: 'Load into Right Pane',
+      label: t('sidebar.loadRight'),
       icon: <PanelRight className="h-3.5 w-3.5" />,
       onSelect: () => onSelect('right')
     },
     {
-      label: isFavorite ? 'Remove from Favorites' : 'Mark as Favorite',
+      label: isFavorite ? t('sidebar.removeFavorite') : t('sidebar.markFavorite'),
       icon: isFavorite ? (
         <StarOff className="h-3.5 w-3.5 text-yellow-400" />
       ) : (
@@ -77,13 +79,13 @@ function LibraryRow({
       onSelect: onToggleFavorite
     },
     {
-      label: 'Export Variables…',
+      label: t('sidebar.exportVariables'),
       icon: <Download className="h-3.5 w-3.5" />,
       dividerBefore: true,
       onSelect: onExport
     },
     {
-      label: 'Clone Library…',
+      label: t('sidebar.cloneLibrary'),
       icon: <Copy className="h-3.5 w-3.5" />,
       onSelect: onClone
     }
@@ -101,7 +103,10 @@ function LibraryRow({
 
         {/* Inline actions: shown on hover, star always visible when favourited */}
         <div className="flex shrink-0 items-center gap-1">
-          <Tooltip content={isFavorite ? 'Remove from favorites' : 'Add to favorites'} side="top">
+          <Tooltip
+            content={isFavorite ? t('sidebar.removeFromFavorites') : t('sidebar.addToFavorites')}
+            side="top"
+          >
             <button
               onClick={(e) => {
                 e.stopPropagation()
@@ -117,7 +122,7 @@ function LibraryRow({
             </button>
           </Tooltip>
           <div className="flex gap-1 opacity-0 transition group-hover:opacity-100">
-            <Tooltip content="Load into Left pane" side="top">
+            <Tooltip content={t('sidebar.loadLeftPane')} side="top">
               <button
                 onClick={() => onSelect('left')}
                 className={`rounded px-2 py-1 text-xs font-bold transition ${isLeft ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-blue-600/70 hover:text-white'}`}
@@ -125,7 +130,7 @@ function LibraryRow({
                 L
               </button>
             </Tooltip>
-            <Tooltip content="Load into Right pane" side="top">
+            <Tooltip content={t('sidebar.loadRightPane')} side="top">
               <button
                 onClick={() => onSelect('right')}
                 className={`rounded px-2 py-1 text-xs font-bold transition ${isRight ? 'bg-fuchsia-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-fuchsia-600/70 hover:text-white'}`}
@@ -155,6 +160,7 @@ function ProjectNode({
   isFavorite,
   onToggleFavorite
 }: ProjectNodeProps): React.JSX.Element {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [search, setSearch] = useState('')
   const [exportGroupId, setExportGroupId] = useState<number | null>(null)
@@ -189,7 +195,12 @@ function ProjectNode({
   const selectGroup = (groupId: number, groupName: string, side: 'left' | 'right'): void => {
     if (side === 'left') setLeftPane({ projectId, projectName, groupId, groupName })
     else setRightPane({ projectId, projectName, groupId, groupName })
-    toast.success(`${groupName} loaded in ${side === 'left' ? 'Left' : 'Right'} pane`)
+    toast.success(
+      t('sidebar.groupLoaded', {
+        name: groupName,
+        side: side === 'left' ? t('sidebar.left') : t('sidebar.right')
+      })
+    )
   }
 
   const handleExport = (groupId: number, groupName: string): void => {
@@ -204,7 +215,7 @@ function ProjectNode({
 
   const projectMenuItems: ContextMenuItem[] = [
     {
-      label: isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+      label: isFavorite ? t('sidebar.removeFavorite') : t('sidebar.markFavorite'),
       icon: isFavorite ? (
         <StarOff className="h-3.5 w-3.5 text-yellow-400" />
       ) : (
@@ -232,7 +243,10 @@ function ProjectNode({
               <span className="block truncate font-medium">{projectName}</span>
             </div>
           </Tooltip>
-          <Tooltip content={isFavorite ? 'Remove from favorites' : 'Add to favorites'} side="right">
+          <Tooltip
+            content={isFavorite ? t('sidebar.removeFromFavorites') : t('sidebar.addToFavorites')}
+            side="right"
+          >
             <button
               onClick={(e) => {
                 e.stopPropagation()
@@ -290,7 +304,7 @@ function ProjectNode({
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search libraries"
+                  placeholder={t('sidebar.searchLibraries')}
                   className="selectable w-full rounded border border-slate-700 bg-slate-800 py-1 pl-6 pr-2 text-xs text-slate-300 placeholder-slate-600 outline-none focus:border-blue-500"
                 />
               </div>
@@ -298,14 +312,14 @@ function ProjectNode({
               {isLoading && (
                 <div className="flex items-center gap-1.5 px-2 py-1 text-xs text-slate-500">
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  Loading...
+                  {t('sidebar.loading')}
                 </div>
               )}
 
               {/* ⭐ Favorite libraries */}
               {hasLibFavorites && (
                 <>
-                  <SectionHeader label="Favorites" />
+                  <SectionHeader label={t('sidebar.favorites')} />
                   <AnimatePresence>
                     {favLibraries.map((g) => {
                       const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
@@ -336,7 +350,7 @@ function ProjectNode({
                       )
                     })}
                   </AnimatePresence>
-                  <SectionHeader label="All Libraries" />
+                  <SectionHeader label={t('sidebar.allLibraries')} />
                 </>
               )}
 
@@ -372,7 +386,7 @@ function ProjectNode({
               </AnimatePresence>
 
               {!isLoading && favLibraries.length === 0 && regularLibraries.length === 0 && (
-                <p className="px-2 py-1 text-xs text-slate-600">No groups found</p>
+                <p className="px-2 py-1 text-xs text-slate-600">{t('sidebar.noGroupsFound')}</p>
               )}
             </div>
           </motion.div>
@@ -398,6 +412,7 @@ function SectionHeader({ label }: { label: string }): React.JSX.Element {
 // --- Main Sidebar -----------------------------------------------------------
 
 export function Sidebar(): React.JSX.Element {
+  const { t } = useTranslation()
   const {
     sidebarCollapsed,
     toggleSidebar,
@@ -435,7 +450,7 @@ export function Sidebar(): React.JSX.Element {
   const handleLogout = async (): Promise<void> => {
     await clearCredentials()
     logout()
-    toast.info('Logged out')
+    toast.info(t('sidebar.toast.loggedOut'))
   }
 
   const all = projects ?? []
@@ -454,10 +469,13 @@ export function Sidebar(): React.JSX.Element {
       <div className="flex h-10 items-center justify-between border-b border-slate-800 px-2">
         {!sidebarCollapsed && (
           <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-            Projects
+            {t('sidebar.projects')}
           </span>
         )}
-        <Tooltip content={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} side="right">
+        <Tooltip
+          content={sidebarCollapsed ? t('sidebar.expandSidebar') : t('sidebar.collapseSidebar')}
+          side="right"
+        >
           <button
             onClick={toggleSidebar}
             className="ml-auto rounded p-1 text-slate-500 transition hover:bg-slate-700 hover:text-slate-300"
@@ -480,7 +498,7 @@ export function Sidebar(): React.JSX.Element {
               <input
                 value={projectSearch}
                 onChange={(e) => setProjectSearch(e.target.value)}
-                placeholder="Search projects..."
+                placeholder={t('sidebar.searchProjects')}
                 className="selectable w-full rounded-md border border-slate-700 bg-slate-800 py-1.5 pl-7 pr-2 text-xs text-slate-300 placeholder-slate-500 outline-none focus:border-blue-500"
               />
             </div>
@@ -514,20 +532,20 @@ export function Sidebar(): React.JSX.Element {
               {isLoading && (
                 <div className="flex items-center gap-2 p-3 text-xs text-slate-500">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Loading projects...
+                  {t('sidebar.loadingProjects')}
                 </div>
               )}
               {isError && (
                 <div className="flex items-start gap-2 rounded-md bg-red-900/20 p-3 text-xs text-red-400">
                   <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  Failed to load projects
+                  {t('sidebar.failedToLoadProjects')}
                 </div>
               )}
 
               {/* Favorites section */}
               {hasFavorites && (
                 <>
-                  <SectionHeader label="Favorites" />
+                  <SectionHeader label={t('sidebar.favorites')} />
                   <AnimatePresence>
                     {favoriteProjects.map((p) => (
                       <motion.div
@@ -546,7 +564,7 @@ export function Sidebar(): React.JSX.Element {
                       </motion.div>
                     ))}
                   </AnimatePresence>
-                  <SectionHeader label="All Projects" />
+                  <SectionHeader label={t('sidebar.allProjects')} />
                 </>
               )}
 
@@ -579,7 +597,7 @@ export function Sidebar(): React.JSX.Element {
               className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-red-400 transition hover:bg-red-500/10 hover:text-red-300"
             >
               <LogOut className="h-3.5 w-3.5" />
-              Disconnect
+              {t('sidebar.disconnect')}
             </button>
           </div>
         </>

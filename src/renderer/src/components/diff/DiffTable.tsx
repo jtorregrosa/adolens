@@ -15,6 +15,7 @@ import {
   X
 } from 'lucide-react'
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useUIStore } from '../../store/uiStore'
 import type {
   AdoVariableGroup,
@@ -93,6 +94,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   },
   ref
 ) {
+  const { t } = useTranslation()
   const addedRowRef = useRef<HTMLTableRowElement | null>(null)
   type FlashRowType = 'added' | 'deleted' | 'renamed' | 'modified' | 'edited'
   const [flashRow, setFlashRow] = useState<{ key: string; type: FlashRowType } | null>(null)
@@ -359,32 +361,34 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
           animate={{ opacity: 1, y: 0 }}
           className="flex h-8 shrink-0 items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 text-xs text-amber-400"
         >
-          <span className="font-semibold">{totalPendingCount} pending change(s)</span>
+          <span className="font-semibold">
+            {t('diff.pendingChanges', { count: totalPendingCount })}
+          </span>
           <button
             onClick={onOpenReview}
             className="ml-auto flex items-center gap-1.5 rounded bg-amber-500/20 px-2 py-0.5 font-medium transition hover:bg-amber-500/30"
           >
             <CloudUpload className="h-3.5 w-3.5" />
-            Review &amp; Push
+            {t('diff.reviewAndPush')}
           </button>
           <button
             onClick={() => onDiscard?.()}
             className="flex items-center gap-1.5 rounded border border-red-800/50 bg-red-900/20 px-2 py-0.5 font-medium text-red-400 transition hover:bg-red-900/40 hover:text-red-300"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Discard
+            {t('diff.discard')}
           </button>
         </motion.div>
       ) : peerHasChanges ? (
         <div className="flex h-8 shrink-0 items-center border-b border-slate-800/60 bg-slate-900/40 px-4 text-xs text-slate-600">
-          <span className="font-semibold">0 pending change(s)</span>
+          <span className="font-semibold">{t('diff.zeroPendingChanges')}</span>
         </div>
       ) : null}
 
       {/* Bulk sync toolbar */}
       {otherGroup && (
         <div className="flex items-center gap-2 border-b border-slate-800 px-4 py-1 text-xs">
-          <span className="text-slate-600">Bulk:</span>
+          <span className="text-slate-600">{t('diff.bulk')}</span>
           <button
             onClick={bulkSyncAll}
             className="flex items-center gap-1 rounded px-2 py-0.5 text-slate-500 transition hover:bg-slate-700 hover:text-slate-300"
@@ -392,12 +396,12 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
             {side === 'left' ? (
               <>
                 <ChevronsRight className="h-3.5 w-3.5" />
-                Sync All → Right
+                {t('diff.syncAllRight')}
               </>
             ) : (
               <>
                 <ChevronsLeft className="h-3.5 w-3.5" />
-                Sync All ← Left
+                {t('diff.syncAllLeft')}
               </>
             )}
           </button>
@@ -427,10 +431,10 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                 <th className="sticky left-0 z-20 w-10 border-b border-slate-800 bg-slate-900" />
               )}
               <th className="w-5/12 border-b border-slate-800 px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Key
+                {t('diff.key')}
               </th>
               <th className="border-b border-slate-800 px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Value
+                {t('diff.value')}
               </th>
               {/* Left pane near separator: copy column */}
               {side === 'left' && (
@@ -520,10 +524,10 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                   ? [
                       {
                         label: isDeleted
-                          ? 'Restore variable'
+                          ? t('diff.restoreVariable')
                           : isInCloud
-                            ? 'Delete variable'
-                            : 'Remove (undo add)',
+                            ? t('diff.deleteVariable')
+                            : t('diff.removeUndoAdd'),
                         icon: isDeleted ? (
                           <RotateCcw className="h-3.5 w-3.5" />
                         ) : (
@@ -535,19 +539,19 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                     ]
                   : []),
                 {
-                  label: 'Copy to Left',
+                  label: t('diff.copyToLeft'),
                   icon: <ArrowLeft className="h-3.5 w-3.5" />,
                   disabled: side === 'left' || !variable || isDeleted,
                   onSelect: () => copyRowToOtherSide(row.key, variable?.value, variable?.isSecret)
                 },
                 {
-                  label: 'Copy to Right',
+                  label: t('diff.copyToRight'),
                   icon: <ArrowRight className="h-3.5 w-3.5" />,
                   disabled: side === 'right' || !variable || isDeleted,
                   onSelect: () => copyRowToOtherSide(row.key, variable?.value, variable?.isSecret)
                 },
                 {
-                  label: effectiveSecret ? 'Remove secret' : 'Set as secret',
+                  label: effectiveSecret ? t('diff.removeSecret') : t('diff.setAsSecret'),
                   icon: effectiveSecret ? (
                     <LockOpen className="h-3.5 w-3.5" />
                   ) : (
@@ -569,7 +573,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                   <div className="flex items-center justify-center">
                     {showCopyButton ? (
                       <Tooltip
-                        content={`Copy to ${side === 'left' ? 'Right' : 'Left'}${variable?.isSecret ? ' (value will be empty)' : ''}`}
+                        content={`${side === 'left' ? t('diff.copyToRight') : t('diff.copyToLeft')}${variable?.isSecret ? t('diff.copySecretNote') : ''}`}
                         side={side === 'left' ? 'right' : 'left'}
                       >
                         <button
@@ -609,7 +613,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                     {canDelete &&
                       (isDeleted ? (
                         <Tooltip
-                          content="Restore variable"
+                          content={t('diff.restoreVariable')}
                           side={side === 'left' ? 'left' : 'right'}
                         >
                           <button
@@ -621,7 +625,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                         </Tooltip>
                       ) : (
                         <Tooltip
-                          content={isInCloud ? 'Delete variable' : 'Remove (undo add)'}
+                          content={isInCloud ? t('diff.deleteVariable') : t('diff.removeUndoAdd')}
                           side={side === 'left' ? 'left' : 'right'}
                         >
                           <button
@@ -743,12 +747,12 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                           {variable.isSecret
                             ? SECRET_PLACEHOLDER
                             : variable.value || (
-                                <span className="text-slate-500 italic">empty</span>
+                                <span className="text-slate-500 italic">{t('diff.empty')}</span>
                               )}
                         </span>
                       ) : effectiveSecret ? (
                         <Tooltip
-                          content="Click to set or change secret value"
+                          content={t('diff.clickToSetSecret')}
                           side="top"
                           delayDuration={800}
                         >
@@ -788,7 +792,9 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                       ) : (
                         <Tooltip
                           content={
-                            displayValue != null && displayValue !== '' ? displayValue : '(empty)'
+                            displayValue != null && displayValue !== ''
+                              ? displayValue
+                              : `(${t('diff.empty')})`
                           }
                           side="top"
                           delayDuration={800}
@@ -805,7 +811,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                             {displayValue != null && displayValue !== '' ? (
                               displayValue
                             ) : (
-                              <span className="text-slate-600 italic">empty</span>
+                              <span className="text-slate-600 italic">{t('diff.empty')}</span>
                             )}
                           </span>
                         </Tooltip>
@@ -830,7 +836,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                 <td className="w-5/12 px-4 py-2">
                   <span className="flex items-center gap-1.5 text-xs text-slate-600 group-hover/add:text-emerald-400 transition-colors select-none">
                     <Plus className="h-3.5 w-3.5" />
-                    Add variable
+                    {t('diff.addVariable')}
                   </span>
                 </td>
                 {/* value cell */}
@@ -844,7 +850,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
 
         {filteredRows.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-slate-600">
-            <p className="text-sm">No variables to display</p>
+            <p className="text-sm">{t('diff.noVariables')}</p>
           </div>
         )}
       </div>

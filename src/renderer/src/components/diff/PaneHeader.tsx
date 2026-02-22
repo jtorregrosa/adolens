@@ -1,4 +1,5 @@
 import { FolderOpen, Layers } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   side: 'left' | 'right'
@@ -7,7 +8,8 @@ interface Props {
 }
 
 export function PaneHeader({ side, projectName, groupName }: Props): React.JSX.Element {
-  const label = side === 'left' ? 'Left' : 'Right'
+  const { t } = useTranslation()
+  const label = side === 'left' ? t('pane.left') : t('pane.right')
 
   const borderBg =
     side === 'left' ? 'border-blue-500/20 bg-blue-500/5' : 'border-fuchsia-500/20 bg-fuchsia-500/5'
@@ -28,7 +30,7 @@ export function PaneHeader({ side, projectName, groupName }: Props): React.JSX.E
       )}
     </div>
   ) : (
-    <span className="text-xs text-slate-600">No group selected</span>
+    <span className="text-xs text-slate-600">{t('pane.noGroupSelected')}</span>
   )
 
   const labelEl = (

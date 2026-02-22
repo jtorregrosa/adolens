@@ -10,6 +10,7 @@ import {
   X
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import type { DraftChange } from '../../hooks/useVariableBuffer'
 
@@ -42,6 +43,7 @@ export function PushReviewModal({
   onConfirmPush,
   onDiscardAll
 }: Props): React.JSX.Element {
+  const { t } = useTranslation()
   const [isPushing, setIsPushing] = useState(false)
 
   const isEmpty = draftChanges.length === 0
@@ -56,7 +58,11 @@ export function PushReviewModal({
       await onConfirmPush(mergedVariables)
       onClose()
     } catch (err) {
-      toast.error(`Push failed: ${err instanceof Error ? err.message : String(err)}`)
+      toast.error(
+        t('modals.push.toast.pushFailed', {
+          message: err instanceof Error ? err.message : String(err)
+        })
+      )
     } finally {
       setIsPushing(false)
     }
@@ -65,7 +71,7 @@ export function PushReviewModal({
   function handleDiscardAll(): void {
     onDiscardAll()
     onClose()
-    toast.info('Local changes discarded')
+    toast.info(t('modals.push.toast.discarded'))
   }
 
   // ── Render ───────────────────────────────────────────────────────────────
@@ -91,13 +97,18 @@ export function PushReviewModal({
           {/* ── Header ────────────────────────────────────────────────────── */}
           <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
             <div>
-              <h2 className="text-base font-semibold text-white">Review Local Changes</h2>
+              <h2 className="text-base font-semibold text-white">{t('modals.push.title')}</h2>
               <p className="mt-0.5 text-xs text-slate-500">
                 {isEmpty
-                  ? 'No local changes detected'
-                  : `${draftChanges.length} change${draftChanges.length !== 1 ? 's' : ''} pending for `}
+                  ? t('modals.push.noChanges')
+                  : t('modals.push.changesCount', {
+                      count: draftChanges.length,
+                      plural: draftChanges.length !== 1 ? 's' : ''
+                    })}
                 {!isEmpty && (
-                  <span className="font-medium text-slate-300">{groupName ?? 'this library'}</span>
+                  <span className="font-medium text-slate-300">
+                    {groupName ?? t('modals.push.thisLibrary')}
+                  </span>
                 )}
               </p>
             </div>
@@ -111,7 +122,7 @@ export function PushReviewModal({
                   className="flex items-center gap-1.5 rounded-lg border border-red-800/50 bg-red-900/20 px-3 py-1.5 text-xs font-medium text-red-400 transition hover:bg-red-900/40 hover:text-red-300 disabled:opacity-50"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  Discard All
+                  {t('modals.push.discardAll')}
                 </button>
               )}
 
@@ -130,11 +141,7 @@ export function PushReviewModal({
           {!isEmpty && (
             <div className="mx-6 mt-4 flex items-start gap-2 rounded-lg bg-amber-500/10 px-4 py-3 text-xs text-amber-400 ring-1 ring-amber-500/20">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              <span>
-                Pushing will overwrite the variable group via{' '}
-                <strong className="font-semibold">PUT /distributedtask/variablegroups</strong>. This
-                action cannot be undone.
-              </span>
+              <span>{t('modals.push.warning')}</span>
             </div>
           )}
 
@@ -143,11 +150,8 @@ export function PushReviewModal({
             /* Empty state */
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
               <PackageOpen className="h-10 w-10 text-slate-700" />
-              <p className="text-sm font-medium text-slate-400">No local changes detected</p>
-              <p className="max-w-xs text-xs text-slate-600">
-                Edit variable values or keys, sync keys from the other pane, or add / delete
-                variables to stage changes here.
-              </p>
+              <p className="text-sm font-medium text-slate-400">{t('modals.push.noChanges')}</p>
+              <p className="max-w-xs text-xs text-slate-600">{t('modals.push.emptyHint')}</p>
             </div>
           ) : (
             /* Diff tables */
@@ -161,7 +165,7 @@ export function PushReviewModal({
                 return (
                   <div>
                     <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Modified Variables
+                      {t('modals.push.modifiedVariables')}
                       <span className="ml-2 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-amber-400">
                         {modified.length}
                       </span>
@@ -171,13 +175,13 @@ export function PushReviewModal({
                         <thead className="sticky top-0 bg-slate-800">
                           <tr>
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              Variable Key
+                              {t('modals.push.variableKey')}
                             </th>
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              Old Value
+                              {t('modals.push.oldValue')}
                             </th>
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              New Value
+                              {t('modals.push.newValue')}
                             </th>
                           </tr>
                         </thead>
@@ -192,7 +196,7 @@ export function PushReviewModal({
                                 {change.isSecret ? (
                                   <span className="flex items-center gap-1 text-slate-600">
                                     <Lock className="h-3 w-3" />
-                                    <em>secret</em>
+                                    <em>{t('modals.push.secret')}</em>
                                   </span>
                                 ) : change.oldValue === undefined ? (
                                   <em className="text-slate-600">—</em>
@@ -200,7 +204,7 @@ export function PushReviewModal({
                                   <span className="rounded bg-red-500/10 px-1.5 py-0.5 text-red-400 line-through">
                                     {change.oldValue || (
                                       <em className="not-italic text-slate-600 no-underline">
-                                        (empty)
+                                        {t('modals.push.empty')}
                                       </em>
                                     )}
                                   </span>
@@ -210,12 +214,14 @@ export function PushReviewModal({
                                 {change.isSecret ? (
                                   <span className="flex items-center gap-1 text-slate-600">
                                     <Lock className="h-3 w-3" />
-                                    <em>secret (overwritten)</em>
+                                    <em>{t('modals.push.secretOverwritten')}</em>
                                   </span>
                                 ) : (
                                   <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-400">
                                     {change.newValue || (
-                                      <em className="not-italic text-slate-600">(empty)</em>
+                                      <em className="not-italic text-slate-600">
+                                        {t('modals.push.empty')}
+                                      </em>
                                     )}
                                   </span>
                                 )}
@@ -235,7 +241,7 @@ export function PushReviewModal({
                 return (
                   <div>
                     <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Renamed Variables
+                      {t('modals.push.renamedVariables')}
                       <span className="ml-2 rounded-full bg-blue-500/20 px-1.5 py-0.5 text-blue-400">
                         {renamed.length}
                       </span>
@@ -245,14 +251,14 @@ export function PushReviewModal({
                         <thead className="sticky top-0 bg-slate-800">
                           <tr>
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              Old Key
+                              {t('modals.push.oldKey')}
                             </th>
                             <th className="w-6" />
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              New Key
+                              {t('modals.push.newKey')}
                             </th>
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              Value
+                              {t('modals.push.value')}
                             </th>
                           </tr>
                         </thead>
@@ -279,18 +285,22 @@ export function PushReviewModal({
                                   {change.isSecret ? (
                                     <span className="flex items-center gap-1 text-slate-600">
                                       <Lock className="h-3 w-3" />
-                                      <em>secret</em>
+                                      <em>{t('modals.push.secret')}</em>
                                     </span>
                                   ) : valueChanged ? (
                                     <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-400">
                                       {change.newValue || (
-                                        <em className="not-italic text-slate-600">(empty)</em>
+                                        <em className="not-italic text-slate-600">
+                                          {t('modals.push.empty')}
+                                        </em>
                                       )}
                                     </span>
                                   ) : (
                                     <span className="text-slate-500">
                                       {change.newValue || (
-                                        <em className="not-italic text-slate-600">(empty)</em>
+                                        <em className="not-italic text-slate-600">
+                                          {t('modals.push.empty')}
+                                        </em>
                                       )}
                                     </span>
                                   )}
@@ -311,7 +321,7 @@ export function PushReviewModal({
                 return (
                   <div>
                     <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Added Variables
+                      {t('modals.push.addedVariables')}
                       <span className="ml-2 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-emerald-400">
                         {created.length}
                       </span>
@@ -321,10 +331,10 @@ export function PushReviewModal({
                         <thead className="sticky top-0 bg-slate-800">
                           <tr>
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              Variable Key
+                              {t('modals.push.variableKey')}
                             </th>
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              Value
+                              {t('modals.push.value')}
                             </th>
                           </tr>
                         </thead>
@@ -337,7 +347,7 @@ export function PushReviewModal({
                               <td className="mono px-4 py-2.5">
                                 <div className="flex items-center gap-2">
                                   <span className="rounded px-1 py-0.5 text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                    NEW
+                                    {t('modals.push.new')}
                                   </span>
                                   <span className="text-slate-200">{change.key}</span>
                                 </div>
@@ -345,7 +355,9 @@ export function PushReviewModal({
                               <td className="mono px-4 py-2.5">
                                 <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-400">
                                   {change.newValue || (
-                                    <em className="not-italic text-slate-600">(empty)</em>
+                                    <em className="not-italic text-slate-600">
+                                      {t('modals.push.empty')}
+                                    </em>
                                   )}
                                 </span>
                               </td>
@@ -365,7 +377,7 @@ export function PushReviewModal({
                 return (
                   <div>
                     <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Deleted Variables
+                      {t('modals.push.deletedVariables')}
                       <span className="ml-2 rounded-full bg-red-500/20 px-1.5 py-0.5 text-red-400">
                         {deleted.length}
                       </span>
@@ -375,10 +387,10 @@ export function PushReviewModal({
                         <thead className="sticky top-0 bg-slate-800">
                           <tr>
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              Variable Key
+                              {t('modals.push.variableKey')}
                             </th>
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              Current Value
+                              {t('modals.push.currentValue')}
                             </th>
                           </tr>
                         </thead>
@@ -391,7 +403,7 @@ export function PushReviewModal({
                               <td className="mono px-4 py-2.5">
                                 <div className="flex items-center gap-2">
                                   <span className="rounded px-1 py-0.5 text-[10px] font-semibold bg-red-500/20 text-red-400 border border-red-500/30">
-                                    DEL
+                                    {t('modals.push.del')}
                                   </span>
                                   <span className="text-slate-400 line-through">{change.key}</span>
                                 </div>
@@ -400,12 +412,14 @@ export function PushReviewModal({
                                 {change.isSecret ? (
                                   <span className="flex items-center gap-1 text-slate-600">
                                     <Lock className="h-3 w-3" />
-                                    <em>secret</em>
+                                    <em>{t('modals.push.secret')}</em>
                                   </span>
                                 ) : (
                                   <span className="text-slate-500 line-through">
                                     {change.oldValue || (
-                                      <em className="not-italic text-slate-600">(empty)</em>
+                                      <em className="not-italic text-slate-600">
+                                        {t('modals.push.empty')}
+                                      </em>
                                     )}
                                   </span>
                                 )}
@@ -428,7 +442,7 @@ export function PushReviewModal({
               disabled={isPushing}
               className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-400 transition hover:border-slate-600 hover:text-slate-300 disabled:opacity-50"
             >
-              {isEmpty ? 'Close' : 'Cancel'}
+              {isEmpty ? t('modals.push.close') : t('modals.push.cancel')}
             </button>
 
             {!isEmpty && (
@@ -442,7 +456,7 @@ export function PushReviewModal({
                 ) : (
                   <CloudUpload className="h-4 w-4" />
                 )}
-                {isPushing ? 'Pushing…' : 'Confirm & Push to ADO'}
+                {isPushing ? t('modals.push.pushing') : t('modals.push.confirmPush')}
               </button>
             )}
           </div>

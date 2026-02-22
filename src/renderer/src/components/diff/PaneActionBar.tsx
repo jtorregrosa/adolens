@@ -1,5 +1,6 @@
 import { CloudUpload, FileJson, FileUp } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import type { AdoVariable } from '../../types'
 import { ExportModal } from '../modals/ExportModal'
@@ -24,6 +25,7 @@ export function PaneActionBar({
   groupName,
   onImport
 }: Props): React.JSX.Element {
+  const { t } = useTranslation()
   const [exportOpen, setExportOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
 
@@ -31,7 +33,7 @@ export function PaneActionBar({
 
   function handleExport(): void {
     if (!variables || Object.keys(variables).length === 0) {
-      toast.warning('No variables to export')
+      toast.warning(t('actionBar.toast.noVariablesToExport'))
       return
     }
     setExportOpen(true)
@@ -47,13 +49,16 @@ export function PaneActionBar({
         <div className="flex items-center gap-1 rounded-full border border-white/10 bg-slate-900/80 px-2 py-1.5 shadow-sm backdrop-blur-md">
           {/* ── Push Changes ──────────────────────────────────── */}
           <ActionButton
-            label="Review & Push"
+            label={t('actionBar.reviewAndPush')}
             onClick={onPush}
             disabled={!hasChanges}
             badgeCount={pendingCount}
             indicatorTitle={
               hasChanges
-                ? `${pendingCount} staged change${pendingCount !== 1 ? 's' : ''}`
+                ? t('actionBar.stagedChanges', {
+                    count: pendingCount,
+                    plural: pendingCount !== 1 ? 's' : ''
+                  })
                 : undefined
             }
           >
@@ -67,12 +72,12 @@ export function PaneActionBar({
           <Divider />
 
           {/* ── Export ────────────────────────────────────────── */}
-          <ActionButton label="Export" onClick={handleExport}>
+          <ActionButton label={t('actionBar.export')} onClick={handleExport}>
             <FileJson className="h-4 w-4 text-slate-400" />
           </ActionButton>
 
           {/* ── Import ────────────────────────────────────────── */}
-          <ActionButton label="Import" onClick={handleImport}>
+          <ActionButton label={t('actionBar.import')} onClick={handleImport}>
             <FileUp className="h-4 w-4 text-slate-400" />
           </ActionButton>
         </div>

@@ -1,0 +1,189 @@
+{
+  "app": {
+    "name": "ADOLens",
+    "titleBar": "ADO Lens"
+  },
+  "login": {
+    "subtitle": "Azure DevOps Variable Group Comparison Tool",
+    "orgUrl": "Organization URL",
+    "orgUrlPlaceholder": "https://dev.azure.com/your-org",
+    "pat": "Personal Access Token",
+    "patHint": "Requires Read & Write access on Variable Groups (Library scope)",
+    "connect": "Connect",
+    "connecting": "Connecting...",
+    "patStored": "Your PAT is stored securely in the OS keychain",
+    "toast": {
+      "missingFields": "Please fill in all fields",
+      "success": "Connected successfully",
+      "error": "Authentication failed: {{message}}"
+    }
+  },
+  "titleBar": {
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close"
+  },
+  "sidebar": {
+    "projects": "Projects",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar",
+    "searchProjects": "Search projects...",
+    "loadingProjects": "Loading projects...",
+    "failedToLoadProjects": "Failed to load projects",
+    "favorites": "Favorites",
+    "allProjects": "All Projects",
+    "allLibraries": "All Libraries",
+    "searchLibraries": "Search libraries",
+    "loading": "Loading...",
+    "noGroupsFound": "No groups found",
+    "disconnect": "Disconnect",
+    "loadLeft": "Load into Left Pane",
+    "loadRight": "Load into Right Pane",
+    "markFavorite": "Mark as Favorite",
+    "removeFavorite": "Remove from Favorites",
+    "exportVariables": "Export Variables…",
+    "cloneLibrary": "Clone Library…",
+    "loadLeftPane": "Load into Left pane",
+    "loadRightPane": "Load into Right pane",
+    "removeFromFavorites": "Remove from favorites",
+    "addToFavorites": "Add to favorites",
+    "groupLoaded": "{{name}} loaded in {{side}} pane",
+    "left": "Left",
+    "right": "Right",
+    "toast": {
+      "loggedOut": "Logged out"
+    }
+  },
+  "diff": {
+    "pendingChanges": "{{count}} pending change(s)",
+    "zeroPendingChanges": "0 pending change(s)",
+    "reviewAndPush": "Review & Push",
+    "discard": "Discard",
+    "bulk": "Bulk:",
+    "syncAllRight": "Sync All → Right",
+    "syncAllLeft": "Sync All ← Left",
+    "key": "Key",
+    "value": "Value",
+    "copyToRight": "Copy to Right",
+    "copyToLeft": "Copy to Left",
+    "copySecretNote": " (value will be empty)",
+    "restoreVariable": "Restore variable",
+    "deleteVariable": "Delete variable",
+    "removeUndoAdd": "Remove (undo add)",
+    "removeSecret": "Remove secret",
+    "setAsSecret": "Set as secret",
+    "noVariables": "No variables to display",
+    "addVariable": "Add variable",
+    "empty": "empty",
+    "clickToSetSecret": "Click to set or change secret value"
+  },
+  "pane": {
+    "left": "Left",
+    "right": "Right",
+    "noGroupSelected": "No group selected",
+    "empty": "{{label}} pane empty",
+    "emptyHint": "Select a Variable Group from the sidebar (L / R buttons)",
+    "vars": "vars",
+    "onlyHere": "only here",
+    "modified": "modified",
+    "identical": "identical"
+  },
+  "actionBar": {
+    "reviewAndPush": "Review & Push",
+    "stagedChanges": "{{count}} staged change{{plural}}",
+    "export": "Export",
+    "import": "Import",
+    "toast": {
+      "noVariablesToExport": "No variables to export"
+    }
+  },
+  "modals": {
+    "review": {
+      "title": "Review Changes",
+      "subtitle": "{{count}} change(s) will be committed to Azure DevOps",
+      "warning": "This will overwrite the variable group via PUT /distributedtask/variablegroups. This action cannot be undone.",
+      "key": "Key",
+      "before": "Before",
+      "after": "After",
+      "secret": "secret",
+      "secretOverwritten": "secret (overwritten)",
+      "empty": "empty",
+      "cancel": "Cancel",
+      "commit": "Commit Changes",
+      "committing": "Committing…"
+    },
+    "push": {
+      "title": "Review Local Changes",
+      "noChanges": "No local changes detected",
+      "changesCount": "{{count}} change{{plural}} pending for ",
+      "thisLibrary": "this library",
+      "discardAll": "Discard All",
+      "warning": "Pushing will overwrite the variable group via PUT /distributedtask/variablegroups. This action cannot be undone.",
+      "emptyHint": "Edit variable values or keys, sync keys from the other pane, or add / delete variables to stage changes here.",
+      "modifiedVariables": "Modified Variables",
+      "renamedVariables": "Renamed Variables",
+      "addedVariables": "Added Variables",
+      "deletedVariables": "Deleted Variables",
+      "variableKey": "Variable Key",
+      "oldValue": "Old Value",
+      "newValue": "New Value",
+      "oldKey": "Old Key",
+      "newKey": "New Key",
+      "currentValue": "Current Value",
+      "value": "Value",
+      "secret": "secret",
+      "secretOverwritten": "secret (overwritten)",
+      "empty": "(empty)",
+      "close": "Close",
+      "cancel": "Cancel",
+      "confirmPush": "Confirm & Push to ADO",
+      "pushing": "Pushing…",
+      "new": "NEW",
+      "del": "DEL",
+      "toast": {
+        "discarded": "Local changes discarded",
+        "pushFailed": "Push failed: {{message}}"
+      }
+    },
+    "export": {
+      "title": "Export Variables",
+      "variableCount": "{{count}} variable(s)",
+      "secretCount": "({{count}} secret, shown as ***)",
+      "close": "Close",
+      "copy": "Copy to Clipboard",
+      "copied": "Copied!",
+      "save": "Save File",
+      "toast": {
+        "copied": "Copied to clipboard",
+        "saved": "Saved as {{filename}}"
+      }
+    },
+    "import": {
+      "title": "Import Variables",
+      "subtitle": "Supported formats: JSON, Key=Value, PowerShell, Bash",
+      "chooseFile": "Choose File",
+      "noFileChosen": "No file chosen",
+      "variablesDetected": "{{count}} variable{{plural}} detected",
+      "as": "as",
+      "noVariablesDetected": "No variables detected — try a different format",
+      "chooseFileHint": "Choose a file to preview its contents",
+      "cancel": "Cancel",
+      "import": "Import",
+      "importCount": "Import {{count}} variable{{plural}}",
+      "toast": {
+        "readError": "Failed to read file",
+        "noVariables": "No variables could be parsed from this file"
+      }
+    },
+    "clone": {
+      "title": "Clone Library",
+      "description": "A new library containing the same variables will be created under the name below. Secret values will be preserved.",
+      "nameLabel": "New library name",
+      "namePlaceholder": "Enter a name…",
+      "cancel": "Cancel",
+      "clone": "Clone Library",
+      "cloning": "Cloning…"
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, Copy, Download, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import type { AdoVariable } from '../../types'
 import { type ExportFormat, FORMAT_OPTIONS, serializeVariables, tokenizeLine } from './exportUtils'
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function ExportModal({ variables, groupName, onClose }: Props): React.JSX.Element {
+  const { t } = useTranslation()
   const [format, setFormat] = useState<ExportFormat>('json')
   const [copied, setCopied] = useState(false)
 
@@ -37,13 +39,13 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
   async function handleCopy(): Promise<void> {
     await navigator.clipboard.writeText(serializeVariables(variables, format))
     setCopied(true)
-    toast.success('Copied to clipboard')
+    toast.success(t('modals.export.toast.copied'))
     setTimeout(() => setCopied(false), 2000)
   }
 
   function handleSave(): void {
     downloadText(serializeVariables(variables, format), `${baseName}.${fmt.ext}`)
-    toast.success(`Saved as ${baseName}.${fmt.ext}`)
+    toast.success(t('modals.export.toast.saved', { filename: `${baseName}.${fmt.ext}` }))
   }
 
   return (
@@ -68,11 +70,13 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
           {/* ── Header ──────────────────────────────────────────── */}
           <div className="flex shrink-0 items-center justify-between border-b border-slate-800 px-6 py-4">
             <div>
-              <h2 className="text-base font-semibold text-white">Export Variables</h2>
+              <h2 className="text-base font-semibold text-white">{t('modals.export.title')}</h2>
               <p className="mt-0.5 text-xs text-slate-500">
-                {totalCount} variable(s)
+                {t('modals.export.variableCount', { count: totalCount })}
                 {secretCount > 0 && (
-                  <span className="ml-1 text-slate-600">({secretCount} secret, shown as ***)</span>
+                  <span className="ml-1 text-slate-600">
+                    {t('modals.export.secretCount', { count: secretCount })}
+                  </span>
                 )}
                 {groupName && (
                   <>
@@ -148,7 +152,7 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
               onClick={onClose}
               className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-400 transition hover:border-slate-600 hover:text-slate-300"
             >
-              Close
+              {t('modals.export.close')}
             </button>
             <button
               onClick={handleCopy}
@@ -159,14 +163,14 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
               ) : (
                 <Copy className="h-4 w-4" />
               )}
-              {copied ? 'Copied!' : 'Copy to Clipboard'}
+              {copied ? t('modals.export.copied') : t('modals.export.copy')}
             </button>
             <button
               onClick={handleSave}
               className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500"
             >
               <Download className="h-4 w-4" />
-              Save File
+              {t('modals.export.save')}
             </button>
           </div>
         </motion.div>

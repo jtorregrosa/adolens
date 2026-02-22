@@ -2,12 +2,14 @@ import appIcon from '@renderer/assets/icon.png'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Loader2, LogIn } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { clearCredentials, getProjects, saveCredentials } from '../../lib/api'
 import { useAuthStore } from '../../store/authStore'
 import { TitleBar } from '../layout/TitleBar'
 
 export function LoginScreen(): React.JSX.Element {
+  const { t } = useTranslation()
   const [orgUrl, setOrgUrl] = useState('')
   const [pat, setPat] = useState('')
   const [showPat, setShowPat] = useState(false)
@@ -16,7 +18,7 @@ export function LoginScreen(): React.JSX.Element {
 
   const handleLogin = async (): Promise<void> => {
     if (!orgUrl.trim() || !pat.trim()) {
-      toast.error('Please fill in all fields')
+      toast.error(t('login.toast.missingFields'))
       return
     }
 
@@ -27,10 +29,12 @@ export function LoginScreen(): React.JSX.Element {
       await saveCredentials(normalizedUrl, pat.trim())
       await getProjects()
       setAuthenticated(normalizedUrl)
-      toast.success('Connected successfully')
+      toast.success(t('login.toast.success'))
     } catch (err) {
       await clearCredentials()
-      toast.error(`Authentication failed: ${err instanceof Error ? err.message : String(err)}`)
+      toast.error(
+        t('login.toast.error', { message: err instanceof Error ? err.message : String(err) })
+      )
     } finally {
       setLoading(false)
     }
@@ -58,31 +62,29 @@ export function LoginScreen(): React.JSX.Element {
               className="mb-4 inline-block h-32 w-32 select-none"
               draggable={false}
             />
-            <h1 className="text-3xl font-bold tracking-tight text-white">ADOLens</h1>
-            <p className="mt-2 text-sm text-slate-400">
-              Azure DevOps Variable Group Comparison Tool
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight text-white">{t('app.name')}</h1>
+            <p className="mt-2 text-sm text-slate-400">{t('login.subtitle')}</p>
           </div>
 
           {/* Form */}
           <div className="space-y-5 rounded-2xl bg-slate-900 p-8 ring-1 ring-slate-700/50">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-300">
-                Organization URL
+                {t('login.orgUrl')}
               </label>
               <input
                 type="url"
                 value={orgUrl}
                 onChange={(e) => setOrgUrl(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="https://dev.azure.com/your-org"
+                placeholder={t('login.orgUrlPlaceholder')}
                 className="selectable w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-300">
-                Personal Access Token
+                {t('login.pat')}
               </label>
               <div className="relative">
                 <input
@@ -101,9 +103,7 @@ export function LoginScreen(): React.JSX.Element {
                   {showPat ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="mt-1.5 text-xs text-slate-500">
-                Requires Read &amp; Write access on Variable Groups (Library scope)
-              </p>
+              <p className="mt-1.5 text-xs text-slate-500">{t('login.patHint')}</p>
             </div>
 
             <button
@@ -116,13 +116,11 @@ export function LoginScreen(): React.JSX.Element {
               ) : (
                 <LogIn className="h-4 w-4" />
               )}
-              {loading ? 'Connecting...' : 'Connect'}
+              {loading ? t('login.connecting') : t('login.connect')}
             </button>
           </div>
 
-          <p className="mt-6 text-center text-xs text-slate-600">
-            Your PAT is stored securely in the OS keychain
-          </p>
+          <p className="mt-6 text-center text-xs text-slate-600">{t('login.patStored')}</p>
         </motion.div>
       </div>
     </div>
