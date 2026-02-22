@@ -4,6 +4,7 @@ import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react'
 import appIcon from '@resources/icon.png'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../store/authStore'
+import { saveCredentials, clearCredentials, getProjects } from '../../lib/api'
 
 export function LoginScreen(): React.JSX.Element {
   const [orgUrl, setOrgUrl] = useState('')
@@ -22,17 +23,12 @@ export function LoginScreen(): React.JSX.Element {
     setLoading(true)
 
     try {
-      // Save credentials first
-      await window.api.saveCredentials(normalizedUrl, pat.trim())
-
-      // Validate by fetching projects
-      const res = await window.api.getProjects()
-      if (!res.ok) throw new Error(res.error)
-
+      await saveCredentials(normalizedUrl, pat.trim())
+      await getProjects()
       setAuthenticated(normalizedUrl)
       toast.success('Connected successfully')
     } catch (err) {
-      await window.api.clearCredentials()
+      await clearCredentials()
       toast.error(`Authentication failed: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       setLoading(false)
@@ -119,7 +115,7 @@ export function LoginScreen(): React.JSX.Element {
         </div>
 
         <p className="mt-6 text-center text-xs text-slate-600">
-          Your PAT is encrypted and stored locally via Electron safeStorage
+          Your PAT is stored securely in the OS keychain
         </p>
       </motion.div>
     </div>

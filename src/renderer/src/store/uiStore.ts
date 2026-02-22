@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { PendingChange, DraftNewVariable } from '../types'
+import { saveFavorites } from '../lib/api'
 
 interface PaneSelection {
   projectId: string | null
@@ -177,7 +178,7 @@ export const useUIStore = create<UIState>((set, get) => ({
       const next = s.favoriteProjectIds.includes(projectId)
         ? s.favoriteProjectIds.filter((id) => id !== projectId)
         : [...s.favoriteProjectIds, projectId]
-      window.api.saveFavorites(next, s.favoriteLibraryIds)
+      saveFavorites(next, s.favoriteLibraryIds).catch(console.error)
       return { favoriteProjectIds: next }
     })
   },
@@ -187,7 +188,7 @@ export const useUIStore = create<UIState>((set, get) => ({
       const next = s.favoriteLibraryIds.includes(libraryId)
         ? s.favoriteLibraryIds.filter((id) => id !== libraryId)
         : [...s.favoriteLibraryIds, libraryId]
-      window.api.saveFavorites(s.favoriteProjectIds, next)
+      saveFavorites(s.favoriteProjectIds, next).catch(console.error)
       return { favoriteLibraryIds: next }
     })
   },

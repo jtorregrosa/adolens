@@ -21,6 +21,7 @@ import {
 import { useAuthStore } from '../../store/authStore'
 import { useUIStore } from '../../store/uiStore'
 import { useProjects, useVariableGroups, useVariableGroup } from '../../hooks/useADOApi'
+import { clearCredentials } from '../../lib/api'
 import { toast } from 'sonner'
 import { AppContextMenu } from '../ui/AppContextMenu'
 import type { ContextMenuItem } from '../ui/AppContextMenu'
@@ -418,7 +419,7 @@ export function Sidebar(): React.JSX.Element {
   }, [sidebarCollapsed, projects, projectSearch])
 
   const handleLogout = async (): Promise<void> => {
-    await window.api.clearCredentials()
+    await clearCredentials()
     logout()
     toast.info('Logged out')
   }

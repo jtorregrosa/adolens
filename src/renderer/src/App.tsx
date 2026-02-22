@@ -5,27 +5,29 @@ import { useUIStore } from './store/uiStore'
 import { SplashView } from './components/SplashView'
 import { LoginScreen } from './components/auth/LoginScreen'
 import { ResizableLayout } from './components/layout/ResizableLayout'
+import { loadCredentials, loadFavorites } from './lib/api'
 
 const SPLASH_MIN_MS = 5000
 
 function App(): React.JSX.Element {
   const { isAuthenticated, setAuthenticated } = useAuthStore()
-  const { loadFavorites } = useUIStore()
+  const { loadFavorites: hydrateUiStore } = useUIStore()
   const [showSplash, setShowSplash] = useState(true)
 
   // Load credentials and favorites, then hide splash after a minimum display time
   useEffect(() => {
     const start = Date.now()
     let timeoutId: ReturnType<typeof setTimeout> | undefined
+
     Promise.all([
-      window.api.loadCredentials().then((result) => {
-        if (result.ok && result.orgUrl) {
-          setAuthenticated(result.orgUrl)
+      loadCredentials().then((creds) => {
+        if (creds) {
+          setAuthenticated(creds.orgUrl)
         }
       }),
-      window.api.loadFavorites().then((result) => {
-        if (result.ok) {
-          loadFavorites(result.favoriteProjectIds, result.favoriteLibraryIds)
+      loadFavorites().then((result) => {
+        if (result) {
+          hydrateUiStore(result.projectIds, result.libraryIds)
         }
       })
     ]).finally(() => {
@@ -33,8 +35,9 @@ function App(): React.JSX.Element {
       const remaining = Math.max(0, SPLASH_MIN_MS - elapsed)
       timeoutId = setTimeout(() => setShowSplash(false), remaining)
     })
+
     return () => { if (timeoutId !== undefined) clearTimeout(timeoutId) }
-  }, [setAuthenticated, loadFavorites])
+  }, [setAuthenticated, hydrateUiStore])
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-slate-950">
