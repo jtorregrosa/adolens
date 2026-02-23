@@ -86,7 +86,7 @@ export function AboutModal({ onClose }: Props): React.JSX.Element {
                 <p className="text-[10px] font-medium uppercase tracking-wider text-slate-600">
                   {t('about.author')}
                 </p>
-                <p className="mt-0.5 text-xs text-slate-300">Jorge Torregrosa Lloret</p>
+                <p className="mt-0.5 text-xs text-slate-300">OBS Team Archery</p>
               </div>
             </div>
 

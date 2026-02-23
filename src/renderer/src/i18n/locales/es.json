@@ -57,6 +57,7 @@
     "loading": "Cargando...",
     "noGroupsFound": "No se encontraron grupos",
     "disconnect": "Desconectar",
+    "goToExternalSource": "Ir al origen externo",
     "loadLeft": "Cargar en panel izquierdo",
     "loadRight": "Cargar en panel derecho",
     "markFavorite": "Marcar como favorito",
@@ -356,6 +357,6 @@
     "author": "Autor",
     "builtWith": "Construido con",
     "source": "Código fuente",
-    "copyright": "© {{year}} Jorge Torregrosa Lloret. Todos los derechos reservados."
+    "copyright": "© {{year}} OBS. Todos los derechos reservados."
   }
 }

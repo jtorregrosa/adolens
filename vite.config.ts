@@ -10,6 +10,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
 
   resolve: {
+    // Keep in sync with tsconfig.json "paths" for IDE and build
     alias: {
       '@renderer': resolve(__dirname, 'src/renderer/src')
     }
@@ -37,7 +38,11 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor-motion': ['framer-motion'],
-          'vendor-tauri': ['@tauri-apps/api', '@tauri-apps/plugin-shell', '@tauri-apps/plugin-store'],
+          'vendor-tauri': [
+            '@tauri-apps/api',
+            '@tauri-apps/plugin-shell',
+            '@tauri-apps/plugin-store'
+          ],
           'vendor-query': ['@tanstack/react-query', 'zustand'],
           'vendor-ui': [
             'lucide-react',

@@ -1,3 +1,4 @@
+import { open } from '@tauri-apps/plugin-shell'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   AlertCircle,
@@ -5,6 +6,7 @@ import {
   ChevronRight,
   Copy,
   Download,
+  ExternalLink,
   FolderOpen,
   Layers,
   Loader2,
@@ -47,7 +49,9 @@ interface LibraryRowProps {
 }
 
 function LibraryRow({
+  groupId,
   groupName,
+  projectName,
   isFavorite,
   onToggleFavorite,
   onSelect,
@@ -57,6 +61,11 @@ function LibraryRow({
   isRight
 }: LibraryRowProps): React.JSX.Element {
   const { t } = useTranslation()
+  const { orgUrl } = useAuthStore()
+  const libraryExternalUrl =
+    orgUrl && projectName
+      ? `${orgUrl.replace(/\/$/, '')}/${encodeURIComponent(projectName)}/_library?variableGroupId=${groupId}`
+      : ''
   const libraryMenuItems: ContextMenuItem[] = [
     {
       label: t('sidebar.loadLeft'),
@@ -88,7 +97,17 @@ function LibraryRow({
       label: t('sidebar.cloneLibrary'),
       icon: <Copy className="h-3.5 w-3.5" />,
       onSelect: onClone
-    }
+    },
+    ...(libraryExternalUrl
+      ? [
+          {
+            label: t('sidebar.goToExternalSource'),
+            icon: <ExternalLink className="h-3.5 w-3.5" />,
+            dividerBefore: true,
+            onSelect: () => open(libraryExternalUrl)
+          }
+        ]
+      : [])
   ]
 
   const bgClass =
@@ -172,6 +191,9 @@ function ProjectNode({
   onToggleFavorite
 }: ProjectNodeProps): React.JSX.Element {
   const { t } = useTranslation()
+  const { orgUrl } = useAuthStore()
+  const projectExternalUrl =
+    orgUrl && projectName ? `${orgUrl.replace(/\/$/, '')}/${encodeURIComponent(projectName)}` : ''
   const [expanded, setExpanded] = useState(false)
   const [search, setSearch] = useState('')
   const [exportGroupId, setExportGroupId] = useState<number | null>(null)
@@ -233,7 +255,17 @@ function ProjectNode({
         <Star className="h-3.5 w-3.5" />
       ),
       onSelect: onToggleFavorite
-    }
+    },
+    ...(projectExternalUrl
+      ? [
+          {
+            label: t('sidebar.goToExternalSource'),
+            icon: <ExternalLink className="h-3.5 w-3.5" />,
+            dividerBefore: true,
+            onSelect: () => open(projectExternalUrl)
+          }
+        ]
+      : [])
   ]
 
   return (

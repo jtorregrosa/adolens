@@ -59,7 +59,10 @@ function App(): React.JSX.Element {
   }, [isAuthenticated, setProfile, orgUrl])
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-slate-950">
+    <div
+      className="h-screen w-screen overflow-hidden bg-slate-950"
+      onContextMenu={(e) => e.preventDefault()}
+    >
       <AnimatePresence mode="wait">
         {showSplash ? (
           <SplashView key="splash" />

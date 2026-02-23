@@ -2,7 +2,7 @@
 name = "ADOLens"
 version = "1.0.0-rc.1"
 description = "Azure DevOps Variable Group Comparison Tool"
-authors = ["Jorge Torregrosa Lloret"]
+authors = ["OBS Team Archery"]
 edition = "2021"
 
 [lib]
@@ -32,8 +32,9 @@ keyring = { version = "3", features = [] }
 tokio = { version = "1", features = ["rt"] }
 
 [profile.release]
+# Optimize for size (use "s" for speed/size balance, "z" for smallest binary)
 strip = true
-opt-level = "s"
+opt-level = "z"
 lto = true
 codegen-units = 1
 panic = "abort"

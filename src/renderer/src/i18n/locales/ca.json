@@ -30,6 +30,7 @@
     "patStored": "El teu PAT s'emmagatzema de forma segura al clauer del sistema operatiu",
     "patStoredSession": "El teu PAT només s'emmagatzema durant aquesta sessió",
     "recentOrgs": "Organitzacions recents",
+    "noMatchingOrgs": "Cap URL coincideix — escriu una de nova a dalt",
     "toast": {
       "missingFields": "Si us plau, omple tots els camps",
       "success": "Connexió correcta",
@@ -56,6 +57,7 @@
     "loading": "Carregant...",
     "noGroupsFound": "No s'han trobat grups",
     "disconnect": "Desconnectar",
+    "goToExternalSource": "Vés a l'origen extern",
     "loadLeft": "Carregar al panell esquerre",
     "loadRight": "Carregar al panell dret",
     "markFavorite": "Marcar com a favorit",
@@ -132,6 +134,8 @@
     "refreshTooltip": "Actualitzar ambdós panells",
     "unload": "Descarregar",
     "unloadTooltip": "Descarregar ambdós panells",
+    "ask": "LensBot",
+    "askTooltip": "Pregunta a la IA sobre els teus grups de variables",
     "avatarAlt": "Avatar de l'usuari",
     "organization": "Organització",
     "importedVariables": "{{count}} variable(s) importada(es) — revisa i publica quan estiguis a punt"
@@ -162,7 +166,8 @@
       "appearance": "Aparença",
       "behavior": "Comportament",
       "exportImport": "Exportar / Importar",
-      "connection": "Connexió"
+      "connection": "Connexió",
+      "ai": "Assistent IA"
     },
     "appearance": {
       "language": "Idioma",
@@ -197,7 +202,67 @@
       "orgUrlHistoryDescription": "Les URLs usades anteriorment apareixen com a suggeriments a la pantalla d'inici",
       "clearHistory": "Esborrar historial",
       "noHistory": "No hi ha URLs desades encara"
+    },
+    "ai": {
+      "enable": "Activar assistent IA",
+      "enableDescription": "Fes servir un model de llenguatge local per consultar els teus grups de variables en llenguatge natural. Requereix Ollama.",
+      "previewWarning": "Funció en vista prèvia — pot fallar o malinterpretar; el comportament depèn del model escollit.",
+      "localDisclaimer": "Tots els models s'executen en local al teu dispositiu. Les teves dades no surten mai del teu equip.",
+      "ollamaNotRunning": "Ollama no s'està executant",
+      "ollamaInstallHint": "Instal·la Ollama i assegura't que s'estigui executant abans d'activar aquesta funció.",
+      "tierLight": "Lleu",
+      "tierLightHint": "1 – 2 GB · inferència ràpida · tots verificats per a crides a eines",
+      "tierStandard": "Estàndard",
+      "tierStandardHint": "2.5 – 5 GB · millor raonament · recomanat amb GPU",
+      "model": "Model",
+      "modelDescription": "Tots els models listats han estat verificats per manejar eines de forma fiable. Els models sub-1B (p.ex. Llama 3.2 1B) s'exclouen per produir crides mal formades.",
+      "checkingModel": "Comprovant l'estat del model…",
+      "modelReady": "Model a punt",
+      "gpuChecking": "Comprovant la GPU…",
+      "gpuFound": "Aceleració per GPU —",
+      "gpuNotFound": "No s'ha detectat GPU — s'executa en CPU (la inferència pot ser més lenta)",
+      "modelNotDownloaded": "El model encara no s'ha descarregat.",
+      "downloadModel": "Descarregar model",
+      "downloading": "Descarregant…",
+      "error": "S'ha produït un error",
+      "retry": "Torna a intentar",
+      "checkStatus": "Comprovar l'estat",
+      "modelNote": {
+        "fastest": "El més ràpid",
+        "fast": "Ràpid",
+        "balanced": "Equilibrat",
+        "microsoft": "Microsoft",
+        "recommended": "Recomanat",
+        "alternative": "Alternativa"
+      }
     }
+  },
+  "ai": {
+    "title": "LensBot",
+    "previewWarning": "Aquesta és una funció en vista prèvia. Pot fallar o malinterpretar; el comportament depèn del model escollit.",
+    "localDisclaimer": "Tots els models s'executen en local al teu dispositiu. Les teves dades no surten mai del teu equip.",
+    "toolListingProjects": "Listant projectes",
+    "toolListingLibraries": "Listant biblioteques",
+    "toolFetchingLibrary": "Obtenint biblioteca",
+    "toolCallCount": "{{count}} crida a eina",
+    "toolCallCount_plural": "{{count}} crides a eines",
+    "errorPrefix": "Error",
+    "notEnabled": "L'assistent IA no està activat",
+    "notEnabledHint": "Activa'l a Configuració → Assistent IA",
+    "openSettings": "Obrir configuració",
+    "ollamaOffline": "Ollama no s'està executant",
+    "ollamaOfflineHint": "Inicia Ollama o instal·la'l des de ollama.com i torna a intentar-ho.",
+    "retry": "Torna a intentar",
+    "modelMissing": "Model no descarregat",
+    "modelMissingHint": "Descarrega el model \"{{model}}\" a Configuració → Assistent IA.",
+    "emptyHint": "Pregunta el que vulguis sobre els teus grups de variables",
+    "suggestions": [
+      "Lista tots els meus projectes",
+      "Quantes biblioteques té el meu projecte X",
+      "Lista les variables de la biblioteca X al projecte Y"
+    ],
+    "inputPlaceholder": "Pregunta sobre els teus grups de variables…",
+    "inputHint": "Intro per enviar · Maj+Intro per nova línia"
   },
   "modals": {
     "review": {
@@ -286,5 +351,12 @@
       "clone": "Clonar biblioteca",
       "cloning": "Clonant…"
     }
+  },
+  "about": {
+    "description": "Eina de comparació de grups de variables d'Azure DevOps",
+    "author": "Autor",
+    "builtWith": "Construït amb",
+    "source": "Codi font",
+    "copyright": "© {{year}} OBS. Tots els drets reservats."
   }
 }

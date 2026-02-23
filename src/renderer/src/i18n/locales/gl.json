@@ -30,6 +30,7 @@
     "patStored": "O teu PAT gárdase de forma segura no chaveiro do sistema operativo",
     "patStoredSession": "O teu PAT só se almacena durante esta sesión",
     "recentOrgs": "Organizacións recentes",
+    "noMatchingOrgs": "Ningún URL coincide — escribe un novo arriba",
     "toast": {
       "missingFields": "Por favor, enche todos os campos",
       "success": "Conexión exitosa",
@@ -56,6 +57,7 @@
     "loading": "Cargando...",
     "noGroupsFound": "Non se atoparon grupos",
     "disconnect": "Desconectar",
+    "goToExternalSource": "Ir á orixe externa",
     "loadLeft": "Cargar no panel esquerdo",
     "loadRight": "Cargar no panel dereito",
     "markFavorite": "Marcar como favorito",
@@ -132,6 +134,8 @@
     "refreshTooltip": "Actualizar ambos os paneis",
     "unload": "Descargar",
     "unloadTooltip": "Descargar ambos os paneis",
+    "ask": "LensBot",
+    "askTooltip": "Pregunta á IA sobre os teus grupos de variables",
     "avatarAlt": "Avatar do usuario",
     "organization": "Organización",
     "importedVariables": "{{count}} variable(s) importada(s) — revisa e publica cando esteas listo"
@@ -162,7 +166,8 @@
       "appearance": "Aparencia",
       "behavior": "Comportamento",
       "exportImport": "Exportar / Importar",
-      "connection": "Conexión"
+      "connection": "Conexión",
+      "ai": "Asistente IA"
     },
     "appearance": {
       "language": "Idioma",
@@ -197,7 +202,67 @@
       "orgUrlHistoryDescription": "As URLs usadas anteriormente aparecen como suxestións na pantalla de inicio",
       "clearHistory": "Borrar historial",
       "noHistory": "Non hai URLs gardadas aínda"
+    },
+    "ai": {
+      "enable": "Activar asistente IA",
+      "enableDescription": "Usa un modelo de lingua local para consultar os teus grupos de variables en lingua natural. Require Ollama.",
+      "previewWarning": "Función en vista previa — pode fallar ou malinterpretar; o comportamento depende do modelo elixido.",
+      "localDisclaimer": "Todos os modelos execútanse en local no teu dispositivo. Os teus datos nunca saen do teu equipo.",
+      "ollamaNotRunning": "Ollama non está en execución",
+      "ollamaInstallHint": "Instala Ollama e asegúrate de que estea en execución antes de activar esta función.",
+      "tierLight": "Lixeiro",
+      "tierLightHint": "1 – 2 GB · inferencia rápida · todos verificados para chamadas a ferramentas",
+      "tierStandard": "Estándar",
+      "tierStandardHint": "2.5 – 5 GB · mellor razoamento · recomendado con GPU",
+      "model": "Modelo",
+      "modelDescription": "Todos os modelos listados foron verificados para manexar ferramentas de forma fiable. Os modelos sub-1B (p.ex. Llama 3.2 1B) están excluídos por producir chamadas mal formadas.",
+      "checkingModel": "Comprobando estado do modelo…",
+      "modelReady": "Modelo listo",
+      "gpuChecking": "Comprobando GPU…",
+      "gpuFound": "Aceleración por GPU —",
+      "gpuNotFound": "Non se detectou GPU — executando en CPU (a inferencia pode ser máis lenta)",
+      "modelNotDownloaded": "O modelo aínda non está descargado.",
+      "downloadModel": "Descargar modelo",
+      "downloading": "Descargando…",
+      "error": "Produciuse un erro",
+      "retry": "Reintentar",
+      "checkStatus": "Comprobar estado",
+      "modelNote": {
+        "fastest": "O máis rápido",
+        "fast": "Rápido",
+        "balanced": "Equilibrado",
+        "microsoft": "Microsoft",
+        "recommended": "Recomendado",
+        "alternative": "Alternativa"
+      }
     }
+  },
+  "ai": {
+    "title": "LensBot",
+    "previewWarning": "Esta é unha función en vista previa. Pode fallar ou malinterpretar; o comportamento depende do modelo elixido.",
+    "localDisclaimer": "Todos os modelos execútanse en local no teu dispositivo. Os teus datos nunca saen do teu equipo.",
+    "toolListingProjects": "Listando proxectos",
+    "toolListingLibraries": "Listando bibliotecas",
+    "toolFetchingLibrary": "Obtendo biblioteca",
+    "toolCallCount": "{{count}} chamada a ferramenta",
+    "toolCallCount_plural": "{{count}} chamadas a ferramentas",
+    "errorPrefix": "Erro",
+    "notEnabled": "O asistente IA non está activado",
+    "notEnabledHint": "Actívao en Configuración → Asistente IA",
+    "openSettings": "Abrir configuración",
+    "ollamaOffline": "Ollama non está en execución",
+    "ollamaOfflineHint": "Inicia Ollama ou instálao desde ollama.com e volve a intentalo.",
+    "retry": "Reintentar",
+    "modelMissing": "Modelo non descargado",
+    "modelMissingHint": "Descarga o modelo \"{{model}}\" en Configuración → Asistente IA.",
+    "emptyHint": "Pregunta calquer cousa sobre os teus grupos de variables",
+    "suggestions": [
+      "Lista todos os meus proxectos",
+      "Cantas bibliotecas ten o meu proxecto X",
+      "Lista as variables da biblioteca X no proxecto Y"
+    ],
+    "inputPlaceholder": "Pregunta sobre os teus grupos de variables…",
+    "inputHint": "Intro para enviar · Maiús+Intro para nova liña"
   },
   "modals": {
     "review": {
@@ -286,5 +351,12 @@
       "clone": "Clonar biblioteca",
       "cloning": "Clonando…"
     }
+  },
+  "about": {
+    "description": "Ferramenta de comparación de grupos de variables de Azure DevOps",
+    "author": "Autor",
+    "builtWith": "Construído con",
+    "source": "Código fonte",
+    "copyright": "© {{year}} OBS. Todos os dereitos reservados."
   }
 }

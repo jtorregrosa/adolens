@@ -30,11 +30,17 @@ A desktop application for comparing, synchronizing, and editing **Azure DevOps V
 
 ## Getting Started
 
+**Prerequisites:** Node.js ≥20 (`nvm use` if you use [nvm](https://github.com/nvm-sh/nvm)), pnpm ≥10, Rust (stable).
+
 ```bash
 pnpm install
 pnpm dev             # Launch Tauri dev window (Vite + Rust hot-reload)
-pnpm build           # Production build + bundle
+pnpm build           # Production build + Windows installers (NSIS + MSI)
+pnpm check:all       # Lint, typecheck, and cargo check
+pnpm build:debug     # Build with source maps and no minification (for debugging)
 ```
+
+**Versioning:** When releasing, keep `version` and `identifier` in sync across `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json`.
 
 ## Usage
 
@@ -51,4 +57,4 @@ PATs are stored securely in the **OS keychain** via the `keyring` crate. All ADO
 
 ## Recommended IDE Setup
 
-- [VSCode](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+- [VSCode](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) + [Biome](https://marketplace.visualstudio.com/items?itemName=biomejs.biome) (format + lint)
