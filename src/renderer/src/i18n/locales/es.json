@@ -26,7 +26,7 @@
     },
     "connect": "Conectar",
     "connecting": "Conectando...",
-    "rememberToken": "Recordar token entre sesiones",
+    "rememberToken": "Recordar sesión",
     "patStored": "Tu PAT se almacena de forma segura en el llavero del sistema operativo",
     "patStoredSession": "Tu PAT solo se almacena durante esta sesión",
     "recentOrgs": "Organizaciones recientes",
@@ -133,7 +133,7 @@
     "refreshTooltip": "Actualizar ambos paneles",
     "unload": "Descargar",
     "unloadTooltip": "Descargar ambos paneles",
-    "ask": "Preguntar",
+    "ask": "LensBot",
     "askTooltip": "Preguntar a la IA sobre tus grupos de variables",
     "avatarAlt": "Avatar del usuario",
     "organization": "Organización",
@@ -141,7 +141,23 @@
   },
   "appMenu": {
     "settings": "Ajustes",
-    "about": "Acerca de"
+    "about": "Acerca de",
+    "help": "Ayuda"
+  },
+  "help": {
+    "title": "Ayuda",
+    "sectionsLabel": "Secciones de ayuda",
+    "sections": {
+      "gettingStarted": "Primeros pasos",
+      "connecting": "Conectar con ADO",
+      "sidebar": "Barra lateral y grupos de variables",
+      "comparing": "Comparar y sincronizar",
+      "exportImport": "Exportar, importar y clonar",
+      "ai": "Asistente IA",
+      "shortcuts": "Atajos de teclado"
+    },
+    "loading": "Cargando…",
+    "noContent": "No hay contenido para esta sección."
   },
   "settings": {
     "title": "Ajustes",
@@ -189,6 +205,8 @@
     "ai": {
       "enable": "Activar asistente IA",
       "enableDescription": "Usa un modelo de lenguaje local para consultar tus grupos de variables en lenguaje natural. Requiere Ollama.",
+      "previewWarning": "Función en vista previa — puede fallar o malinterpretar; el comportamiento depende del modelo elegido.",
+      "localDisclaimer": "Todos los modelos se ejecutan en local en tu dispositivo. Tus datos nunca salen de tu máquina.",
       "ollamaNotRunning": "Ollama no está en ejecución",
       "ollamaInstallHint": "Instala Ollama y asegúrate de que esté en ejecución antes de activar esta función.",
       "tierLight": "Ligero",
@@ -219,7 +237,9 @@
     }
   },
   "ai": {
-    "title": "Asistente ADOLens",
+    "title": "LensBot",
+    "previewWarning": "Función en vista previa. Puede fallar o malinterpretar; el comportamiento depende del modelo elegido.",
+    "localDisclaimer": "Todos los modelos se ejecutan en local en tu dispositivo. Tus datos nunca salen de tu máquina.",
     "toolListingProjects": "Listando proyectos",
     "toolListingLibraries": "Listando bibliotecas",
     "toolFetchingLibrary": "Obteniendo biblioteca",
@@ -236,9 +256,9 @@
     "modelMissingHint": "Descarga el modelo \"{{model}}\" en Ajustes → Asistente IA.",
     "emptyHint": "Pregunta cualquier cosa sobre tus grupos de variables",
     "suggestions": [
-      "¿Cuál es el valor de API_URL en producción?",
-      "Lista todas las bibliotecas del proyecto Platform",
-      "¿Qué variables difieren entre staging y prod?"
+      "Lista todos mis proyectos",
+      "Cuántas bibliotecas tiene mi proyecto X",
+      "Lista las variables de la biblioteca X en el proyecto Y"
     ],
     "inputPlaceholder": "Pregunta sobre tus grupos de variables…",
     "inputHint": "Intro para enviar · Mayús+Intro para nueva línea"

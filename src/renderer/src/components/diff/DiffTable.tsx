@@ -551,13 +551,13 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                 {
                   label: t('diff.copyToLeft'),
                   icon: <ArrowLeft className="h-3.5 w-3.5" />,
-                  disabled: side === 'left' || !variable || isDeleted,
+                  disabled: side === 'left' || !variable || isDeleted || !otherGroup,
                   onSelect: () => copyRowToOtherSide(row.key, variable?.value, variable?.isSecret)
                 },
                 {
                   label: t('diff.copyToRight'),
                   icon: <ArrowRight className="h-3.5 w-3.5" />,
-                  disabled: side === 'right' || !variable || isDeleted,
+                  disabled: side === 'right' || !variable || isDeleted || !otherGroup,
                   onSelect: () => copyRowToOtherSide(row.key, variable?.value, variable?.isSecret)
                 },
                 {

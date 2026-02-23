@@ -213,18 +213,15 @@ export function LoginScreen(): React.JSX.Element {
         >
           {/* Logo / Header */}
           <div className="mb-10 text-center">
-            <img
-              src={appIcon}
-              alt=""
-              className="mb-4 inline-block h-32 w-32 select-none"
-              draggable={false}
-            />
+            <div className="login-logo-wrap mb-4 inline-block transition-[transform_400ms_ease-in-out,filter_400ms_ease-in-out] hover:scale-110 hover:[filter:drop-shadow(2px_-2px_6px_rgba(254,143,51,0.38))_drop-shadow(2px_2px_6px_rgba(58,181,196,0.38))_drop-shadow(-2px_0_6px_rgba(128,30,165,0.38))]">
+              <img src={appIcon} alt="" className="h-32 w-32 select-none" draggable={false} />
+            </div>
             <h1 className="text-3xl font-bold tracking-tight text-white">{t('app.name')}</h1>
             <p className="mt-2 text-sm text-slate-400">{t('login.subtitle')}</p>
           </div>
 
           {/* Form */}
-          <div className="space-y-5 rounded-2xl bg-slate-900/40 p-8 text-center shadow-xl ring-1 ring-white/10 backdrop-blur-sm">
+          <div className="space-y-7 rounded-2xl bg-slate-900/40 p-8 text-center shadow-xl ring-1 ring-white/10 backdrop-blur-sm">
             <div ref={comboRef}>
               <label className="mb-1.5 block text-sm font-medium text-slate-300">
                 {t('login.orgUrl')}

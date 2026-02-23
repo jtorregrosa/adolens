@@ -1,7 +1,7 @@
 import {
   ArrowLeftRight,
-  Bot,
   GripVertical,
+  HelpCircle,
   Info,
   MoreHorizontal,
   Settings,
@@ -28,6 +28,7 @@ import { useUIStore } from '../../store/uiStore'
 import type { AdoVariable } from '../../types'
 import { AiModal } from '../ai/AiModal'
 import { AboutModal } from '../modals/AboutModal'
+import { HelpModal } from '../modals/HelpModal'
 import { PushReviewModal } from '../modals/PushReviewModal'
 import { SettingsModal } from '../modals/SettingsModal'
 import { AppDropdownMenu } from '../ui/AppDropdownMenu'
@@ -191,6 +192,7 @@ export function ComparisonArea(): React.JSX.Element {
   const [reviewSide, setReviewSide] = useState<'left' | 'right' | null>(null)
   const [showSettings, setShowSettings] = useState(false)
   const [showAbout, setShowAbout] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
   const [showAi, setShowAi] = useState(false)
   // When confirmBeforeDiscard is on, holds the pending discard side until confirmed.
   const [discardConfirmSide, setDiscardConfirmSide] = useState<'left' | 'right' | null>(null)
@@ -408,11 +410,13 @@ export function ComparisonArea(): React.JSX.Element {
         <Tooltip content={t('toolbar.askTooltip')} side="bottom">
           <button
             onClick={() => setShowAi(true)}
-            className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-800 hover:text-blue-400"
+            className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-800"
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >
-            <Bot className="h-3.5 w-3.5" />
-            {t('toolbar.ask')}
+            <span className="toolbar-ai-icon" aria-hidden />
+            <span className="bg-gradient-to-r from-red-500 via-amber-400 via-emerald-400 via-blue-500 to-violet-500 bg-clip-text font-medium text-transparent">
+              {t('toolbar.ask')}
+            </span>
           </button>
         </Tooltip>
 
@@ -429,6 +433,11 @@ export function ComparisonArea(): React.JSX.Element {
                 label: t('appMenu.settings'),
                 icon: <Settings className="h-3.5 w-3.5" />,
                 onSelect: () => setShowSettings(true)
+              },
+              {
+                label: t('appMenu.help'),
+                icon: <HelpCircle className="h-3.5 w-3.5" />,
+                onSelect: () => setShowHelp(true)
               },
               {
                 label: t('appMenu.about'),
@@ -515,7 +524,7 @@ export function ComparisonArea(): React.JSX.Element {
                   onImport={(vars) => importVariables('left', vars)}
                 />
               )}
-              {hasBoth && (
+              {hasLeft && (
                 <div className="flex h-10 w-full shrink-0 items-center border-t border-blue-500/20 bg-blue-500/5 px-4 py-2">
                   <DiffStats
                     stats={diff.stats}
@@ -600,7 +609,7 @@ export function ComparisonArea(): React.JSX.Element {
                   onImport={(vars) => importVariables('right', vars)}
                 />
               )}
-              {hasBoth && (
+              {hasRight && (
                 <div className="flex h-10 w-full shrink-0 items-center border-t border-fuchsia-500/20 bg-fuchsia-500/5 px-4 py-2">
                   <DiffStats
                     stats={diff.stats}
@@ -635,6 +644,9 @@ export function ComparisonArea(): React.JSX.Element {
 
       {/* ── Settings Modal ─────────────────────────────────────────────────── */}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+
+      {/* ── Help Modal ──────────────────────────────────────────────────────── */}
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
 
       {/* ── About Modal ────────────────────────────────────────────────────── */}
       {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}

@@ -26,7 +26,7 @@
     },
     "connect": "Conectar",
     "connecting": "Conectando...",
-    "rememberToken": "Lembrar o token entre sesións",
+    "rememberToken": "Lembrar sesión",
     "patStored": "O teu PAT gárdase de forma segura no chaveiro do sistema operativo",
     "patStoredSession": "O teu PAT só se almacena durante esta sesión",
     "recentOrgs": "Organizacións recentes",
@@ -138,7 +138,23 @@
   },
   "appMenu": {
     "settings": "Configuración",
-    "about": "Sobre"
+    "about": "Sobre",
+    "help": "Axuda"
+  },
+  "help": {
+    "title": "Axuda",
+    "sectionsLabel": "Seccións de axuda",
+    "sections": {
+      "gettingStarted": "Comezar",
+      "connecting": "Conectar a ADO",
+      "sidebar": "Barra lateral e grupos de variables",
+      "comparing": "Comparar e sincronizar",
+      "exportImport": "Exportar, importar e clonar",
+      "ai": "Asistente IA",
+      "shortcuts": "Atallos de teclado"
+    },
+    "loading": "Cargando…",
+    "noContent": "Non hai contido para esta sección."
   },
   "settings": {
     "title": "Configuración",

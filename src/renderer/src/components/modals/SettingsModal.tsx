@@ -509,6 +509,10 @@ function AiSection(): React.JSX.Element {
       {aiEnabled && (
         <>
           <div className="mx-3 border-t border-slate-800/80" />
+          <div className="mx-3 mt-2 rounded-lg border border-slate-700/60 bg-slate-800/40 px-3 py-2">
+            <p className="text-[11px] text-amber-400/90">{t('settings.ai.previewWarning')}</p>
+            <p className="mt-0.5 text-[11px] text-slate-500">{t('settings.ai.localDisclaimer')}</p>
+          </div>
 
           {/* Ollama status */}
           {ollamaOk === false && (

@@ -395,8 +395,8 @@ export function AiModal({ onClose, onOpenSettings }: Props): React.JSX.Element {
           {/* Header */}
           <div className="flex shrink-0 items-center justify-between border-b border-slate-800 px-5 py-3.5">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-600/20">
-                <Bot className="h-3.5 w-3.5 text-blue-400" />
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-800/60">
+                <span className="ai-modal-title-icon" aria-hidden />
               </div>
               <span className="text-sm font-semibold text-slate-200">{t('ai.title')}</span>
               {readiness === 'ready' && (
@@ -438,6 +438,11 @@ export function AiModal({ onClose, onOpenSettings }: Props): React.JSX.Element {
             />
           ) : (
             <>
+              {/* Preview & local disclaimer */}
+              <div className="shrink-0 border-b border-slate-800/80 bg-slate-800/40 px-4 py-2 text-center">
+                <p className="text-[11px] text-amber-400/90">{t('ai.previewWarning')}</p>
+                <p className="mt-0.5 text-[11px] text-slate-500">{t('ai.localDisclaimer')}</p>
+              </div>
               {/* Messages */}
               <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
                 {messages.length === 0 && (

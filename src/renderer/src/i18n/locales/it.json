@@ -26,7 +26,7 @@
     },
     "connect": "Connetti",
     "connecting": "Connessione in corso...",
-    "rememberToken": "Ricorda il token tra le sessioni",
+    "rememberToken": "Ricorda sessione",
     "patStored": "Il tuo PAT è archiviato in modo sicuro nel portachiavi del sistema operativo",
     "patStoredSession": "Il tuo PAT è archiviato solo per questa sessione",
     "recentOrgs": "Organizzazioni recenti",
@@ -138,7 +138,23 @@
   },
   "appMenu": {
     "settings": "Impostazioni",
-    "about": "Informazioni"
+    "about": "Informazioni",
+    "help": "Guida"
+  },
+  "help": {
+    "title": "Guida",
+    "sectionsLabel": "Sezioni della guida",
+    "sections": {
+      "gettingStarted": "Per iniziare",
+      "connecting": "Connessione ad ADO",
+      "sidebar": "Barra laterale e gruppi di variabili",
+      "comparing": "Confronto e sincronizzazione",
+      "exportImport": "Esporta, importa e clona",
+      "ai": "Assistente IA",
+      "shortcuts": "Scorciatoie da tastiera"
+    },
+    "loading": "Caricamento…",
+    "noContent": "Nessun contenuto disponibile per questa sezione."
   },
   "settings": {
     "title": "Impostazioni",

@@ -26,7 +26,7 @@
     },
     "connect": "Connect",
     "connecting": "Connecting...",
-    "rememberToken": "Remember token between sessions",
+    "rememberToken": "Remember session",
     "patStored": "Your PAT is stored securely in the OS keychain",
     "patStoredSession": "Your PAT is only stored for this session",
     "recentOrgs": "Recent organizations",
@@ -133,7 +133,7 @@
     "refreshTooltip": "Refresh both panes",
     "unload": "Unload",
     "unloadTooltip": "Unload both panes",
-    "ask": "Ask",
+    "ask": "LensBot",
     "askTooltip": "Ask AI about your variable groups",
     "avatarAlt": "User avatar",
     "organization": "Organization",
@@ -141,7 +141,23 @@
   },
   "appMenu": {
     "settings": "Settings",
-    "about": "About"
+    "about": "About",
+    "help": "Help"
+  },
+  "help": {
+    "title": "Help",
+    "sectionsLabel": "Help sections",
+    "sections": {
+      "gettingStarted": "Getting started",
+      "connecting": "Connecting to ADO",
+      "sidebar": "Sidebar & variable groups",
+      "comparing": "Comparing & syncing",
+      "exportImport": "Export, import & clone",
+      "ai": "AI assistant",
+      "shortcuts": "Keyboard shortcuts"
+    },
+    "loading": "Loading…",
+    "noContent": "No content available for this section."
   },
   "settings": {
     "title": "Settings",
@@ -189,6 +205,8 @@
     "ai": {
       "enable": "Enable AI Assistant",
       "enableDescription": "Use an offline language model to query your variable groups via natural language. Requires Ollama.",
+      "previewWarning": "Preview feature — may fail or misunderstand; behavior depends on the chosen model.",
+      "localDisclaimer": "All models run locally on your device. Your data never leaves your machine.",
       "ollamaNotRunning": "Ollama is not running",
       "ollamaInstallHint": "Install Ollama and make sure it is running before enabling this feature.",
       "tierLight": "Light",
@@ -219,7 +237,9 @@
     }
   },
   "ai": {
-    "title": "ADOLens Assistant",
+    "title": "LensBot",
+    "previewWarning": "This is a preview feature. It may fail or misunderstand; behavior depends entirely on the chosen model.",
+    "localDisclaimer": "All models run locally on your device. Your data never leaves your machine.",
     "toolListingProjects": "Listing projects",
     "toolListingLibraries": "Listing libraries",
     "toolFetchingLibrary": "Fetching library",
@@ -236,9 +256,9 @@
     "modelMissingHint": "Download the \"{{model}}\" model in Settings → AI Assistant.",
     "emptyHint": "Ask anything about your variable groups",
     "suggestions": [
-      "What is the value of API_URL in production?",
-      "List all libraries in the Platform project",
-      "Which variables differ between staging and prod?"
+      "List all my projects",
+      "How many libraries has my X project",
+      "List variables in library X in the project Y"
     ],
     "inputPlaceholder": "Ask about your variable groups…",
     "inputHint": "Enter to send · Shift+Enter for new line"
