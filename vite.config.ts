@@ -44,13 +44,15 @@ export default defineConfig({
             '@tauri-apps/plugin-store'
           ],
           'vendor-query': ['@tanstack/react-query', 'zustand'],
-          'vendor-ui': [
-            'lucide-react',
-            'react-resizable-panels',
-            'sonner',
+          'vendor-radix': [
             '@radix-ui/react-context-menu',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-popover',
             '@radix-ui/react-tooltip'
-          ]
+          ],
+          'vendor-markdown': ['react-markdown', 'rehype-raw', 'remark-gfm'],
+          'vendor-i18n': ['i18next', 'react-i18next', 'i18next-resources-to-backend'],
+          'vendor-ui': ['lucide-react', 'react-resizable-panels', 'sonner']
         }
       }
     }

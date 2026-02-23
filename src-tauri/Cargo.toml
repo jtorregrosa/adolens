@@ -1,6 +1,6 @@
 [package]
 name = "ADOLens"
-version = "1.0.0-rc.1"
+version = "1.0.0"
 description = "Azure DevOps Variable Group Comparison Tool"
 authors = ["OBS Team Archery"]
 edition = "2021"
@@ -28,7 +28,9 @@ reqwest = { version = "0.12", default-features = false, features = ["native-tls"
 futures-util = "0.3"
 base64 = "0.22"
 
-keyring = { version = "3", features = [] }
+# Use platform credential stores so "remember me" persists across restarts.
+# Without these, keyring uses a mock store and credentials are lost when the app closes.
+keyring = { version = "3", features = ["windows-native", "apple-native", "sync-secret-service"] }
 tokio = { version = "1", features = ["rt"] }
 
 [profile.release]

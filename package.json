@@ -1,6 +1,6 @@
 {
   "name": "adolens",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0",
   "description": "Azure DevOps Variable Group Comparison Tool",
   "type": "module",
   "engines": {
