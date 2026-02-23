@@ -9,6 +9,7 @@ import {
   ExternalLink,
   FolderOpen,
   FolderPlus,
+  Info,
   Layers,
   Loader2,
   LogOut,
@@ -21,6 +22,7 @@ import {
   StarOff
 } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useProjects, useVariableGroup, useVariableGroups } from '../../hooks/useADOApi'
@@ -34,15 +36,38 @@ const AddLibraryModal = lazy(() =>
 const CloneLibraryModal = lazy(() =>
   import('../modals/CloneLibraryModal').then((m) => ({ default: m.CloneLibraryModal }))
 )
+const LibraryDetailsModal = lazy(() =>
+  import('../modals/LibraryDetailsModal').then((m) => ({ default: m.LibraryDetailsModal }))
+)
 const ExportModal = lazy(() =>
   import('../modals/ExportModal').then((m) => ({ default: m.ExportModal }))
 )
 
+import type { AdoVariableGroup } from '../../types'
 import type { ContextMenuItem } from '../ui/AppContextMenu'
 import { AppContextMenu } from '../ui/AppContextMenu'
 import { Tooltip } from '../ui/Tooltip'
 
 // --- Library row ------------------------------------------------------------
+
+/** Tooltip: library name and, if present, description only. */
+function LibraryTooltipContent({
+  groupName,
+  group
+}: {
+  groupName: string
+  group?: AdoVariableGroup
+}): React.JSX.Element {
+  if (!group) return <>{groupName}</>
+  return (
+    <div className="max-w-[240px] text-left">
+      <div className="font-medium text-slate-200">{group.name}</div>
+      {group.description != null && group.description !== '' && (
+        <div className="mt-1 text-xs text-slate-400">{group.description}</div>
+      )}
+    </div>
+  )
+}
 
 interface LibraryRowProps {
   groupId: number
@@ -55,8 +80,11 @@ interface LibraryRowProps {
   onSelect: (side: 'left' | 'right') => void
   onExport: () => void
   onClone: () => void
+  onShowDetails: () => void
   isLeft: boolean
   isRight: boolean
+  /** Full group data for tooltip (name + description) and details modal */
+  group?: AdoVariableGroup
 }
 
 function LibraryRow({
@@ -69,8 +97,10 @@ function LibraryRow({
   onSelect,
   onExport,
   onClone,
+  onShowDetails,
   isLeft,
-  isRight
+  isRight,
+  group
 }: LibraryRowProps): React.JSX.Element {
   const { t } = useTranslation()
   const libraryExternalUrl =
@@ -97,6 +127,11 @@ function LibraryRow({
       ),
       dividerBefore: true,
       onSelect: onToggleFavorite
+    },
+    {
+      label: t('sidebar.showDetails'),
+      icon: <Info className="h-3.5 w-3.5" />,
+      onSelect: onShowDetails
     },
     {
       label: t('sidebar.exportVariables'),
@@ -136,7 +171,11 @@ function LibraryRow({
         className={`group flex items-center gap-1 rounded-md px-2 py-1 text-xs text-slate-400 transition ${bgClass}`}
       >
         <Layers className="h-3 w-3 shrink-0 text-slate-500" />
-        <Tooltip content={groupName} side="top">
+        <Tooltip
+          content={<LibraryTooltipContent groupName={groupName} group={group} />}
+          side="top"
+          delayDuration={400}
+        >
           <div className="min-w-0 flex-1 truncate">
             <span className="block truncate">{groupName}</span>
           </div>
@@ -215,6 +254,7 @@ function ProjectNode({
   const [cloneGroupId, setCloneGroupId] = useState<number | null>(null)
   const [cloneGroupName, setCloneGroupName] = useState<string | null>(null)
   const [showAddLibrary, setShowAddLibrary] = useState(false)
+  const [detailsGroup, setDetailsGroup] = useState<AdoVariableGroup | null>(null)
 
   const { data: groups, isLoading } = useVariableGroups(expanded ? projectId : null)
   const { data: exportGroup } = useVariableGroup(
@@ -356,6 +396,17 @@ function ProjectNode({
         </Suspense>
       )}
 
+      {/* Library details modal */}
+      {detailsGroup != null && (
+        <Suspense fallback={null}>
+          <LibraryDetailsModal
+            group={detailsGroup}
+            projectName={projectName}
+            onClose={() => setDetailsGroup(null)}
+          />
+        </Suspense>
+      )}
+
       {/* Clone modal */}
       {cloneGroupId !== null && cloneGroupName !== null && (
         <Suspense fallback={null}>
@@ -426,8 +477,10 @@ function ProjectNode({
                             onSelect={(side) => selectGroup(g.id!, g.name!, side)}
                             onExport={() => handleExport(g.id!, g.name!)}
                             onClone={() => handleClone(g.id!, g.name!)}
+                            onShowDetails={() => setDetailsGroup(g)}
                             isLeft={isLeft}
                             isRight={isRight}
+                            group={g}
                           />
                         </motion.div>
                       )
@@ -461,8 +514,10 @@ function ProjectNode({
                         onSelect={(side) => selectGroup(g.id!, g.name!, side)}
                         onExport={() => handleExport(g.id!, g.name!)}
                         onClone={() => handleClone(g.id!, g.name!)}
+                        onShowDetails={() => setDetailsGroup(g)}
                         isLeft={isLeft}
                         isRight={isRight}
+                        group={g}
                       />
                     </motion.div>
                   )
@@ -505,7 +560,7 @@ export function Sidebar(): React.JSX.Element {
     toggleFavoriteProject,
     isFavoriteProject
   } = useUIStore()
-  const { logout } = useAuthStore((s) => s.logout)
+  const logout = useAuthStore((s) => s.logout)
   const [projectSearch, setProjectSearch] = useState('')
   const [scrollShadeTop, setScrollShadeTop] = useState(false)
   const [scrollShadeBottom, setScrollShadeBottom] = useState(false)
@@ -532,10 +587,12 @@ export function Sidebar(): React.JSX.Element {
     }
   }, [updateScrollShades])
 
-  const handleLogout = async (): Promise<void> => {
-    await clearCredentials()
-    logout()
+  const handleLogout = (): void => {
+    flushSync(() => {
+      logout()
+    })
     toast.info(t('sidebar.toast.loggedOut'))
+    clearCredentials().catch(() => {})
   }
 
   const all = projects ?? []

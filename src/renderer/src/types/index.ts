@@ -11,12 +11,28 @@ export interface AdoVariable {
   isSecret?: boolean
 }
 
+export interface AdoVariableGroupProjectRef {
+  projectId?: string
+  projectName?: string
+  name?: string
+  description?: string
+}
+
 export interface AdoVariableGroup {
   id: number
   name: string
   description?: string
   variableCount: number
   variables: Record<string, AdoVariable>
+  type?: string
+  createdOn?: string
+  modifiedOn?: string
+  createdBy?: string
+  createdByImageUrl?: string
+  modifiedBy?: string
+  modifiedByImageUrl?: string
+  isShared?: boolean
+  variableGroupProjectReferences?: AdoVariableGroupProjectRef[]
 }
 
 // ─── Diff Engine ────────────────────────────────────────────────────────────

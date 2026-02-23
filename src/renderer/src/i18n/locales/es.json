@@ -64,6 +64,7 @@
     "removeFavorite": "Eliminar de favoritos",
     "exportVariables": "Exportar variables…",
     "addNewLibrary": "Añadir nueva biblioteca",
+    "showDetails": "Ver detalles",
     "cloneLibrary": "Clonar biblioteca…",
     "loadLeftPane": "Cargar en panel izquierdo",
     "loadRightPane": "Cargar en panel derecho",
@@ -74,6 +75,19 @@
     "right": "Derecho",
     "toast": {
       "loggedOut": "Sesión cerrada"
+    },
+    "libraryTooltip": {
+      "description": "Descripción",
+      "variables": "Variables",
+      "variableCount": "{{count}} variable(s)",
+      "created": "Creado",
+      "modified": "Modificado",
+      "by": "por",
+      "shared": "Compartido",
+      "sharedYes": "Sí (otros proyectos)",
+      "sharedNo": "Solo este proyecto",
+      "linkedProjects": "Proyectos vinculados",
+      "secret": "secreto"
     }
   },
   "diff": {
@@ -362,6 +376,23 @@
       "creating": "Creando…",
       "toastSuccess": "Biblioteca creada correctamente",
       "toastError": "Error al crear la biblioteca: {{message}}"
+    },
+    "libraryDetails": {
+      "title": "Detalles de la biblioteca",
+      "description": "Descripción",
+      "variables": "Variables",
+      "variableCount": "{{count}} variable(s)",
+      "noVariables": "Sin variables",
+      "secret": "Secreto",
+      "audit": "Auditoría",
+      "created": "Creado",
+      "modified": "Modificado",
+      "by": "por",
+      "shared": "Compartido",
+      "sharedYes": "Compartido con otros proyectos",
+      "sharedNo": "Solo este proyecto",
+      "linkedProjects": "Proyectos vinculados",
+      "close": "Cerrar"
     },
     "clone": {
       "title": "Clonar biblioteca",

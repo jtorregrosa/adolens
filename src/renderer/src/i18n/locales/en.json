@@ -64,6 +64,7 @@
     "removeFavorite": "Remove from Favorites",
     "exportVariables": "Export Variables…",
     "addNewLibrary": "Add new Library entry",
+    "showDetails": "Show details",
     "cloneLibrary": "Clone Library…",
     "loadLeftPane": "Load into Left pane",
     "loadRightPane": "Load into Right pane",
@@ -74,6 +75,19 @@
     "right": "Right",
     "toast": {
       "loggedOut": "Logged out"
+    },
+    "libraryTooltip": {
+      "description": "Description",
+      "variables": "Variables",
+      "variableCount": "{{count}} variable(s)",
+      "created": "Created",
+      "modified": "Modified",
+      "by": "by",
+      "shared": "Shared",
+      "sharedYes": "Yes (other projects)",
+      "sharedNo": "This project only",
+      "linkedProjects": "Linked projects",
+      "secret": "secret"
     }
   },
   "diff": {
@@ -362,6 +376,23 @@
       "creating": "Creating…",
       "toastSuccess": "Library created successfully",
       "toastError": "Failed to create library: {{message}}"
+    },
+    "libraryDetails": {
+      "title": "Library details",
+      "description": "Description",
+      "variables": "Variables",
+      "variableCount": "{{count}} variable(s)",
+      "noVariables": "No variables",
+      "secret": "Secret",
+      "audit": "Audit",
+      "created": "Created",
+      "modified": "Modified",
+      "by": "by",
+      "shared": "Shared",
+      "sharedYes": "Shared with other projects",
+      "sharedNo": "This project only",
+      "linkedProjects": "Linked projects",
+      "close": "Close"
     },
     "clone": {
       "title": "Clone Library",

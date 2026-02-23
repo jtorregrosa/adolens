@@ -26,6 +26,16 @@ pub struct AdoVariable {
     pub is_secret: Option<bool>,
 }
 
+/// Shallow reference for a project linked to a variable group (shared library).
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AdoVariableGroupProjectRef {
+    pub project_id: Option<String>,
+    pub project_name: Option<String>,
+    pub name: Option<String>,
+    pub description: Option<String>,
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AdoVariableGroup {
@@ -34,6 +44,24 @@ pub struct AdoVariableGroup {
     pub description: Option<String>,
     pub variable_count: usize,
     pub variables: HashMap<String, AdoVariable>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub type_: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_on: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub modified_on: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_by: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_by_image_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub modified_by: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub modified_by_image_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_shared: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub variable_group_project_references: Option<Vec<AdoVariableGroupProjectRef>>,
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -279,6 +307,12 @@ pub async fn add_variable_group(
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
+fn identity_display_name(
+    ref_: Option<&azure_devops_rust_api::distributed_task::models::IdentityRef>,
+) -> Option<String> {
+    ref_.and_then(|r| r.graph_subject_base.display_name.clone())
+}
+
 fn sdk_group_to_output(
     g: &azure_devops_rust_api::distributed_task::models::VariableGroup,
 ) -> Result<AdoVariableGroup, String> {
@@ -291,12 +325,53 @@ fn sdk_group_to_output(
     let variables = parse_variables(g.variables.as_ref());
     let variable_count = variables.len();
 
+    let created_on = g
+        .created_on
+        .as_ref()
+        .map(|t| t.to_string());
+    let modified_on = g
+        .modified_on
+        .as_ref()
+        .map(|t| t.to_string());
+
+    let variable_group_project_references: Option<Vec<AdoVariableGroupProjectRef>> =
+        if g.variable_group_project_references.is_empty() {
+            None
+        } else {
+            Some(
+                g.variable_group_project_references
+                    .iter()
+                    .map(|r| AdoVariableGroupProjectRef {
+                        project_id: r
+                            .project_reference
+                            .as_ref()
+                            .and_then(|p| p.id.clone()),
+                        project_name: r
+                            .project_reference
+                            .as_ref()
+                            .and_then(|p| p.name.clone()),
+                        name: r.name.clone(),
+                        description: r.description.clone(),
+                    })
+                    .collect(),
+            )
+        };
+
     Ok(AdoVariableGroup {
         id,
         name,
         description: g.description.clone(),
         variable_count,
         variables,
+        type_: g.type_.clone(),
+        created_on,
+        modified_on,
+        created_by: identity_display_name(g.created_by.as_ref()),
+        created_by_image_url: g.created_by.as_ref().and_then(|c| c.image_url.clone()),
+        modified_by: identity_display_name(g.modified_by.as_ref()),
+        modified_by_image_url: g.modified_by.as_ref().and_then(|c| c.image_url.clone()),
+        is_shared: g.is_shared,
+        variable_group_project_references,
     })
 }
 

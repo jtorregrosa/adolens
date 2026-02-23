@@ -64,6 +64,7 @@
     "removeFavorite": "Rimuovi dai preferiti",
     "exportVariables": "Esporta variabili…",
     "addNewLibrary": "Aggiungi nuova libreria",
+    "showDetails": "Mostra dettagli",
     "cloneLibrary": "Clona libreria…",
     "loadLeftPane": "Carica nel pannello sinistro",
     "loadRightPane": "Carica nel pannello destro",
@@ -74,6 +75,19 @@
     "right": "Destro",
     "toast": {
       "loggedOut": "Disconnesso"
+    },
+    "libraryTooltip": {
+      "description": "Descrizione",
+      "variables": "Variabili",
+      "variableCount": "{{count}} variabile/i",
+      "created": "Creato",
+      "modified": "Modificato",
+      "by": "da",
+      "shared": "Condiviso",
+      "sharedYes": "Sì (altri progetti)",
+      "sharedNo": "Solo questo progetto",
+      "linkedProjects": "Progetti collegati",
+      "secret": "segreto"
     }
   },
   "diff": {
@@ -362,6 +376,23 @@
       "creating": "Creazione in corso…",
       "toastSuccess": "Libreria creata con successo",
       "toastError": "Impossibile creare la libreria: {{message}}"
+    },
+    "libraryDetails": {
+      "title": "Dettagli libreria",
+      "description": "Descrizione",
+      "variables": "Variabili",
+      "variableCount": "{{count}} variabile/i",
+      "noVariables": "Nessuna variabile",
+      "secret": "Segreto",
+      "audit": "Audit",
+      "created": "Creato",
+      "modified": "Modificato",
+      "by": "da",
+      "shared": "Condiviso",
+      "sharedYes": "Condiviso con altri progetti",
+      "sharedNo": "Solo questo progetto",
+      "linkedProjects": "Progetti collegati",
+      "close": "Chiudi"
     },
     "clone": {
       "title": "Clona libreria",

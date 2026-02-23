@@ -10,9 +10,19 @@ import { useUIStore } from './store/uiStore'
 const SPLASH_MIN_MS = 1000
 
 function App(): React.JSX.Element {
-  const { isAuthenticated, orgUrl, setAuthenticated, setProfile } = useAuthStore()
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => useAuthStore.getState().isAuthenticated
+  )
+  const orgUrl = useAuthStore((s) => s.orgUrl)
+  const setAuthenticated = useAuthStore((s) => s.setAuthenticated)
+  const setProfile = useAuthStore((s) => s.setProfile)
   const { loadFavorites: hydrateUiStore } = useUIStore()
   const [showSplash, setShowSplash] = useState(true)
+
+  // Keep React state in sync with auth store so logout always triggers a re-render
+  useEffect(() => {
+    return useAuthStore.subscribe((state) => setIsAuthenticated(state.isAuthenticated))
+  }, [])
 
   // Load credentials and favorites, then hide splash after a minimum display time
   useEffect(() => {
