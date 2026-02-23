@@ -63,6 +63,7 @@
     "markFavorite": "Aggiungi ai preferiti",
     "removeFavorite": "Rimuovi dai preferiti",
     "exportVariables": "Esporta variabili…",
+    "addNewLibrary": "Aggiungi nuova libreria",
     "cloneLibrary": "Clona libreria…",
     "loadLeftPane": "Carica nel pannello sinistro",
     "loadRightPane": "Carica nel pannello destro",
@@ -349,6 +350,19 @@
         "noVariables": "Nessuna variabile trovata nel file"
       }
     },
+    "addLibrary": {
+      "title": "Aggiungi nuova libreria",
+      "description": "Crea un nuovo gruppo di variabili vuoto nel progetto \"{{project}}\".",
+      "nameLabel": "Nome",
+      "namePlaceholder": "Nome della libreria…",
+      "descriptionLabel": "Descrizione",
+      "descriptionPlaceholder": "Descrizione opzionale…",
+      "cancel": "Annulla",
+      "create": "Crea libreria",
+      "creating": "Creazione in corso…",
+      "toastSuccess": "Libreria creata con successo",
+      "toastError": "Impossibile creare la libreria: {{message}}"
+    },
     "clone": {
       "title": "Clona libreria",
       "description": "Verrà creata una nuova libreria con le stesse variabili con il nome indicato. I valori segreti verranno mantenuti.",
@@ -356,7 +370,9 @@
       "namePlaceholder": "Inserisci un nome…",
       "cancel": "Annulla",
       "clone": "Clona libreria",
-      "cloning": "Clonazione in corso…"
+      "cloning": "Clonazione in corso…",
+      "errorFailed": "Impossibile clonare la libreria: {{message}}",
+      "errorAlreadyExists": "Esiste già una libreria con questo nome nel progetto. Scegli un altro nome."
     }
   },
   "about": {

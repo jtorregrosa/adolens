@@ -425,7 +425,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
         </div>
       )}
 
-      {/* Table */}
+      {/* Table — scroll container ref for sync-scroll */}
       <div
         ref={ref}
         className="flex-1 overflow-x-hidden overflow-y-auto"
@@ -460,7 +460,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
           </thead>
           <tbody>
             {/* Cloud rows + added vars in-place by key (same row order on both panes) */}
-            {filteredRows.map((row, idx) => {
+            {filteredRows.map((row) => {
               const addedVar = addedVarByKey.get(row.key)
               if (addedVar) {
                 return (
@@ -677,7 +677,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                           : ''
 
               return (
-                <AppContextMenu key={`${row.key}-${idx}`} items={rowMenuItems}>
+                <AppContextMenu key={row.key} items={rowMenuItems}>
                   <tr
                     ref={
                       scrollToAddedKey === row.key || flashRow?.key === row.key

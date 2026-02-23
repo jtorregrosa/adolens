@@ -2,7 +2,7 @@ mod commands;
 
 use azure_devops_rust_api::{core, distributed_task, Credential};
 use commands::{
-    ado::{clone_variable_group, get_projects, get_variable_group, get_variable_groups, update_variable_group},
+    ado::{add_variable_group, clone_variable_group, get_projects, get_variable_group, get_variable_groups, update_variable_group},
     ai::{ai_chat, ai_check_gpu, ai_check_model, ai_check_ollama, ai_pull_model},
     auth::{clear_credentials, get_user_profile, load_credentials, save_credentials, set_request_timeout},
     preferences::{load_favorites, save_favorites},
@@ -38,6 +38,10 @@ pub struct ClientState(pub Mutex<Option<Arc<CachedAdoClients>>>);
 // ─── Timeout state (seconds to wait on HTTP calls) ───────────────────────────
 
 pub struct AppTimeoutState(pub Mutex<u64>);
+
+// ─── Shared HTTP client for Ollama (connection pooling, keep-alive) ───────────
+
+pub struct OllamaClientState(pub reqwest::Client);
 
 impl ClientState {
     pub fn get(&self) -> Result<Arc<CachedAdoClients>, String> {
@@ -87,6 +91,9 @@ pub fn run() {
         .manage(CredentialsState(Mutex::new(None)))
         .manage(ClientState(Mutex::new(None)))
         .manage(AppTimeoutState(Mutex::new(15)))
+        .manage(OllamaClientState(
+            reqwest::Client::builder().build().expect("Ollama HTTP client"),
+        ))
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
@@ -99,6 +106,7 @@ pub fn run() {
             get_variable_group,
             update_variable_group,
             clone_variable_group,
+            add_variable_group,
             load_favorites,
             save_favorites,
             set_request_timeout,

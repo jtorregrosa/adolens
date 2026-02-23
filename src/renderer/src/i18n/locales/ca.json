@@ -63,6 +63,7 @@
     "markFavorite": "Marcar com a favorit",
     "removeFavorite": "Eliminar dels favorits",
     "exportVariables": "Exportar variables…",
+    "addNewLibrary": "Afegir nova biblioteca",
     "cloneLibrary": "Clonar biblioteca…",
     "loadLeftPane": "Carregar al panell esquerre",
     "loadRightPane": "Carregar al panell dret",
@@ -349,6 +350,19 @@
         "noVariables": "No s'ha pogut analitzar cap variable d'aquest fitxer"
       }
     },
+    "addLibrary": {
+      "title": "Afegir nova biblioteca",
+      "description": "Crear un nou grup de variables buit al projecte \"{{project}}\".",
+      "nameLabel": "Nom",
+      "namePlaceholder": "Nom de la biblioteca…",
+      "descriptionLabel": "Descripció",
+      "descriptionPlaceholder": "Descripció opcional…",
+      "cancel": "Cancel·lar",
+      "create": "Crear biblioteca",
+      "creating": "Creant…",
+      "toastSuccess": "Biblioteca creada correctament",
+      "toastError": "Error en crear la biblioteca: {{message}}"
+    },
     "clone": {
       "title": "Clonar biblioteca",
       "description": "Es crearà una nova biblioteca amb les mateixes variables amb el nom indicat. Els valors secrets es conservaran.",
@@ -356,7 +370,9 @@
       "namePlaceholder": "Introdueix un nom…",
       "cancel": "Cancel·lar",
       "clone": "Clonar biblioteca",
-      "cloning": "Clonant…"
+      "cloning": "Clonant…",
+      "errorFailed": "Error en clonar la biblioteca: {{message}}",
+      "errorAlreadyExists": "Ja existeix una biblioteca amb aquest nom al projecte. Tria un altre nom."
     }
   },
   "about": {

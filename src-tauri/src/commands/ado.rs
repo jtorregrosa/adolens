@@ -1,4 +1,6 @@
-use azure_devops_rust_api::distributed_task::models::VariableGroupParameters;
+use azure_devops_rust_api::distributed_task::models::{
+    ProjectReference, VariableGroupParameters, VariableGroupProjectReference,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -190,13 +192,79 @@ pub async fn clone_variable_group(
         .await
         .map_err(|e| e.to_string())?;
 
+    // Build new project references with the *new* group name. Copying the source's
+    // variable_group_project_references as-is would send the *original* group name
+    // in each reference, which can cause the API to return "already exists" even when
+    // the top-level name is new (the API may use the reference name for uniqueness).
+    let variable_group_project_references: Vec<VariableGroupProjectReference> = {
+        let mapped: Vec<_> = source
+            .variable_group_project_references
+            .iter()
+            .map(|r| VariableGroupProjectReference {
+                name: Some(new_name.clone()),
+                description: r.description.clone(),
+                project_reference: r.project_reference.clone(),
+            })
+            .collect();
+        if mapped.is_empty() {
+            vec![VariableGroupProjectReference {
+                name: Some(new_name.clone()),
+                description: source.description.clone(),
+                project_reference: Some(ProjectReference {
+                    id: Some(project_id.clone()),
+                    name: None,
+                }),
+            }]
+        } else {
+            mapped
+        }
+    };
+
     let params = VariableGroupParameters {
         name: Some(new_name),
         description: source.description.clone(),
         type_: source.type_.clone(),
         provider_data: None,
-        variable_group_project_references: source.variable_group_project_references.clone(),
+        variable_group_project_references,
         variables: source.variables.clone(),
+    };
+
+    let created = clients
+        .distributed_task
+        .variablegroups_client()
+        .add(&clients.org_name, params)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    sdk_group_to_output(&created)
+}
+
+/// Create a new empty variable group (library) in a project.
+#[tauri::command]
+pub async fn add_variable_group(
+    state: State<'_, ClientState>,
+    project_id: String,
+    name: String,
+    description: Option<String>,
+) -> Result<AdoVariableGroup, String> {
+    let clients = get_clients(&state)?;
+
+    let variable_group_project_references = vec![VariableGroupProjectReference {
+        name: Some(name.clone()),
+        description: description.clone(),
+        project_reference: Some(ProjectReference {
+            id: Some(project_id.clone()),
+            name: None,
+        }),
+    }];
+
+    let params = VariableGroupParameters {
+        name: Some(name),
+        description,
+        type_: None,
+        provider_data: None,
+        variable_group_project_references,
+        variables: Some(serde_json::json!({})),
     };
 
     let created = clients

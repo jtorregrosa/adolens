@@ -63,6 +63,7 @@
     "markFavorite": "Marcar como favorito",
     "removeFavorite": "Eliminar de favoritos",
     "exportVariables": "Exportar variables…",
+    "addNewLibrary": "Añadir nueva biblioteca",
     "cloneLibrary": "Clonar biblioteca…",
     "loadLeftPane": "Cargar en panel izquierdo",
     "loadRightPane": "Cargar en panel derecho",
@@ -349,6 +350,19 @@
         "noVariables": "No se pudo analizar ninguna variable de este archivo"
       }
     },
+    "addLibrary": {
+      "title": "Añadir nueva biblioteca",
+      "description": "Crear un nuevo grupo de variables vacío en el proyecto \"{{project}}\".",
+      "nameLabel": "Nombre",
+      "namePlaceholder": "Nombre de la biblioteca…",
+      "descriptionLabel": "Descripción",
+      "descriptionPlaceholder": "Descripción opcional…",
+      "cancel": "Cancelar",
+      "create": "Crear biblioteca",
+      "creating": "Creando…",
+      "toastSuccess": "Biblioteca creada correctamente",
+      "toastError": "Error al crear la biblioteca: {{message}}"
+    },
     "clone": {
       "title": "Clonar biblioteca",
       "description": "Se creará una nueva biblioteca con las mismas variables bajo el nombre indicado. Los valores secretos se conservarán.",
@@ -356,7 +370,9 @@
       "namePlaceholder": "Introduce un nombre…",
       "cancel": "Cancelar",
       "clone": "Clonar biblioteca",
-      "cloning": "Clonando…"
+      "cloning": "Clonando…",
+      "errorFailed": "Error al clonar la biblioteca: {{message}}",
+      "errorAlreadyExists": "Ya existe una biblioteca con este nombre en el proyecto. Elige otro nombre."
     }
   },
   "about": {

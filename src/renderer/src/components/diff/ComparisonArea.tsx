@@ -8,7 +8,7 @@ import {
   Trash2,
   Unplug
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Panel,
@@ -17,6 +17,7 @@ import {
   useGroupRef
 } from 'react-resizable-panels'
 import { toast } from 'sonner'
+import { useShallow } from 'zustand/react/shallow'
 import { useUpdateVariableGroup, useVariableGroup } from '../../hooks/useADOApi'
 import { useSyncScroll } from '../../hooks/useSyncScroll'
 import { useVariableBuffer } from '../../hooks/useVariableBuffer'
@@ -26,11 +27,19 @@ import { useAuthStore } from '../../store/authStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useUIStore } from '../../store/uiStore'
 import type { AdoVariable } from '../../types'
-import { AiModal } from '../ai/AiModal'
-import { AboutModal } from '../modals/AboutModal'
-import { HelpModal } from '../modals/HelpModal'
-import { PushReviewModal } from '../modals/PushReviewModal'
-import { SettingsModal } from '../modals/SettingsModal'
+
+const AiModal = lazy(() => import('../ai/AiModal').then((m) => ({ default: m.AiModal })))
+const AboutModal = lazy(() =>
+  import('../modals/AboutModal').then((m) => ({ default: m.AboutModal }))
+)
+const HelpModal = lazy(() => import('../modals/HelpModal').then((m) => ({ default: m.HelpModal })))
+const PushReviewModal = lazy(() =>
+  import('../modals/PushReviewModal').then((m) => ({ default: m.PushReviewModal }))
+)
+const SettingsModal = lazy(() =>
+  import('../modals/SettingsModal').then((m) => ({ default: m.SettingsModal }))
+)
+
 import { AppDropdownMenu } from '../ui/AppDropdownMenu'
 import { Tooltip } from '../ui/Tooltip'
 import { DiffStats } from './DiffStats'
@@ -146,18 +155,40 @@ export function ComparisonArea(): React.JSX.Element {
     markDeleted,
     unmarkDeleted,
     clearPanes,
-    swapPanes
-  } = useUIStore()
-
-  // Use fine-grained selectors so the component re-renders exactly when these
-  // arrays change — avoids any potential stale-closure issue with the whole
-  // store subscription.
-  const leftOwnEdits = useUIStore((s) => s.leftOwnEdits)
-  const rightOwnEdits = useUIStore((s) => s.rightOwnEdits)
-  const leftAddedVars = useUIStore((s) => s.leftAddedVars)
-  const rightAddedVars = useUIStore((s) => s.rightAddedVars)
-  const leftDeletedKeys = useUIStore((s) => s.leftDeletedKeys)
-  const rightDeletedKeys = useUIStore((s) => s.rightDeletedKeys)
+    swapPanes,
+    leftOwnEdits,
+    rightOwnEdits,
+    leftAddedVars,
+    rightAddedVars,
+    leftDeletedKeys,
+    rightDeletedKeys
+  } = useUIStore(
+    useShallow((s) => ({
+      leftPane: s.leftPane,
+      rightPane: s.rightPane,
+      syncScroll: s.syncScroll,
+      setSyncScroll: s.setSyncScroll,
+      setLeftPane: s.setLeftPane,
+      setRightPane: s.setRightPane,
+      clearOwnEdits: s.clearOwnEdits,
+      upsertOwnEdit: s.upsertOwnEdit,
+      removeOwnEdit: s.removeOwnEdit,
+      clearAddedVars: s.clearAddedVars,
+      upsertAddedVar: s.upsertAddedVar,
+      removeAddedVar: s.removeAddedVar,
+      clearDeletedKeys: s.clearDeletedKeys,
+      markDeleted: s.markDeleted,
+      unmarkDeleted: s.unmarkDeleted,
+      clearPanes: s.clearPanes,
+      swapPanes: s.swapPanes,
+      leftOwnEdits: s.leftOwnEdits,
+      rightOwnEdits: s.rightOwnEdits,
+      leftAddedVars: s.leftAddedVars,
+      rightAddedVars: s.rightAddedVars,
+      leftDeletedKeys: s.leftDeletedKeys,
+      rightDeletedKeys: s.rightDeletedKeys
+    }))
+  )
 
   const { t } = useTranslation()
   const {
@@ -296,7 +327,6 @@ export function ComparisonArea(): React.JSX.Element {
 
   const hasLeft = !!leftPane.groupId
   const hasRight = !!rightPane.groupId
-  const hasBoth = hasLeft && hasRight
 
   /**
    * Execute the actual PUT request after the user has confirmed in the modal
@@ -633,23 +663,37 @@ export function ComparisonArea(): React.JSX.Element {
 
       {/* ── AI Modal ───────────────────────────────────────────────────────── */}
       {showAi && (
-        <AiModal
-          onClose={() => setShowAi(false)}
-          onOpenSettings={() => {
-            setShowAi(false)
-            setShowSettings(true)
-          }}
-        />
+        <Suspense fallback={null}>
+          <AiModal
+            onClose={() => setShowAi(false)}
+            onOpenSettings={() => {
+              setShowAi(false)
+              setShowSettings(true)
+            }}
+          />
+        </Suspense>
       )}
 
       {/* ── Settings Modal ─────────────────────────────────────────────────── */}
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+      {showSettings && (
+        <Suspense fallback={null}>
+          <SettingsModal onClose={() => setShowSettings(false)} />
+        </Suspense>
+      )}
 
       {/* ── Help Modal ──────────────────────────────────────────────────────── */}
-      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+      {showHelp && (
+        <Suspense fallback={null}>
+          <HelpModal onClose={() => setShowHelp(false)} />
+        </Suspense>
+      )}
 
       {/* ── About Modal ────────────────────────────────────────────────────── */}
-      {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
+      {showAbout && (
+        <Suspense fallback={null}>
+          <AboutModal onClose={() => setShowAbout(false)} />
+        </Suspense>
+      )}
 
       {/* ── Confirm Discard Dialog ─────────────────────────────────────────── */}
       {discardConfirmSide && (
@@ -683,26 +727,30 @@ export function ComparisonArea(): React.JSX.Element {
 
       {/* ── Push Review Modals ─────────────────────────────────────────────── */}
       {reviewSide === 'left' && (
-        <PushReviewModal
-          groupName={leftPane.groupName}
-          projectName={leftPane.projectName}
-          draftChanges={leftBuffer.draftChanges}
-          mergedVariables={leftBuffer.mergedVariables}
-          onClose={() => setReviewSide(null)}
-          onDiscardAll={() => executeDiscard('left')}
-          onConfirmPush={(vars) => executePush('left', vars)}
-        />
+        <Suspense fallback={null}>
+          <PushReviewModal
+            groupName={leftPane.groupName}
+            projectName={leftPane.projectName}
+            draftChanges={leftBuffer.draftChanges}
+            mergedVariables={leftBuffer.mergedVariables}
+            onClose={() => setReviewSide(null)}
+            onDiscardAll={() => executeDiscard('left')}
+            onConfirmPush={(vars) => executePush('left', vars)}
+          />
+        </Suspense>
       )}
       {reviewSide === 'right' && (
-        <PushReviewModal
-          groupName={rightPane.groupName}
-          projectName={rightPane.projectName}
-          draftChanges={rightBuffer.draftChanges}
-          mergedVariables={rightBuffer.mergedVariables}
-          onClose={() => setReviewSide(null)}
-          onDiscardAll={() => executeDiscard('right')}
-          onConfirmPush={(vars) => executePush('right', vars)}
-        />
+        <Suspense fallback={null}>
+          <PushReviewModal
+            groupName={rightPane.groupName}
+            projectName={rightPane.projectName}
+            draftChanges={rightBuffer.draftChanges}
+            mergedVariables={rightBuffer.mergedVariables}
+            onClose={() => setReviewSide(null)}
+            onDiscardAll={() => executeDiscard('right')}
+            onConfirmPush={(vars) => executePush('right', vars)}
+          />
+        </Suspense>
       )}
     </div>
   )

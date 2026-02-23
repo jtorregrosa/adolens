@@ -8,6 +8,7 @@ import {
   Download,
   ExternalLink,
   FolderOpen,
+  FolderPlus,
   Layers,
   Loader2,
   LogOut,
@@ -19,15 +20,24 @@ import {
   Star,
   StarOff
 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useProjects, useVariableGroup, useVariableGroups } from '../../hooks/useADOApi'
 import { clearCredentials } from '../../lib/api'
 import { useAuthStore } from '../../store/authStore'
 import { useUIStore } from '../../store/uiStore'
-import { CloneLibraryModal } from '../modals/CloneLibraryModal'
-import { ExportModal } from '../modals/ExportModal'
+
+const AddLibraryModal = lazy(() =>
+  import('../modals/AddLibraryModal').then((m) => ({ default: m.AddLibraryModal }))
+)
+const CloneLibraryModal = lazy(() =>
+  import('../modals/CloneLibraryModal').then((m) => ({ default: m.CloneLibraryModal }))
+)
+const ExportModal = lazy(() =>
+  import('../modals/ExportModal').then((m) => ({ default: m.ExportModal }))
+)
+
 import type { ContextMenuItem } from '../ui/AppContextMenu'
 import { AppContextMenu } from '../ui/AppContextMenu'
 import { Tooltip } from '../ui/Tooltip'
@@ -39,6 +49,7 @@ interface LibraryRowProps {
   groupName: string
   projectId: string
   projectName: string
+  orgUrl: string | null
   isFavorite: boolean
   onToggleFavorite: () => void
   onSelect: (side: 'left' | 'right') => void
@@ -52,6 +63,7 @@ function LibraryRow({
   groupId,
   groupName,
   projectName,
+  orgUrl,
   isFavorite,
   onToggleFavorite,
   onSelect,
@@ -61,10 +73,9 @@ function LibraryRow({
   isRight
 }: LibraryRowProps): React.JSX.Element {
   const { t } = useTranslation()
-  const { orgUrl } = useAuthStore()
   const libraryExternalUrl =
-    orgUrl && projectName
-      ? `${orgUrl.replace(/\/$/, '')}/${encodeURIComponent(projectName)}/_library?variableGroupId=${groupId}`
+    orgUrl && projectName && groupName
+      ? `${orgUrl.replace(/\/$/, '')}/${encodeURIComponent(projectName)}/_library?variableGroupId=${groupId}&itemType=VariableGroups&view=VariableGroupView&path=${encodeURIComponent(groupName)}`
       : ''
   const libraryMenuItems: ContextMenuItem[] = [
     {
@@ -182,6 +193,7 @@ function LibraryRow({
 interface ProjectNodeProps {
   projectId: string
   projectName: string
+  orgUrl: string | null
   isFavorite: boolean
   onToggleFavorite: () => void
 }
@@ -189,11 +201,11 @@ interface ProjectNodeProps {
 function ProjectNode({
   projectId,
   projectName,
+  orgUrl,
   isFavorite,
   onToggleFavorite
 }: ProjectNodeProps): React.JSX.Element {
   const { t } = useTranslation()
-  const { orgUrl } = useAuthStore()
   const projectExternalUrl =
     orgUrl && projectName ? `${orgUrl.replace(/\/$/, '')}/${encodeURIComponent(projectName)}` : ''
   const [expanded, setExpanded] = useState(false)
@@ -202,6 +214,7 @@ function ProjectNode({
   const [exportGroupName, setExportGroupName] = useState<string | null>(null)
   const [cloneGroupId, setCloneGroupId] = useState<number | null>(null)
   const [cloneGroupName, setCloneGroupName] = useState<string | null>(null)
+  const [showAddLibrary, setShowAddLibrary] = useState(false)
 
   const { data: groups, isLoading } = useVariableGroups(expanded ? projectId : null)
   const { data: exportGroup } = useVariableGroup(
@@ -258,6 +271,15 @@ function ProjectNode({
       ),
       onSelect: onToggleFavorite
     },
+    {
+      label: t('sidebar.addNewLibrary'),
+      icon: <FolderPlus className="h-3.5 w-3.5" />,
+      dividerBefore: true,
+      onSelect: () => {
+        setExpanded(true)
+        setShowAddLibrary(true)
+      }
+    },
     ...(projectExternalUrl
       ? [
           {
@@ -311,27 +333,42 @@ function ProjectNode({
 
       {/* Export modal — rendered outside the AnimatePresence so it stays mounted */}
       {exportGroup && exportGroupId !== null && (
-        <ExportModal
-          variables={exportGroup.variables}
-          groupName={exportGroupName}
-          onClose={() => {
-            setExportGroupId(null)
-            setExportGroupName(null)
-          }}
-        />
+        <Suspense fallback={null}>
+          <ExportModal
+            variables={exportGroup.variables}
+            groupName={exportGroupName}
+            onClose={() => {
+              setExportGroupId(null)
+              setExportGroupName(null)
+            }}
+          />
+        </Suspense>
+      )}
+
+      {/* Add new library modal */}
+      {showAddLibrary && (
+        <Suspense fallback={null}>
+          <AddLibraryModal
+            projectId={projectId}
+            projectName={projectName}
+            onClose={() => setShowAddLibrary(false)}
+          />
+        </Suspense>
       )}
 
       {/* Clone modal */}
       {cloneGroupId !== null && cloneGroupName !== null && (
-        <CloneLibraryModal
-          projectId={projectId}
-          groupId={cloneGroupId}
-          sourceName={cloneGroupName}
-          onClose={() => {
-            setCloneGroupId(null)
-            setCloneGroupName(null)
-          }}
-        />
+        <Suspense fallback={null}>
+          <CloneLibraryModal
+            projectId={projectId}
+            groupId={cloneGroupId}
+            sourceName={cloneGroupName}
+            onClose={() => {
+              setCloneGroupId(null)
+              setCloneGroupName(null)
+            }}
+          />
+        </Suspense>
       )}
 
       <AnimatePresence>
@@ -383,6 +420,7 @@ function ProjectNode({
                             groupName={g.name!}
                             projectId={projectId}
                             projectName={projectName}
+                            orgUrl={orgUrl}
                             isFavorite={true}
                             onToggleFavorite={() => toggleFavoriteLibrary(g.id!)}
                             onSelect={(side) => selectGroup(g.id!, g.name!, side)}
@@ -417,6 +455,7 @@ function ProjectNode({
                         groupName={g.name!}
                         projectId={projectId}
                         projectName={projectName}
+                        orgUrl={orgUrl}
                         isFavorite={false}
                         onToggleFavorite={() => toggleFavoriteLibrary(g.id!)}
                         onSelect={(side) => selectGroup(g.id!, g.name!, side)}
@@ -458,6 +497,7 @@ function SectionHeader({ label }: { label: string }): React.JSX.Element {
 
 export function Sidebar(): React.JSX.Element {
   const { t } = useTranslation()
+  const orgUrl = useAuthStore((s) => s.orgUrl)
   const {
     sidebarCollapsed,
     toggleSidebar,
@@ -465,7 +505,7 @@ export function Sidebar(): React.JSX.Element {
     toggleFavoriteProject,
     isFavoriteProject
   } = useUIStore()
-  const { logout } = useAuthStore()
+  const { logout } = useAuthStore((s) => s.logout)
   const [projectSearch, setProjectSearch] = useState('')
   const [scrollShadeTop, setScrollShadeTop] = useState(false)
   const [scrollShadeBottom, setScrollShadeBottom] = useState(false)
@@ -603,6 +643,7 @@ export function Sidebar(): React.JSX.Element {
                         <ProjectNode
                           projectId={p.id!}
                           projectName={p.name!}
+                          orgUrl={orgUrl}
                           isFavorite={true}
                           onToggleFavorite={() => toggleFavoriteProject(p.id!)}
                         />
@@ -626,6 +667,7 @@ export function Sidebar(): React.JSX.Element {
                     <ProjectNode
                       projectId={p.id!}
                       projectName={p.name!}
+                      orgUrl={orgUrl}
                       isFavorite={false}
                       onToggleFavorite={() => toggleFavoriteProject(p.id!)}
                     />

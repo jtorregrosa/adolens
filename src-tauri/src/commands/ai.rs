@@ -5,7 +5,7 @@ use std::sync::Arc;
 use strsim::jaro_winkler;
 use tauri::{Emitter, State};
 
-use crate::{CachedAdoClients, ClientState};
+use crate::{CachedAdoClients, ClientState, OllamaClientState};
 
 const OLLAMA_URL: &str = "http://127.0.0.1:11434";
 
@@ -377,18 +377,19 @@ async fn execute_tool(
 
 /// Returns true if Ollama is reachable on localhost.
 #[tauri::command]
-pub async fn ai_check_ollama() -> bool {
-    reqwest::Client::new()
+pub async fn ai_check_ollama(ollama: State<'_, OllamaClientState>) -> Result<bool, String> {
+    Ok(ollama
+        .0
         .get(format!("{OLLAMA_URL}/api/tags"))
         .send()
         .await
         .map(|r| r.status().is_success())
-        .unwrap_or(false)
+        .unwrap_or(false))
 }
 
 /// Returns true if the given model is already downloaded in Ollama.
 #[tauri::command]
-pub async fn ai_check_model(model: String) -> Result<bool, String> {
+pub async fn ai_check_model(ollama: State<'_, OllamaClientState>, model: String) -> Result<bool, String> {
     #[derive(Deserialize)]
     struct TagsResponse {
         models: Vec<ModelEntry>,
@@ -398,7 +399,8 @@ pub async fn ai_check_model(model: String) -> Result<bool, String> {
         name: String,
     }
 
-    let resp = reqwest::Client::new()
+    let resp = ollama
+        .0
         .get(format!("{OLLAMA_URL}/api/tags"))
         .send()
         .await
@@ -423,8 +425,13 @@ pub async fn ai_check_model(model: String) -> Result<bool, String> {
 /// Pull (download) a model from Ollama. Emits "ai:pull-progress" events so
 /// the UI can render a live progress bar.
 #[tauri::command]
-pub async fn ai_pull_model(app: tauri::AppHandle, model: String) -> Result<(), String> {
-    let resp = reqwest::Client::new()
+pub async fn ai_pull_model(
+    app: tauri::AppHandle,
+    ollama: State<'_, OllamaClientState>,
+    model: String,
+) -> Result<(), String> {
+    let resp = ollama
+        .0
         .post(format!("{OLLAMA_URL}/api/pull"))
         .json(&serde_json::json!({ "name": model, "stream": true }))
         .send()
@@ -499,12 +506,13 @@ Be concise and factual. Format lists using markdown bullet points.";
 pub async fn ai_chat(
     app: tauri::AppHandle,
     state: State<'_, ClientState>,
+    ollama: State<'_, OllamaClientState>,
     messages: Vec<ChatMessage>,
     model: String,
 ) -> Result<ChatMessage, String> {
     // Wrap in the read-only facade — execute_tool can never reach write methods.
     let clients = ReadOnlyAdoClients::new(state.get()?);
-    let http = reqwest::Client::new();
+    let tools = tool_definitions();
 
     let mut history: Vec<Value> = std::iter::once(serde_json::json!({
         "role": "system",
@@ -518,12 +526,13 @@ pub async fn ai_chat(
     let project_list = clients.list_projects().await?;
 
     for _ in 0..10 {
-        let resp = http
+        let resp = ollama
+            .0
             .post(format!("{OLLAMA_URL}/api/chat"))
             .json(&serde_json::json!({
                 "model": model,
                 "messages": history,
-                "tools": tool_definitions(),
+                "tools": tools,
                 "stream": false
             }))
             .send()

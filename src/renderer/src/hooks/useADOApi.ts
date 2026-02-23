@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import * as api from '../lib/api'
 import type { AdoProject, AdoVariableGroup } from '../types'
@@ -30,10 +31,38 @@ export function useVariableGroup(projectId: string | null, groupId: number | nul
   })
 }
 
+// ─── Add Variable Group ──────────────────────────────────────────────────────
+
+export function useAddVariableGroup() {
+  const queryClient = useQueryClient()
+  const { t } = useTranslation()
+
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      name,
+      description
+    }: {
+      projectId: string
+      name: string
+      description: string | null
+    }) => api.addVariableGroup(projectId, name, description),
+    onSuccess: (_data, { projectId }) => {
+      queryClient.invalidateQueries({ queryKey: ['variableGroups', projectId] })
+      toast.success(t('modals.addLibrary.toastSuccess'))
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err)
+      toast.error(t('modals.addLibrary.toastError', { message: msg }))
+    }
+  })
+}
+
 // ─── Clone Variable Group ────────────────────────────────────────────────────
 
 export function useCloneVariableGroup() {
   const queryClient = useQueryClient()
+  const { t } = useTranslation()
 
   return useMutation({
     mutationFn: ({
@@ -49,8 +78,15 @@ export function useCloneVariableGroup() {
       queryClient.invalidateQueries({ queryKey: ['variableGroups', projectId] })
       toast.success('Library cloned successfully')
     },
-    onError: (err: Error) => {
-      toast.error(`Failed to clone library: ${err.message}`)
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err)
+      // Only show "choose a different name" when the error clearly indicates a duplicate variable group name
+      const isDuplicateName = /already\s+exists/i.test(msg) && /variable\s*group|library/i.test(msg)
+      toast.error(
+        isDuplicateName
+          ? t('modals.clone.errorAlreadyExists')
+          : t('modals.clone.errorFailed', { message: msg })
+      )
     }
   })
 }
@@ -75,8 +111,9 @@ export function useUpdateVariableGroup() {
       queryClient.invalidateQueries({ queryKey: ['variableGroups', projectId] })
       toast.success('Variable group updated successfully')
     },
-    onError: (err: Error) => {
-      toast.error(`Failed to update: ${err.message}`)
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err)
+      toast.error(`Failed to update: ${msg}`)
     }
   })
 }

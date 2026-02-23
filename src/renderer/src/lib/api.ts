@@ -74,6 +74,18 @@ export async function getVariableGroup(
   return invoke<AdoVariableGroup>('get_variable_group', { projectId, groupId })
 }
 
+export async function addVariableGroup(
+  projectId: string,
+  name: string,
+  description: string | null
+): Promise<AdoVariableGroup> {
+  return invoke<AdoVariableGroup>('add_variable_group', {
+    projectId,
+    name,
+    description: description || undefined
+  })
+}
+
 export async function cloneVariableGroup(
   projectId: string,
   groupId: number,
@@ -103,7 +115,11 @@ export interface AiChatMessage {
 }
 
 export async function aiCheckOllama(): Promise<boolean> {
-  return invoke<boolean>('ai_check_ollama')
+  try {
+    return await invoke<boolean>('ai_check_ollama')
+  } catch {
+    return false
+  }
 }
 
 export async function aiCheckModel(model: string): Promise<boolean> {

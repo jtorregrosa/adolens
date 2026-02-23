@@ -63,6 +63,7 @@
     "markFavorite": "Mark as Favorite",
     "removeFavorite": "Remove from Favorites",
     "exportVariables": "Export Variables…",
+    "addNewLibrary": "Add new Library entry",
     "cloneLibrary": "Clone Library…",
     "loadLeftPane": "Load into Left pane",
     "loadRightPane": "Load into Right pane",
@@ -349,6 +350,19 @@
         "noVariables": "No variables could be parsed from this file"
       }
     },
+    "addLibrary": {
+      "title": "Add new Library",
+      "description": "Create a new empty variable group in project \"{{project}}\".",
+      "nameLabel": "Name",
+      "namePlaceholder": "Enter library name…",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Optional description…",
+      "cancel": "Cancel",
+      "create": "Create Library",
+      "creating": "Creating…",
+      "toastSuccess": "Library created successfully",
+      "toastError": "Failed to create library: {{message}}"
+    },
     "clone": {
       "title": "Clone Library",
       "description": "A new library containing the same variables will be created under the name below. Secret values will be preserved.",
@@ -356,7 +370,9 @@
       "namePlaceholder": "Enter a name…",
       "cancel": "Cancel",
       "clone": "Clone Library",
-      "cloning": "Cloning…"
+      "cloning": "Cloning…",
+      "errorFailed": "Failed to clone library: {{message}}",
+      "errorAlreadyExists": "A library with this name already exists in the project. Choose a different name."
     }
   },
   "about": {
