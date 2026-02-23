@@ -170,6 +170,11 @@
       "ai": "Assistente IA"
     },
     "appearance": {
+      "theme": "Tema",
+      "themeDescription": "L'aspetto segue la tua scelta o l'impostazione di sistema",
+      "themeDark": "Scuro",
+      "themeLight": "Chiaro",
+      "themeSystem": "Sistema",
       "language": "Lingua",
       "languageDescription": "Scegli la lingua di visualizzazione dell'applicazione",
       "paneSplit": "Layout pannelli predefinito",
@@ -262,7 +267,9 @@
       "Elenca le variabili della libreria X nel progetto Y"
     ],
     "inputPlaceholder": "Chiedi informazioni sui tuoi gruppi di variabili…",
-    "inputHint": "Invio per inviare · Maiusc+Invio per nuova riga"
+    "inputHint": "Invio per inviare · Maiusc+Invio per nuova riga",
+    "copy": "Copia",
+    "resetContext": "Reimposta chat e ricomincia"
   },
   "modals": {
     "review": {

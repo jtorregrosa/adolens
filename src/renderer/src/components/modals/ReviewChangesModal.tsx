@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { AlertTriangle, Check, Loader2, Lock, X } from 'lucide-react'
 import { useMemo } from 'react'
 import type { AdoVariable, PendingChange } from '../../types'
+import { Tooltip } from '../ui/Tooltip'
 
 interface Props {
   pendingChanges: PendingChange[]
@@ -44,7 +45,7 @@ export function ReviewChangesModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        className="modal-backdrop"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose()
         }}
@@ -54,7 +55,7 @@ export function ReviewChangesModal({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="mx-4 w-full max-w-2xl rounded-2xl bg-slate-900 ring-1 ring-slate-700/50"
+          className="app-modal-panel mx-4 w-full max-w-2xl rounded-2xl bg-slate-900 ring-1 ring-slate-700/50"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
@@ -73,7 +74,7 @@ export function ReviewChangesModal({
           </div>
 
           {/* Warning */}
-          <div className="mx-6 mt-4 flex items-start gap-2 rounded-lg bg-amber-500/10 px-4 py-3 text-sm text-amber-400 ring-1 ring-amber-500/20">
+          <div className="app-modal-warning mx-8 mt-4 flex items-start gap-2 rounded-lg bg-amber-500/10 px-4 py-3 text-sm text-amber-400 ring-1 ring-amber-500/20">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>
               This will overwrite the variable group via{' '}
@@ -82,8 +83,8 @@ export function ReviewChangesModal({
           </div>
 
           {/* Changes table */}
-          <div className="mx-6 my-4 max-h-72 overflow-auto rounded-lg ring-1 ring-slate-700/50">
-            <table className="w-full border-collapse text-sm">
+          <div className="mx-8 my-4 max-h-72 overflow-x-hidden overflow-y-auto rounded-lg ring-1 ring-slate-700/50">
+            <table className="w-full table-fixed border-collapse text-sm">
               <thead className="sticky top-0 bg-slate-800">
                 <tr>
                   <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -101,29 +102,39 @@ export function ReviewChangesModal({
                 {pendingChanges.map((change) => {
                   const prev = currentVariables[change.key]
                   const isSecret = prev?.isSecret ?? false
+                  const beforeVal = prev?.value ?? ''
+                  const afterVal = change.newValue ?? ''
                   return (
                     <tr key={change.key} className="border-t border-slate-800">
-                      <td className="mono px-4 py-2 text-slate-300">{change.key}</td>
-                      <td className="mono px-4 py-2">
+                      <td className="mono max-w-0 truncate px-4 py-2 text-slate-300">
+                        <Tooltip content={change.key} side="top" delayDuration={800}>
+                          <span className="block truncate">{change.key}</span>
+                        </Tooltip>
+                      </td>
+                      <td className="mono max-w-0 truncate px-4 py-2">
                         {isSecret ? (
                           <span className="flex items-center gap-1 text-slate-600">
                             <Lock className="h-3 w-3" /> secret
                           </span>
                         ) : (
-                          <span className="rounded bg-red-500/10 px-1 text-red-400">
-                            {prev?.value ?? <em className="text-slate-600">empty</em>}
-                          </span>
+                          <Tooltip content={beforeVal || 'empty'} side="top" delayDuration={800}>
+                            <span className="inline-block max-w-full truncate rounded bg-red-500/10 px-1 text-red-400">
+                              {prev?.value ?? <em className="text-slate-600">empty</em>}
+                            </span>
+                          </Tooltip>
                         )}
                       </td>
-                      <td className="mono px-4 py-2">
+                      <td className="mono max-w-0 truncate px-4 py-2">
                         {isSecret ? (
                           <span className="flex items-center gap-1 text-slate-600">
                             <Lock className="h-3 w-3" /> secret (overwritten)
                           </span>
                         ) : (
-                          <span className="rounded bg-emerald-500/10 px-1 text-emerald-400">
-                            {change.newValue || <em className="text-slate-600">empty</em>}
-                          </span>
+                          <Tooltip content={afterVal || 'empty'} side="top" delayDuration={800}>
+                            <span className="inline-block max-w-full truncate rounded bg-emerald-500/10 px-1 text-emerald-400">
+                              {change.newValue || <em className="text-slate-600">empty</em>}
+                            </span>
+                          </Tooltip>
                         )}
                       </td>
                     </tr>

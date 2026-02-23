@@ -6,7 +6,10 @@ import {
   Cpu,
   FileDown,
   Globe,
+  Monitor,
+  Moon,
   Settings,
+  Sun,
   ToggleRight,
   Trash2,
   X,
@@ -21,7 +24,7 @@ import {
   aiPullModel,
   setRequestTimeout
 } from '../../lib/api'
-import type { AiModel, PaneSplit, TimeoutSeconds } from '../../store/settingsStore'
+import type { AiModel, PaneSplit, ThemeMode, TimeoutSeconds } from '../../store/settingsStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useUIStore } from '../../store/uiStore'
 import type { ExportFormat } from './exportUtils'
@@ -94,7 +97,26 @@ const LANGUAGES = [
 
 function AppearanceSection(): React.JSX.Element {
   const { t, i18n } = useTranslation()
-  const { defaultPaneSplit, setDefaultPaneSplit, compactMode, setCompactMode } = useSettingsStore()
+  const { theme, setTheme, defaultPaneSplit, setDefaultPaneSplit, compactMode, setCompactMode } =
+    useSettingsStore()
+
+  const themeOptions: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
+    {
+      value: 'dark',
+      label: t('settings.appearance.themeDark'),
+      icon: <Moon className="h-3.5 w-3.5" />
+    },
+    {
+      value: 'light',
+      label: t('settings.appearance.themeLight'),
+      icon: <Sun className="h-3.5 w-3.5" />
+    },
+    {
+      value: 'system',
+      label: t('settings.appearance.themeSystem'),
+      icon: <Monitor className="h-3.5 w-3.5" />
+    }
+  ]
 
   const paneSplitOptions: { value: PaneSplit; label: string }[] = [
     { value: '50/50', label: t('settings.appearance.split5050') },
@@ -104,6 +126,32 @@ function AppearanceSection(): React.JSX.Element {
 
   return (
     <div className="space-y-1">
+      {/* Theme */}
+      <SettingRow
+        label={t('settings.appearance.theme')}
+        description={t('settings.appearance.themeDescription')}
+      >
+        <div className="flex flex-wrap gap-2">
+          {themeOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setTheme(opt.value)}
+              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
+                theme === opt.value
+                  ? 'border-blue-500/50 bg-blue-600/20 text-blue-300'
+                  : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-300'
+              }`}
+            >
+              {opt.icon}
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </SettingRow>
+
+      <div className="mx-3 border-t border-slate-800/80" />
+
       {/* Language */}
       <SettingRow
         label={t('settings.appearance.language')}
@@ -516,7 +564,7 @@ function AiSection(): React.JSX.Element {
 
           {/* Ollama status */}
           {ollamaOk === false && (
-            <div className="mx-3 my-1 rounded-lg border border-amber-700/40 bg-amber-900/20 px-3 py-2.5">
+            <div className="app-modal-warning mx-3 my-1 rounded-lg border border-amber-700/40 bg-amber-900/20 px-3 py-2.5">
               <p className="text-xs font-medium text-amber-300">
                 {t('settings.ai.ollamaNotRunning')}
               </p>
@@ -710,7 +758,7 @@ export function SettingsModal({ onClose }: Props): React.JSX.Element {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        className="modal-backdrop"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose()
         }}
@@ -721,7 +769,7 @@ export function SettingsModal({ onClose }: Props): React.JSX.Element {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.96, opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="mx-4 flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-slate-700/50 shadow-2xl"
+          className="app-modal-panel mx-4 flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-slate-700/50 shadow-2xl"
           style={{ height: 560 }}
         >
           {/* ── Unified header ────────────────────────────────────── */}

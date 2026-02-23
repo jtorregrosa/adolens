@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { ExportFormat } from '../components/modals/exportUtils'
 
 export type PaneSplit = '50/50' | '60/40' | '40/60'
+export type ThemeMode = 'dark' | 'light' | 'system'
 export type TimeoutSeconds = 15 | 30 | 60
 export type AiModel =
   // Light — fast inference, lower RAM; confirmed reliable tool calling
@@ -16,6 +17,7 @@ export type AiModel =
 
 interface SettingsState {
   // Appearance
+  theme: ThemeMode
   defaultPaneSplit: PaneSplit
   compactMode: boolean
   // Behavior
@@ -33,6 +35,7 @@ interface SettingsState {
   aiModel: AiModel
 
   // Actions
+  setTheme: (v: ThemeMode) => void
   setDefaultPaneSplit: (v: PaneSplit) => void
   setCompactMode: (v: boolean) => void
   setConfirmBeforeDiscard: (v: boolean) => void
@@ -51,6 +54,7 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
+      theme: 'dark',
       defaultPaneSplit: '50/50',
       compactMode: false,
       confirmBeforeDiscard: false,
@@ -63,6 +67,7 @@ export const useSettingsStore = create<SettingsState>()(
       aiEnabled: false,
       aiModel: 'qwen2.5:7b',
 
+      setTheme: (v) => set({ theme: v }),
       setDefaultPaneSplit: (v) => set({ defaultPaneSplit: v }),
       setCompactMode: (v) => set({ compactMode: v }),
       setConfirmBeforeDiscard: (v) => set({ confirmBeforeDiscard: v }),

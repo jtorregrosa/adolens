@@ -29,7 +29,7 @@ export function TitleBar(): React.JSX.Element {
   }, [])
 
   return (
-    <div className="relative flex h-10 w-full shrink-0 items-center border-b border-slate-800 bg-slate-900">
+    <div className="titlebar-wrap relative flex h-10 w-full shrink-0 items-center border-b border-slate-800">
       {/* Invisible full-width drag region sitting behind everything */}
       <div className="absolute inset-0" data-tauri-drag-region />
 

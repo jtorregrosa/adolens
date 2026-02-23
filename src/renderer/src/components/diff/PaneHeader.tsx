@@ -22,10 +22,14 @@ export function PaneHeader({
   const label = side === 'left' ? t('pane.left') : t('pane.right')
 
   const borderBg =
-    side === 'left' ? 'border-blue-500/20 bg-blue-500/5' : 'border-fuchsia-500/20 bg-fuchsia-500/5'
+    side === 'left'
+      ? 'pane-header-left border-blue-500/20 bg-blue-500/5'
+      : 'pane-header-right border-fuchsia-500/20 bg-fuchsia-500/5'
 
   const labelStyle =
-    side === 'left' ? 'bg-blue-500/20 text-blue-400' : 'bg-fuchsia-500/20 text-fuchsia-400'
+    side === 'left'
+      ? 'pane-label-left bg-blue-500/20 text-blue-400'
+      : 'pane-label-right bg-fuchsia-500/20 text-fuchsia-400'
 
   const breadcrumbs = projectName ? (
     <div className="flex min-w-0 items-center gap-1.5 text-xs text-slate-400">

@@ -33,7 +33,7 @@ export function AboutModal({ onClose }: Props): React.JSX.Element {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        className="modal-backdrop"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose()
         }}
@@ -44,7 +44,7 @@ export function AboutModal({ onClose }: Props): React.JSX.Element {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.96, opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="mx-4 w-full max-w-sm overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-slate-700/50 shadow-2xl"
+          className="app-modal-panel mx-4 w-full max-w-sm overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-slate-700/50 shadow-2xl"
         >
           {/* Close button */}
           <div className="flex justify-end px-4 pt-4">

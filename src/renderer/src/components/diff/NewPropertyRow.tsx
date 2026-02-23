@@ -100,7 +100,7 @@ export const NewPropertyRow = forwardRef<HTMLTableRowElement, Props>(function Ne
             </>
           ) : (
             <span
-              className="mono selectable block min-h-6 w-full min-w-0 cursor-text truncate rounded text-sm text-slate-300 py-0.5"
+              className="mono selectable block min-h-6 w-full min-w-0 cursor-text truncate rounded text-sm font-bold text-slate-300 py-0.5"
               onClick={() => {
                 setEditKeyValue(variable.key)
                 setEditingKey(true)
@@ -142,7 +142,7 @@ export const NewPropertyRow = forwardRef<HTMLTableRowElement, Props>(function Ne
             </>
           ) : (
             <span
-              className="mono selectable block min-h-6 w-full min-w-0 cursor-text truncate rounded text-sm text-slate-300 py-0.5"
+              className="mono selectable block min-h-6 w-full min-w-0 cursor-text truncate rounded text-sm font-bold text-slate-300 py-0.5"
               onClick={() => {
                 setEditValue(variable.value)
                 setEditingValue(true)

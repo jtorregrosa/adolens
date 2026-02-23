@@ -37,7 +37,7 @@ export function AppDropdownMenu({
           align={align}
           sideOffset={6}
           className={[
-            'z-50 min-w-[180px] overflow-hidden rounded-lg border border-slate-700/60',
+            'app-menu-content z-50 min-w-[180px] overflow-hidden rounded-lg border border-slate-700/60',
             'bg-slate-900/90 shadow-2xl backdrop-blur-xl',
             'animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2',
             'p-1'
@@ -46,7 +46,7 @@ export function AppDropdownMenu({
           {items.map((item) => (
             <div key={item.label}>
               {item.dividerBefore && (
-                <DropdownMenu.Separator className="my-1 h-px bg-slate-700/60" />
+                <DropdownMenu.Separator className="app-menu-separator my-1 h-px bg-slate-700/60" />
               )}
               <DropdownMenu.Item
                 disabled={item.disabled}

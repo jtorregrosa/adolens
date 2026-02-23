@@ -55,7 +55,9 @@ export function DiffStats({ stats, side, hasGroup, onUnload }: Props): React.JSX
       {isLeft && unloadBtn}
       <span
         className={`rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
-          isLeft ? 'bg-blue-500/20 text-blue-400' : 'bg-fuchsia-500/20 text-fuchsia-400'
+          isLeft
+            ? 'pane-label-left bg-blue-500/20 text-blue-400'
+            : 'pane-label-right bg-fuchsia-500/20 text-fuchsia-400'
         }`}
       >
         {isLeft ? t('pane.left') : t('pane.right')}
@@ -74,7 +76,11 @@ export function DiffStats({ stats, side, hasGroup, onUnload }: Props): React.JSX
       key="onlyHere"
       count={isLeft ? stats.removed : stats.added}
       label={t('pane.onlyHere')}
-      color={isLeft ? 'bg-blue-500/20 text-blue-400' : 'bg-fuchsia-500/20 text-fuchsia-400'}
+      color={
+        isLeft
+          ? 'pane-chip-left bg-blue-500/20 text-blue-400'
+          : 'pane-chip-right bg-fuchsia-500/20 text-fuchsia-400'
+      }
     />,
     <Chip
       key="modified"

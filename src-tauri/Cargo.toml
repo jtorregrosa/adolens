@@ -33,6 +33,9 @@ base64 = "0.22"
 keyring = { version = "3", features = ["windows-native", "apple-native", "sync-secret-service"] }
 tokio = { version = "1", features = ["rt"] }
 
+# Jaro-Winkler similarity for fuzzy project name matching (typos, casing).
+strsim = "0.11"
+
 [profile.release]
 # Optimize for size (use "s" for speed/size balance, "z" for smallest binary)
 strip = true

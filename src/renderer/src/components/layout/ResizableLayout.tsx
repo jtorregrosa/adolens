@@ -14,7 +14,7 @@ export function ResizableLayout(): React.JSX.Element {
       {/* ── Main layout ──────────────────────────────────────────────────── */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <div
-          className={`shrink-0 overflow-x-auto overflow-y-hidden border-r border-slate-800 transition-all duration-200 ${sidebarCollapsed ? 'w-10' : 'w-88'}`}
+          className={`sidebar-wrap shrink-0 overflow-x-auto overflow-y-hidden border-r border-slate-800 transition-all duration-200 ${sidebarCollapsed ? 'w-10' : 'w-88'}`}
         >
           <Sidebar />
         </div>

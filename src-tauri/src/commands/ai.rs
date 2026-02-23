@@ -2,6 +2,7 @@ use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::Arc;
+use strsim::jaro_winkler;
 use tauri::{Emitter, State};
 
 use crate::{CachedAdoClients, ClientState};
@@ -62,7 +63,7 @@ fn tool_definitions() -> Value {
             "type": "function",
             "function": {
                 "name": "list_projects",
-                "description": "List all Azure DevOps projects in the organisation. Call this first when you need to discover which project a variable group (library) belongs to.",
+                "description": "REQUIRED when the user asks for a list of projects, which projects exist, to show/display projects, or what projects are available. This is the ONLY way to get real project names — you have no built-in knowledge of the organisation. Returns each project's name and id. You MUST call this tool before answering any question about which projects exist; never invent or guess project names. For list_variable_groups and get_variable_group pass the project name (from this list or as the user said it); the system resolves names.",
                 "parameters": { "type": "object", "properties": {}, "required": [] }
             }
         },
@@ -76,7 +77,7 @@ fn tool_definitions() -> Value {
                     "properties": {
                         "project_id": {
                             "type": "string",
-                            "description": "Azure DevOps project ID obtained from list_projects"
+                            "description": "The project name (as the user said it, or from list_projects). Always use the project name, not the id. The system matches names case-insensitively and tolerates typos."
                         }
                     },
                     "required": ["project_id"]
@@ -93,7 +94,7 @@ fn tool_definitions() -> Value {
                     "properties": {
                         "project_id": {
                             "type": "string",
-                            "description": "Azure DevOps project ID"
+                            "description": "The project name (as the user said it, or from list_projects). Always use the project name, not the id. Names are matched case-insensitively and typos are tolerated."
                         },
                         "group_id": {
                             "type": "integer",
@@ -123,6 +124,107 @@ impl ReadOnlyAdoClients {
         Self(inner)
     }
 
+    /// Returns true if the string looks like an Azure DevOps project GUID.
+    fn is_project_guid(s: &str) -> bool {
+        let s = s.trim();
+        if s.len() != 36 {
+            return false;
+        }
+        let b = s.as_bytes();
+        for &i in &[8, 13, 18, 23] {
+            if b.get(i) != Some(&b'-') {
+                return false;
+            }
+        }
+        s.chars()
+            .enumerate()
+            .all(|(i, c)| [8, 13, 18, 23].contains(&i) || c.is_ascii_hexdigit())
+    }
+
+    /// Resolves project_id_or_name using optional pre-fetched project list. When provided, uses
+    /// that list (one fetch per chat turn); otherwise fetches projects first.
+    async fn resolve_project_id(
+        &self,
+        project_id_or_name: &str,
+        projects: Option<&[Value]>,
+    ) -> Result<String, String> {
+        match projects {
+            Some(list) => Self::resolve_project_id_with_list(project_id_or_name, list),
+            None => {
+                let list = self.list_projects().await?;
+                Self::resolve_project_id_with_list(project_id_or_name, &list)
+            }
+        }
+    }
+
+    /// Resolves project name against a pre-fetched list: exact case-insensitive match, then
+    /// best Jaro-Winkler match above threshold. Used so one project list serves the whole turn.
+    fn resolve_project_id_with_list(project_id_or_name: &str, projects: &[Value]) -> Result<String, String> {
+        let input = project_id_or_name.trim();
+        if input.is_empty() {
+            return Err("Project ID or name is empty".to_string());
+        }
+        if ReadOnlyAdoClients::is_project_guid(input) {
+            return Ok(input.to_string());
+        }
+        let input_lower = input.to_lowercase();
+        for p in projects {
+            let name = p["name"].as_str().unwrap_or("").trim();
+            if name.eq_ignore_ascii_case(input) {
+                if let Some(id) = p["id"].as_str() {
+                    return Ok(id.to_string());
+                }
+            }
+        }
+        // No match: pass through so the API can accept the name if it’s valid
+        // Normalized contains: e.g. "authmanager" -> "Authorization Manager"
+        fn normalize(s: &str) -> String {
+            s.chars()
+                .filter(|c| c.is_ascii_alphanumeric())
+                .flat_map(|c| c.to_lowercase())
+                .collect()
+        }
+        let input_norm = normalize(input);
+        if input_norm.len() >= 3 {
+            let mut contains_candidates: Vec<(f64, String)> = Vec::new();
+            for p in projects {
+                let name = p["name"].as_str().unwrap_or("").trim();
+                let name_norm = normalize(name);
+                let id = match p["id"].as_str() {
+                    Some(id) => id,
+                    None => continue,
+                };
+                if name_norm.contains(&input_norm) || input_norm.contains(&name_norm) {
+                    let score = jaro_winkler(&input_lower, &name.to_lowercase());
+                    contains_candidates.push((score, id.to_string()));
+                }
+            }
+            if let Some((_, id)) = contains_candidates
+                .into_iter()
+                .max_by(|(a, _), (b, _)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+            {
+                return Ok(id);
+            }
+        }
+        // Jaro-Winkler above threshold
+        const JARO_WINKLER_THRESHOLD: f64 = 0.85;
+        let mut best_score: f64 = 0.0;
+        let mut best_id: Option<String> = None;
+        for p in projects {
+            let name = p["name"].as_str().unwrap_or("").trim();
+            let name_lower = name.to_lowercase();
+            let score = jaro_winkler(&input_lower, &name_lower);
+            if score >= JARO_WINKLER_THRESHOLD && score > best_score {
+                best_score = score;
+                best_id = p["id"].as_str().map(String::from);
+            }
+        }
+        if let Some(id) = best_id {
+            return Ok(id);
+        }
+        Ok(input.to_string())
+    }
+
     /// GET /projects — lists all projects in the organisation.
     async fn list_projects(&self) -> Result<Vec<Value>, String> {
         let result = self
@@ -142,13 +244,18 @@ impl ReadOnlyAdoClients {
     }
 
     /// GET /distributedtask/variablegroups — lists group names and IDs only
-    /// (no variable values are returned here).
-    async fn list_variable_groups(&self, project_id: &str) -> Result<Vec<Value>, String> {
+    /// (no variable values are returned here). Resolves project name using optional project list.
+    async fn list_variable_groups(
+        &self,
+        project_id: &str,
+        projects: Option<&[Value]>,
+    ) -> Result<Vec<Value>, String> {
+        let project_id = self.resolve_project_id(project_id, projects).await?;
         let result = self
             .0
             .distributed_task
             .variablegroups_client()
-            .get_variable_groups(&self.0.org_name, project_id)
+            .get_variable_groups(&self.0.org_name, &project_id)
             .await
             .map_err(|e| e.to_string())?;
 
@@ -171,18 +278,19 @@ impl ReadOnlyAdoClients {
 
     /// GET /distributedtask/variablegroups/{groupId} — fetches one group,
     /// masking every secret variable so no sensitive value is ever passed to
-    /// the language model. ADO already returns `null` for secret values at the
-    /// API level; the `[secret]` substitution here is an additional safeguard.
+    /// the language model. Resolves project name using optional project list.
     async fn get_variable_group(
         &self,
         project_id: &str,
         group_id: i32,
+        projects: Option<&[Value]>,
     ) -> Result<Value, String> {
+        let project_id = self.resolve_project_id(project_id, projects).await?;
         let g = self
             .0
             .distributed_task
             .variablegroups_client()
-            .get(&self.0.org_name, project_id, group_id)
+            .get(&self.0.org_name, &project_id, group_id)
             .await
             .map_err(|e| e.to_string())?;
 
@@ -224,20 +332,24 @@ impl ReadOnlyAdoClients {
 async fn execute_tool(
     clients: &ReadOnlyAdoClients,
     call: &ToolCall,
+    projects: Option<&[Value]>,
 ) -> Result<String, String> {
     let args = &call.function.arguments;
 
     match call.function.name.as_str() {
         "list_projects" => {
-            let projects = clients.list_projects().await?;
-            Ok(serde_json::to_string(&projects).unwrap())
+            let list = match projects {
+                Some(p) => p,
+                None => return Ok(serde_json::to_string(&clients.list_projects().await?).unwrap()),
+            };
+            Ok(serde_json::to_string(list).unwrap())
         }
 
         "list_variable_groups" => {
             let project_id = args["project_id"]
                 .as_str()
                 .ok_or("Missing argument: project_id")?;
-            let groups = clients.list_variable_groups(project_id).await?;
+            let groups = clients.list_variable_groups(project_id, projects).await?;
             Ok(serde_json::to_string(&groups).unwrap())
         }
 
@@ -248,7 +360,7 @@ async fn execute_tool(
             let group_id = args["group_id"]
                 .as_i64()
                 .ok_or("Missing argument: group_id")? as i32;
-            let group = clients.get_variable_group(project_id, group_id).await?;
+            let group = clients.get_variable_group(project_id, group_id, projects).await?;
             Ok(serde_json::to_string(&group).unwrap())
         }
 
@@ -367,9 +479,16 @@ const SYSTEM_PROMPT: &str =
     "You are ADOLens Assistant, a read-only expert on Azure DevOps variable groups (libraries). \
 You have READ-ONLY access to Azure DevOps. You can only look up data — you cannot create, \
 update, rename, delete, or modify anything. Never suggest, attempt, or imply any write operation. \
-Use the available tools to look up projects and variable groups to answer questions accurately. \
+You have NO built-in knowledge of the user's organisation. All project names, variable groups, and \
+variable values MUST be obtained by calling the provided tools. Never invent, guess, or list \
+projects or libraries from memory. When the user asks for a list of projects (e.g. \"list projects\", \
+\"what projects are there\", \"show me projects\"), you MUST call the list_projects tool and then \
+report exactly what it returns — do not answer with project names without calling the tool. \
 Never guess variable values — always fetch them with tools first. \
 Secret variable values are masked as [secret] by the system; never claim to know their actual content. \
+Users refer to projects by name. Pass the project name to list_variable_groups and get_variable_group; \
+the system resolves names (case-insensitive, typos tolerated). \
+If a tool returns an error about no project matching, call list_projects and use the project name from the list that best matches. \
 Be concise and factual. Format lists using markdown bullet points.";
 
 /// Execute one chat turn through the full agentic loop. Calls tools as needed
@@ -393,6 +512,10 @@ pub async fn ai_chat(
     }))
     .chain(messages.iter().map(|m| serde_json::to_value(m).unwrap()))
     .collect();
+
+    // Fetch all projects once so every tool call (list_projects, list_variable_groups,
+    // get_variable_group) uses the same list for name resolution and responses.
+    let project_list = clients.list_projects().await?;
 
     for _ in 0..10 {
         let resp = http
@@ -426,7 +549,7 @@ pub async fn ai_chat(
                 },
             );
 
-            let result = execute_tool(&clients, call)
+            let result = execute_tool(&clients, call, Some(&project_list))
                 .await
                 .unwrap_or_else(|e| format!("{{\"error\":\"{e}\"}}"));
 

@@ -13,6 +13,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import type { DraftChange } from '../../hooks/useVariableBuffer'
+import { Tooltip } from '../ui/Tooltip'
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -82,7 +83,7 @@ export function PushReviewModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        className="modal-backdrop"
         onClick={(e) => {
           if (e.target === e.currentTarget && !isPushing) onClose()
         }}
@@ -92,7 +93,7 @@ export function PushReviewModal({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.18, ease: 'easeOut' }}
-          className="mx-4 w-full max-w-2xl rounded-2xl bg-slate-900 shadow-2xl ring-1 ring-slate-700/50"
+          className="app-modal-panel mx-4 w-full max-w-2xl rounded-2xl bg-slate-900 shadow-2xl ring-1 ring-slate-700/50"
         >
           {/* ── Header ────────────────────────────────────────────────────── */}
           <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
@@ -119,7 +120,7 @@ export function PushReviewModal({
                 <button
                   onClick={handleDiscardAll}
                   disabled={isPushing}
-                  className="flex items-center gap-1.5 rounded-lg border border-red-800/50 bg-red-900/20 px-3 py-1.5 text-xs font-medium text-red-400 transition hover:bg-red-900/40 hover:text-red-300 disabled:opacity-50"
+                  className="discard-btn flex items-center gap-1.5 rounded-lg border border-red-800/50 bg-red-950/40 px-3 py-1.5 text-xs font-medium text-red-400 transition hover:bg-red-950/60 hover:text-red-300 disabled:opacity-50"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   {t('modals.push.discardAll')}
@@ -139,7 +140,7 @@ export function PushReviewModal({
 
           {/* ── Warning bar ───────────────────────────────────────────────── */}
           {!isEmpty && (
-            <div className="mx-6 mt-4 flex items-start gap-2 rounded-lg bg-amber-500/10 px-4 py-3 text-xs text-amber-400 ring-1 ring-amber-500/20">
+            <div className="app-modal-warning mx-6 mt-4 flex items-start gap-2 rounded-lg bg-amber-500/10 px-4 py-3 text-xs text-amber-400 ring-1 ring-amber-500/20">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span>{t('modals.push.warning')}</span>
             </div>
@@ -155,7 +156,7 @@ export function PushReviewModal({
             </div>
           ) : (
             /* Diff tables */
-            <div className="mx-6 my-4 flex flex-col gap-4 max-h-96 overflow-auto">
+            <div className="mx-8 my-4 flex flex-col gap-4 max-h-96 overflow-x-hidden overflow-y-auto">
               {/* ── Modified / synced variables ─────────────────────────── */}
               {(() => {
                 const modified = draftChanges.filter(
@@ -170,14 +171,14 @@ export function PushReviewModal({
                         {modified.length}
                       </span>
                     </p>
-                    <div className="rounded-lg ring-1 ring-slate-700/50">
-                      <table className="w-full border-collapse text-sm">
+                    <div className="rounded-lg ring-1 ring-slate-700/50 overflow-hidden">
+                      <table className="w-full table-fixed border-collapse text-sm">
                         <thead className="sticky top-0 bg-slate-800">
                           <tr>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th className="w-1/4 px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                               {t('modals.push.variableKey')}
                             </th>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th className="w-2/5 px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                               {t('modals.push.oldValue')}
                             </th>
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -191,8 +192,12 @@ export function PushReviewModal({
                               key={change.key}
                               className="border-t border-slate-800/80 hover:bg-slate-800/30"
                             >
-                              <td className="mono px-4 py-2.5 text-slate-200">{change.key}</td>
-                              <td className="mono px-4 py-2.5">
+                              <td className="mono max-w-0 truncate px-4 py-2.5 text-slate-200">
+                                <Tooltip content={change.key} side="top" delayDuration={800}>
+                                  <span className="block truncate">{change.key}</span>
+                                </Tooltip>
+                              </td>
+                              <td className="mono max-w-0 truncate px-4 py-2.5">
                                 {change.isSecret ? (
                                   <span className="flex items-center gap-1 text-slate-600">
                                     <Lock className="h-3 w-3" />
@@ -201,29 +206,41 @@ export function PushReviewModal({
                                 ) : change.oldValue === undefined ? (
                                   <em className="text-slate-600">—</em>
                                 ) : (
-                                  <span className="rounded bg-red-500/10 px-1.5 py-0.5 text-red-400 line-through">
-                                    {change.oldValue || (
-                                      <em className="not-italic text-slate-600 no-underline">
-                                        {t('modals.push.empty')}
-                                      </em>
-                                    )}
-                                  </span>
+                                  <Tooltip
+                                    content={change.oldValue || t('modals.push.empty')}
+                                    side="top"
+                                    delayDuration={800}
+                                  >
+                                    <span className="inline-block max-w-full truncate rounded bg-red-500/10 px-1.5 py-0.5 text-red-400 line-through">
+                                      {change.oldValue || (
+                                        <em className="not-italic text-slate-600 no-underline">
+                                          {t('modals.push.empty')}
+                                        </em>
+                                      )}
+                                    </span>
+                                  </Tooltip>
                                 )}
                               </td>
-                              <td className="mono px-4 py-2.5">
+                              <td className="mono max-w-0 truncate px-4 py-2.5">
                                 {change.isSecret ? (
                                   <span className="flex items-center gap-1 text-slate-600">
                                     <Lock className="h-3 w-3" />
                                     <em>{t('modals.push.secretOverwritten')}</em>
                                   </span>
                                 ) : (
-                                  <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-400">
-                                    {change.newValue || (
-                                      <em className="not-italic text-slate-600">
-                                        {t('modals.push.empty')}
-                                      </em>
-                                    )}
-                                  </span>
+                                  <Tooltip
+                                    content={change.newValue || t('modals.push.empty')}
+                                    side="top"
+                                    delayDuration={800}
+                                  >
+                                    <span className="inline-block max-w-full truncate rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-400">
+                                      {change.newValue || (
+                                        <em className="not-italic text-slate-600">
+                                          {t('modals.push.empty')}
+                                        </em>
+                                      )}
+                                    </span>
+                                  </Tooltip>
                                 )}
                               </td>
                             </tr>
@@ -246,15 +263,15 @@ export function PushReviewModal({
                         {renamed.length}
                       </span>
                     </p>
-                    <div className="rounded-lg ring-1 ring-slate-700/50">
-                      <table className="w-full border-collapse text-sm">
+                    <div className="rounded-lg ring-1 ring-slate-700/50 overflow-hidden">
+                      <table className="w-full table-fixed border-collapse text-sm">
                         <thead className="sticky top-0 bg-slate-800">
                           <tr>
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th className="w-1/4 px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                               {t('modals.push.oldKey')}
                             </th>
                             <th className="w-6" />
-                            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                            <th className="w-1/4 px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                               {t('modals.push.newKey')}
                             </th>
                             <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -270,39 +287,55 @@ export function PushReviewModal({
                                 key={change.key}
                                 className="border-t border-slate-800/80 hover:bg-slate-800/30"
                               >
-                                <td className="mono px-4 py-2.5 text-slate-500 line-through">
-                                  {change.key}
+                                <td className="mono max-w-0 truncate px-4 py-2.5 text-slate-500 line-through">
+                                  <Tooltip content={change.key} side="top" delayDuration={800}>
+                                    <span className="block truncate">{change.key}</span>
+                                  </Tooltip>
                                 </td>
                                 <td className="py-2.5 text-slate-600">
                                   <ArrowRight className="h-3.5 w-3.5" />
                                 </td>
-                                <td className="mono px-4 py-2.5">
-                                  <span className="rounded bg-blue-500/10 px-1.5 py-0.5 font-semibold text-blue-300">
-                                    {change.newKey}
-                                  </span>
+                                <td className="mono max-w-0 truncate px-4 py-2.5">
+                                  <Tooltip content={change.newKey} side="top" delayDuration={800}>
+                                    <span className="inline-block max-w-full truncate rounded bg-blue-500/10 px-1.5 py-0.5 font-semibold text-blue-300">
+                                      {change.newKey}
+                                    </span>
+                                  </Tooltip>
                                 </td>
-                                <td className="mono px-4 py-2.5">
+                                <td className="mono max-w-0 truncate px-4 py-2.5">
                                   {change.isSecret ? (
                                     <span className="flex items-center gap-1 text-slate-600">
                                       <Lock className="h-3 w-3" />
                                       <em>{t('modals.push.secret')}</em>
                                     </span>
                                   ) : valueChanged ? (
-                                    <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-400">
-                                      {change.newValue || (
-                                        <em className="not-italic text-slate-600">
-                                          {t('modals.push.empty')}
-                                        </em>
-                                      )}
-                                    </span>
+                                    <Tooltip
+                                      content={change.newValue || t('modals.push.empty')}
+                                      side="top"
+                                      delayDuration={800}
+                                    >
+                                      <span className="inline-block max-w-full truncate rounded bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-400">
+                                        {change.newValue || (
+                                          <em className="not-italic text-slate-600">
+                                            {t('modals.push.empty')}
+                                          </em>
+                                        )}
+                                      </span>
+                                    </Tooltip>
                                   ) : (
-                                    <span className="text-slate-500">
-                                      {change.newValue || (
-                                        <em className="not-italic text-slate-600">
-                                          {t('modals.push.empty')}
-                                        </em>
-                                      )}
-                                    </span>
+                                    <Tooltip
+                                      content={change.newValue || t('modals.push.empty')}
+                                      side="top"
+                                      delayDuration={800}
+                                    >
+                                      <span className="inline-block max-w-full truncate text-slate-500">
+                                        {change.newValue || (
+                                          <em className="not-italic text-slate-600">
+                                            {t('modals.push.empty')}
+                                          </em>
+                                        )}
+                                      </span>
+                                    </Tooltip>
                                   )}
                                 </td>
                               </tr>

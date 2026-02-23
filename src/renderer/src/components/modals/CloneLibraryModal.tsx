@@ -51,14 +51,14 @@ export function CloneLibraryModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={handleBackdropClick}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        className="modal-backdrop"
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0, y: 8 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 8 }}
           transition={{ duration: 0.15 }}
-          className="w-[420px] rounded-xl border border-slate-700/60 bg-slate-900/95 shadow-2xl"
+          className="app-modal-panel w-[420px] rounded-xl border border-slate-700/60 bg-slate-900/95 shadow-2xl"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4">

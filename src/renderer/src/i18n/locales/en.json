@@ -170,6 +170,11 @@
       "ai": "AI Assistant"
     },
     "appearance": {
+      "theme": "Theme",
+      "themeDescription": "Appearance follows your choice or the system setting",
+      "themeDark": "Dark",
+      "themeLight": "Light",
+      "themeSystem": "System",
       "language": "Language",
       "languageDescription": "Choose the application display language",
       "paneSplit": "Default pane layout",
@@ -262,7 +267,9 @@
       "List variables in library X in the project Y"
     ],
     "inputPlaceholder": "Ask about your variable groups…",
-    "inputHint": "Enter to send · Shift+Enter for new line"
+    "inputHint": "Enter to send · Shift+Enter for new line",
+    "copy": "Copy",
+    "resetContext": "Reset chat and start again"
   },
   "modals": {
     "review": {

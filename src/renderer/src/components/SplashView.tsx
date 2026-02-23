@@ -8,7 +8,7 @@ export function SplashView(): React.JSX.Element {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-8 bg-slate-950"
+      className="splash-view fixed inset-0 z-[100] flex flex-col items-center justify-center gap-8 bg-slate-950"
     >
       {/* App icon */}
       <motion.div

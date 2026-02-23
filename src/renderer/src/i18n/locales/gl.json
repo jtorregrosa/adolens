@@ -170,6 +170,11 @@
       "ai": "Asistente IA"
     },
     "appearance": {
+      "theme": "Tema",
+      "themeDescription": "A aparencia segue a túa elección ou a do sistema",
+      "themeDark": "Escuro",
+      "themeLight": "Claro",
+      "themeSystem": "Sistema",
       "language": "Idioma",
       "languageDescription": "Escolle o idioma de visualización da aplicación",
       "paneSplit": "Disposición de paneis predeterminada",
@@ -262,7 +267,9 @@
       "Lista as variables da biblioteca X no proxecto Y"
     ],
     "inputPlaceholder": "Pregunta sobre os teus grupos de variables…",
-    "inputHint": "Intro para enviar · Maiús+Intro para nova liña"
+    "inputHint": "Intro para enviar · Maiús+Intro para nova liña",
+    "copy": "Copiar",
+    "resetContext": "Reiniciar chat e comezar de novo"
   },
   "modals": {
     "review": {

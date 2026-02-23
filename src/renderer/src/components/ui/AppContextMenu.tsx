@@ -29,7 +29,7 @@ export function AppContextMenu({ items, children }: AppContextMenuProps): React.
         <ContextMenu.Content
           className={[
             // Glassmorphism base
-            'z-50 min-w-[180px] overflow-hidden rounded-lg border border-slate-700/60',
+            'app-menu-content z-50 min-w-[180px] overflow-hidden rounded-lg border border-slate-700/60',
             'bg-slate-900/90 shadow-2xl backdrop-blur-xl',
             // Entrance animation
             'animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2',
@@ -39,7 +39,7 @@ export function AppContextMenu({ items, children }: AppContextMenuProps): React.
           {items.map((item) => (
             <div key={item.label}>
               {item.dividerBefore && (
-                <ContextMenu.Separator className="my-1 h-px bg-slate-700/60" />
+                <ContextMenu.Separator className="app-menu-separator my-1 h-px bg-slate-700/60" />
               )}
               <ContextMenu.Item
                 disabled={item.disabled}

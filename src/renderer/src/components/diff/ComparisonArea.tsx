@@ -525,7 +525,7 @@ export function ComparisonArea(): React.JSX.Element {
                 />
               )}
               {hasLeft && (
-                <div className="flex h-10 w-full shrink-0 items-center border-t border-blue-500/20 bg-blue-500/5 px-4 py-2">
+                <div className="pane-header-left flex h-10 w-full shrink-0 items-center border-t border-blue-500/20 bg-blue-500/5 px-4 py-2">
                   <DiffStats
                     stats={diff.stats}
                     side="left"
@@ -610,7 +610,7 @@ export function ComparisonArea(): React.JSX.Element {
                 />
               )}
               {hasRight && (
-                <div className="flex h-10 w-full shrink-0 items-center border-t border-fuchsia-500/20 bg-fuchsia-500/5 px-4 py-2">
+                <div className="pane-header-right flex h-10 w-full shrink-0 items-center border-t border-fuchsia-500/20 bg-fuchsia-500/5 px-4 py-2">
                   <DiffStats
                     stats={diff.stats}
                     side="right"
@@ -653,7 +653,7 @@ export function ComparisonArea(): React.JSX.Element {
 
       {/* ── Confirm Discard Dialog ─────────────────────────────────────────── */}
       {discardConfirmSide && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="modal-backdrop">
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-slate-900 p-6 ring-1 ring-slate-700/50 shadow-2xl">
             <div className="mb-1 flex items-center gap-2.5">
               <Trash2 className="h-5 w-5 shrink-0 text-red-400" />

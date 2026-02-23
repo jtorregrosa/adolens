@@ -170,6 +170,11 @@
       "ai": "Assistent IA"
     },
     "appearance": {
+      "theme": "Tema",
+      "themeDescription": "L'aparença segueix la teva tria o la del sistema",
+      "themeDark": "Fosc",
+      "themeLight": "Clar",
+      "themeSystem": "Sistema",
       "language": "Idioma",
       "languageDescription": "Tria l'idioma de visualització de l'aplicació",
       "paneSplit": "Disposició de panells predeterminada",
@@ -262,7 +267,9 @@
       "Lista les variables de la biblioteca X al projecte Y"
     ],
     "inputPlaceholder": "Pregunta sobre els teus grups de variables…",
-    "inputHint": "Intro per enviar · Maj+Intro per nova línia"
+    "inputHint": "Intro per enviar · Maj+Intro per nova línia",
+    "copy": "Copiar",
+    "resetContext": "Reiniciar xat i començar de nou"
   },
   "modals": {
     "review": {

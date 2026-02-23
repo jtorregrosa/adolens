@@ -64,7 +64,7 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        className="modal-backdrop"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose()
         }}
@@ -74,7 +74,7 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="mx-4 flex w-full max-w-2xl flex-col rounded-2xl bg-slate-900 ring-1 ring-slate-700/50"
+          className="app-modal-panel mx-4 flex w-full max-w-2xl flex-col rounded-2xl bg-slate-900 ring-1 ring-slate-700/50"
           style={{ maxHeight: '82vh' }}
         >
           {/* ── Header ──────────────────────────────────────────── */}
@@ -128,15 +128,15 @@ export function ExportModal({ variables, groupName, onClose }: Props): React.JSX
           </div>
 
           {/* ── Code preview (scrollable) ────────────────────────── */}
-          <div className="min-h-0 flex-1 overflow-auto bg-slate-950">
+          <div className="export-modal-code min-h-0 flex-1 overflow-auto bg-slate-950">
             <table className="w-full border-collapse font-mono text-xs leading-[1.6]">
               <tbody>
                 {lines.map((line, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: stable ordered lines from serialized content
-                  <tr key={i} className="group hover:bg-white/[0.03]">
+                  <tr key={i} className="export-modal-code-row group hover:bg-white/[0.03]">
                     {/* Line number */}
                     <td
-                      className="select-none border-r border-slate-800 px-4 py-0 text-right text-slate-700 group-hover:text-slate-600"
+                      className="export-modal-code-linenum select-none border-r border-slate-800 px-4 py-0 text-right text-slate-700 group-hover:text-slate-600"
                       style={{ width: '3.5rem', minWidth: '3.5rem' }}
                     >
                       {i + 1}

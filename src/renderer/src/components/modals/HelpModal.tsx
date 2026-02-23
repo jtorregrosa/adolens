@@ -122,7 +122,7 @@ export function HelpModal({ onClose }: Props): React.JSX.Element {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        className="modal-backdrop"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose()
         }}
@@ -134,7 +134,7 @@ export function HelpModal({ onClose }: Props): React.JSX.Element {
           exit={{ scale: 0.96, opacity: 0 }}
           transition={{ duration: 0.18 }}
           onClick={(e) => e.stopPropagation()}
-          className="mx-4 flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-slate-700/50 shadow-2xl"
+          className="app-modal-panel mx-4 flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-slate-900 ring-1 ring-slate-700/50 shadow-2xl"
           style={{ height: 640 }}
         >
           {/* Header — same as Settings */}

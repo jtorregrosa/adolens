@@ -154,16 +154,18 @@ function LibraryRow({
           <div className="flex gap-1 opacity-0 transition group-hover:opacity-100">
             <Tooltip content={t('sidebar.loadLeftPane')} side="top">
               <button
+                type="button"
                 onClick={() => onSelect('left')}
-                className={`rounded px-2 py-1 text-xs font-bold transition ${isLeft ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-blue-600/70 hover:text-white'}`}
+                className={`sidebar-library-load-btn is-left rounded px-2 py-1 text-xs font-bold transition ${isLeft ? 'bg-blue-600 text-white' : 'bg-blue-500/30 text-blue-300 hover:bg-blue-600/70 hover:text-white'}`}
               >
                 {t('sidebar.left').charAt(0)}
               </button>
             </Tooltip>
             <Tooltip content={t('sidebar.loadRightPane')} side="top">
               <button
+                type="button"
                 onClick={() => onSelect('right')}
-                className={`rounded px-2 py-1 text-xs font-bold transition ${isRight ? 'bg-fuchsia-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-fuchsia-600/70 hover:text-white'}`}
+                className={`sidebar-library-load-btn is-right rounded px-2 py-1 text-xs font-bold transition ${isRight ? 'bg-fuchsia-600 text-white' : 'bg-fuchsia-500/30 text-fuchsia-300 hover:bg-fuchsia-600/70 hover:text-white'}`}
               >
                 {t('sidebar.right').charAt(0)}
               </button>
@@ -507,7 +509,7 @@ export function Sidebar(): React.JSX.Element {
   const hasFavorites = favoriteProjectIds.length > 0 && favoriteProjects.length > 0
 
   return (
-    <div className="flex h-full w-full flex-col bg-slate-900">
+    <div className="sidebar-inner flex h-full w-full flex-col bg-slate-900">
       {/* Header */}
       <div className="flex h-10 items-center justify-between border-b border-slate-800 px-2">
         {!sidebarCollapsed && (
@@ -552,7 +554,7 @@ export function Sidebar(): React.JSX.Element {
             {/* Top scroll shade */}
             <div
               aria-hidden
-              className={`pointer-events-none absolute left-0 right-0 top-0 z-10 h-6 transition-opacity duration-200 ${
+              className={`sidebar-scroll-shade-top pointer-events-none absolute left-0 right-0 top-0 z-10 h-6 transition-opacity duration-200 ${
                 scrollShadeTop ? 'opacity-100' : 'opacity-0'
               }`}
               style={{
@@ -563,7 +565,7 @@ export function Sidebar(): React.JSX.Element {
             {/* Bottom scroll shade */}
             <div
               aria-hidden
-              className={`pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-6 transition-opacity duration-200 ${
+              className={`sidebar-scroll-shade-bottom pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-6 transition-opacity duration-200 ${
                 scrollShadeBottom ? 'opacity-100' : 'opacity-0'
               }`}
               style={{
@@ -634,10 +636,11 @@ export function Sidebar(): React.JSX.Element {
           </div>
 
           {/* Footer — same height as pane header and stats footer (h-10) */}
-          <div className="flex h-10 shrink-0 items-center justify-center border-t border-slate-800 bg-red-950/60 px-2 py-2">
+          <div className="sidebar-disconnect-footer flex h-10 shrink-0 items-center justify-center border-t border-red-900/60 bg-red-950/80 px-2 py-2">
             <button
+              type="button"
               onClick={handleLogout}
-              className="flex w-full items-center justify-center gap-2 rounded-md px-2 py-1.5 text-xs text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
+              className="sidebar-disconnect-btn flex w-full items-center justify-center gap-2 rounded-md px-2 py-1.5 text-xs text-red-200 transition hover:bg-red-900/50 hover:text-red-100"
             >
               <LogOut className="h-3.5 w-3.5" />
               {t('sidebar.disconnect')}

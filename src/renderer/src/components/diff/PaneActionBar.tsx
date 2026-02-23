@@ -45,8 +45,8 @@ export function PaneActionBar({
 
   return (
     <>
-      <div className="flex shrink-0 items-center justify-center border-t border-slate-800 bg-slate-950 px-4 py-2">
-        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-slate-900/80 px-2 py-1.5 shadow-sm backdrop-blur-md">
+      <div className="pane-action-bar-wrap flex shrink-0 items-center justify-center border-t border-slate-800 bg-slate-950 px-4 py-2">
+        <div className="pane-action-bar-inner flex items-center gap-1 rounded-full border border-white/10 bg-slate-900/80 px-2 py-1.5 shadow-sm backdrop-blur-md">
           {/* ── Push Changes ──────────────────────────────────── */}
           <ActionButton
             label={t('actionBar.reviewAndPush')}
@@ -143,7 +143,7 @@ function ActionButton({
         aria-label={label}
         onClick={onClick}
         disabled={disabled}
-        className="relative flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-white/10 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+        className="pane-action-btn relative flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-white/10 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {children}
         <span className="hidden sm:inline">{label}</span>
@@ -160,5 +160,7 @@ function ActionButton({
 }
 
 function Divider(): React.JSX.Element {
-  return <span className="mx-1 h-4 w-px shrink-0 rounded-full bg-white/10" />
+  return (
+    <span className="pane-action-bar-divider mx-1 h-4 w-px shrink-0 rounded-full bg-white/10" />
+  )
 }

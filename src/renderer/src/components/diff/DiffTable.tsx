@@ -369,21 +369,23 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex h-8 shrink-0 items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 text-xs text-amber-400"
+          className="diff-pending-bar flex h-8 shrink-0 items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 text-xs text-amber-400"
         >
           <span className="font-semibold">
             {t('diff.pendingChanges', { count: totalPendingCount })}
           </span>
           <button
+            type="button"
             onClick={onOpenReview}
-            className="ml-auto flex items-center gap-1.5 rounded bg-amber-500/20 px-2 py-0.5 font-medium transition hover:bg-amber-500/30"
+            className="diff-pending-review-btn ml-auto flex items-center gap-1.5 rounded border border-amber-500/50 bg-amber-500/20 px-2 py-0.5 font-medium transition hover:bg-amber-500/30"
           >
             <CloudUpload className="h-3.5 w-3.5" />
             {t('diff.reviewAndPush')}
           </button>
           <button
+            type="button"
             onClick={() => onDiscard?.()}
-            className="flex items-center gap-1.5 rounded border border-red-800/50 bg-red-900/20 px-2 py-0.5 font-medium text-red-400 transition hover:bg-red-900/40 hover:text-red-300"
+            className="discard-btn diff-pending-discard-btn flex items-center gap-1.5 rounded border border-red-800/50 bg-red-950/40 px-2 py-0.5 font-medium text-red-400 transition hover:bg-red-950/60 hover:text-red-300"
           >
             <Trash2 className="h-3.5 w-3.5" />
             {t('diff.discard')}
@@ -426,7 +428,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
       {/* Table */}
       <div
         ref={ref}
-        className="flex-1 overflow-auto"
+        className="flex-1 overflow-x-hidden overflow-y-auto"
         style={side === 'left' ? { direction: 'rtl' } : undefined}
       >
         <table className="diff-table w-full border-collapse" style={{ direction: 'ltr' }}>
@@ -698,7 +700,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                         </span>
                       ) : isDeleted ? (
                         <Tooltip content={row.key} side="top" delayDuration={800}>
-                          <span className="mono selectable block min-h-6 w-fit max-w-full truncate py-0.5 text-sm text-slate-400 line-through">
+                          <span className="mono selectable block min-h-6 w-fit max-w-full truncate py-0.5 text-sm font-bold text-slate-400 line-through">
                             {row.key}
                           </span>
                         </Tooltip>
@@ -738,7 +740,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                         >
                           <span
                             className={`mono selectable block min-h-6 w-fit max-w-full cursor-text truncate rounded py-0.5 text-sm text-slate-300 ${
-                              isKeyRenamed ? 'font-bold' : ''
+                              isKeyRenamed || isAddedToThisLibrary ? 'font-bold' : ''
                             }`}
                             onClick={() => !isDeleted && startKeyEdit(row.key)}
                           >
@@ -757,7 +759,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                           &nbsp;
                         </span>
                       ) : isDeleted ? (
-                        <span className="mono block min-h-6 truncate py-0.5 text-sm text-slate-400 line-through">
+                        <span className="mono block min-h-6 truncate py-0.5 text-sm font-bold text-slate-400 line-through">
                           {variable.isSecret
                             ? SECRET_PLACEHOLDER
                             : variable.value || (
@@ -816,7 +818,8 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
                           <span
                             className={`mono selectable block min-h-6 w-full min-w-0 cursor-text truncate rounded text-sm text-slate-300 py-0.5 ${
                               ownEdits.some((e) => e.key === row.key) ||
-                              (otherGroup && row.status === 'modified')
+                              (otherGroup && row.status === 'modified') ||
+                              isAddedToThisLibrary
                                 ? 'font-bold'
                                 : ''
                             }`}
