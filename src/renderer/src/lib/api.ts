@@ -93,3 +93,32 @@ export async function updateVariableGroup(
 export async function setRequestTimeout(secs: number): Promise<void> {
   await invoke('set_request_timeout', { secs })
 }
+
+// ─── AI Assistant ─────────────────────────────────────────────────────────────
+
+export interface AiChatMessage {
+  role: string
+  content?: string | null
+  tool_calls?: Array<{ function: { name: string; arguments: Record<string, unknown> } }>
+}
+
+export async function aiCheckOllama(): Promise<boolean> {
+  return invoke<boolean>('ai_check_ollama')
+}
+
+export async function aiCheckModel(model: string): Promise<boolean> {
+  return invoke<boolean>('ai_check_model', { model })
+}
+
+export async function aiPullModel(model: string): Promise<void> {
+  await invoke('ai_pull_model', { model })
+}
+
+export async function aiChat(messages: AiChatMessage[], model: string): Promise<AiChatMessage> {
+  return invoke<AiChatMessage>('ai_chat', { messages, model })
+}
+
+/** Returns a short GPU description if Ollama can use one, null if CPU-only. */
+export async function aiCheckGpu(): Promise<string | null> {
+  return invoke<string | null>('ai_check_gpu')
+}

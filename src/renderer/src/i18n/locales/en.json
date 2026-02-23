@@ -9,12 +9,28 @@
     "orgUrlPlaceholder": "https://dev.azure.com/your-org",
     "pat": "Personal Access Token",
     "patHint": "Requires Read & Write access on Variable Groups (Library scope)",
+    "patInstructionPrefix": "Click ",
+    "patInstructionLink": "here",
+    "patInstructionSuffix": " for token generation instructions.",
+    "patModal": {
+      "title": "How to create a Personal Access Token",
+      "intro": "Create a PAT in Azure DevOps to authenticate ADOLens with your organization.",
+      "stepsTitle": "Steps",
+      "step1": "In Azure DevOps, open User settings (top right) → Personal access tokens.",
+      "step2": "Click New token. Give it a name and choose an expiration.",
+      "step3": "Under Scopes, select Custom defined and enable the permissions below.",
+      "step4": "Create the token and paste it into ADOLens. Store it securely.",
+      "requiredPermissions": "Required permissions",
+      "librariesPermission": "Library (Variable Groups): Read & execute, and Read & write for Variable Groups — to view and edit variable groups.",
+      "profilePermission": "User Profile: Read — to identify your user and access organization resources."
+    },
     "connect": "Connect",
     "connecting": "Connecting...",
     "rememberToken": "Remember token between sessions",
     "patStored": "Your PAT is stored securely in the OS keychain",
     "patStoredSession": "Your PAT is only stored for this session",
     "recentOrgs": "Recent organizations",
+    "noMatchingOrgs": "No matching URLs — type a new one above",
     "toast": {
       "missingFields": "Please fill in all fields",
       "success": "Connected successfully",
@@ -90,6 +106,7 @@
     "left": "Left",
     "right": "Right",
     "noGroupSelected": "No group selected",
+    "unloadTooltip": "Unload this pane",
     "empty": "{{label}} pane empty",
     "emptyHint": "Select a Variable Group from the sidebar (L / R buttons)",
     "vars": "vars",
@@ -116,6 +133,8 @@
     "refreshTooltip": "Refresh both panes",
     "unload": "Unload",
     "unloadTooltip": "Unload both panes",
+    "ask": "Ask",
+    "askTooltip": "Ask AI about your variable groups",
     "avatarAlt": "User avatar",
     "organization": "Organization",
     "importedVariables": "{{count}} variable(s) imported — review and push when ready"
@@ -130,7 +149,8 @@
       "appearance": "Appearance",
       "behavior": "Behavior",
       "exportImport": "Export / Import",
-      "connection": "Connection"
+      "connection": "Connection",
+      "ai": "AI Assistant"
     },
     "appearance": {
       "language": "Language",
@@ -165,7 +185,63 @@
       "orgUrlHistoryDescription": "Previously used URLs appear as suggestions on the login screen",
       "clearHistory": "Clear history",
       "noHistory": "No URLs saved yet"
+    },
+    "ai": {
+      "enable": "Enable AI Assistant",
+      "enableDescription": "Use an offline language model to query your variable groups via natural language. Requires Ollama.",
+      "ollamaNotRunning": "Ollama is not running",
+      "ollamaInstallHint": "Install Ollama and make sure it is running before enabling this feature.",
+      "tierLight": "Light",
+      "tierLightHint": "1 – 2 GB · fast inference · all confirmed reliable for tool calling",
+      "tierStandard": "Standard",
+      "tierStandardHint": "2.5 – 5 GB · better reasoning · recommended with a GPU",
+      "model": "Model",
+      "modelDescription": "All listed models have been verified to handle tool calling reliably. Sub-1B models (e.g. Llama 3.2 1B) are excluded — they produce malformed function calls.",
+      "checkingModel": "Checking model status…",
+      "modelReady": "Model ready",
+      "gpuChecking": "Checking GPU…",
+      "gpuFound": "GPU acceleration —",
+      "gpuNotFound": "No GPU detected — running on CPU (inference may be slower)",
+      "modelNotDownloaded": "Model is not downloaded yet.",
+      "downloadModel": "Download Model",
+      "downloading": "Downloading…",
+      "error": "An error occurred",
+      "retry": "Retry",
+      "checkStatus": "Check status",
+      "modelNote": {
+        "fastest": "Fastest",
+        "fast": "Fast",
+        "balanced": "Balanced",
+        "microsoft": "Microsoft",
+        "recommended": "Recommended",
+        "alternative": "Alternative"
+      }
     }
+  },
+  "ai": {
+    "title": "ADOLens Assistant",
+    "toolListingProjects": "Listing projects",
+    "toolListingLibraries": "Listing libraries",
+    "toolFetchingLibrary": "Fetching library",
+    "toolCallCount": "{{count}} tool call",
+    "toolCallCount_plural": "{{count}} tool calls",
+    "errorPrefix": "Error",
+    "notEnabled": "AI Assistant is not enabled",
+    "notEnabledHint": "Enable it in Settings → AI Assistant",
+    "openSettings": "Open Settings",
+    "ollamaOffline": "Ollama is not running",
+    "ollamaOfflineHint": "Start Ollama or install it from ollama.com, then retry.",
+    "retry": "Retry",
+    "modelMissing": "Model not downloaded",
+    "modelMissingHint": "Download the \"{{model}}\" model in Settings → AI Assistant.",
+    "emptyHint": "Ask anything about your variable groups",
+    "suggestions": [
+      "What is the value of API_URL in production?",
+      "List all libraries in the Platform project",
+      "Which variables differ between staging and prod?"
+    ],
+    "inputPlaceholder": "Ask about your variable groups…",
+    "inputHint": "Enter to send · Shift+Enter for new line"
   },
   "modals": {
     "review": {
@@ -254,5 +330,12 @@
       "clone": "Clone Library",
       "cloning": "Cloning…"
     }
+  },
+  "about": {
+    "description": "Azure DevOps Variable Group Comparison Tool",
+    "author": "Author",
+    "builtWith": "Built with",
+    "source": "Source code",
+    "copyright": "© {{year}} Jorge Torregrosa Lloret. All rights reserved."
   }
 }

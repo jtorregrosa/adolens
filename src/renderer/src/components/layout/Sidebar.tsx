@@ -91,9 +91,20 @@ function LibraryRow({
     }
   ]
 
+  const bgClass =
+    isLeft && isRight
+      ? 'bg-gradient-to-r from-blue-500/20 to-fuchsia-500/20 hover:from-blue-500/30 hover:to-fuchsia-500/30'
+      : isLeft
+        ? 'bg-blue-500/20 hover:bg-blue-500/30'
+        : isRight
+          ? 'bg-fuchsia-500/20 hover:bg-fuchsia-500/30'
+          : 'hover:bg-slate-700/50'
+
   return (
     <AppContextMenu items={libraryMenuItems}>
-      <div className="group flex items-center gap-1 rounded-md px-2 py-1 text-xs text-slate-400 transition hover:bg-slate-700/50">
+      <div
+        className={`group flex items-center gap-1 rounded-md px-2 py-1 text-xs text-slate-400 transition ${bgClass}`}
+      >
         <Layers className="h-3 w-3 shrink-0 text-slate-500" />
         <Tooltip content={groupName} side="top">
           <div className="min-w-0 flex-1 truncate">
@@ -127,7 +138,7 @@ function LibraryRow({
                 onClick={() => onSelect('left')}
                 className={`rounded px-2 py-1 text-xs font-bold transition ${isLeft ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-blue-600/70 hover:text-white'}`}
               >
-                L
+                {t('sidebar.left').charAt(0)}
               </button>
             </Tooltip>
             <Tooltip content={t('sidebar.loadRightPane')} side="top">
@@ -135,7 +146,7 @@ function LibraryRow({
                 onClick={() => onSelect('right')}
                 className={`rounded px-2 py-1 text-xs font-bold transition ${isRight ? 'bg-fuchsia-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-fuchsia-600/70 hover:text-white'}`}
               >
-                R
+                {t('sidebar.right').charAt(0)}
               </button>
             </Tooltip>
           </div>
@@ -590,11 +601,11 @@ export function Sidebar(): React.JSX.Element {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="border-t border-slate-800 p-2">
+          {/* Footer — same height as pane header and stats footer (h-10) */}
+          <div className="flex h-10 shrink-0 items-center justify-center border-t border-slate-800 bg-red-950/60 px-2 py-2">
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-red-400 transition hover:bg-red-500/10 hover:text-red-300"
+              className="flex w-full items-center justify-center gap-2 rounded-md px-2 py-1.5 text-xs text-red-300 transition hover:bg-red-500/20 hover:text-red-200"
             >
               <LogOut className="h-3.5 w-3.5" />
               {t('sidebar.disconnect')}

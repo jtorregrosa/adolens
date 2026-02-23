@@ -19,6 +19,43 @@ body,
 }
 
 /* Animated icons — hover scale app-wide, pulse on “Add variable” */
+@keyframes login-wave-slow {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(-30px) translateY(8px);
+  }
+}
+@keyframes login-wave-mid {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(25px) translateY(-5px);
+  }
+}
+@keyframes login-wave-fast {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(-20px) translateY(10px);
+  }
+}
+.animate-login-wave-slow {
+  animation: login-wave-slow 18s ease-in-out infinite;
+}
+.animate-login-wave-mid {
+  animation: login-wave-mid 22s ease-in-out infinite;
+}
+.animate-login-wave-fast {
+  animation: login-wave-fast 14s ease-in-out infinite;
+}
+
 @keyframes icon-pulse {
   0%,
   100% {

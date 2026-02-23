@@ -4,6 +4,15 @@ import type { ExportFormat } from '../components/modals/exportUtils'
 
 export type PaneSplit = '50/50' | '60/40' | '40/60'
 export type TimeoutSeconds = 15 | 30 | 60
+export type AiModel =
+  // Light — fast inference, lower RAM; confirmed reliable tool calling
+  | 'qwen2.5:1.5b'
+  | 'llama3.2:3b'
+  | 'qwen2.5:3b'
+  // Standard — higher quality answers
+  | 'phi4-mini'
+  | 'qwen2.5:7b'
+  | 'llama3.1:8b'
 
 interface SettingsState {
   // Appearance
@@ -19,6 +28,9 @@ interface SettingsState {
   // Connection
   requestTimeoutSeconds: TimeoutSeconds
   orgUrlHistory: string[]
+  // AI
+  aiEnabled: boolean
+  aiModel: AiModel
 
   // Actions
   setDefaultPaneSplit: (v: PaneSplit) => void
@@ -32,6 +44,8 @@ interface SettingsState {
   addOrgUrlToHistory: (url: string) => void
   removeOrgUrlFromHistory: (url: string) => void
   clearOrgUrlHistory: () => void
+  setAiEnabled: (v: boolean) => void
+  setAiModel: (v: AiModel) => void
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -46,6 +60,8 @@ export const useSettingsStore = create<SettingsState>()(
       includeSecretsInExport: true,
       requestTimeoutSeconds: 15,
       orgUrlHistory: [],
+      aiEnabled: false,
+      aiModel: 'qwen2.5:7b',
 
       setDefaultPaneSplit: (v) => set({ defaultPaneSplit: v }),
       setCompactMode: (v) => set({ compactMode: v }),
@@ -61,7 +77,9 @@ export const useSettingsStore = create<SettingsState>()(
         })),
       removeOrgUrlFromHistory: (url) =>
         set((s) => ({ orgUrlHistory: s.orgUrlHistory.filter((u) => u !== url) })),
-      clearOrgUrlHistory: () => set({ orgUrlHistory: [] })
+      clearOrgUrlHistory: () => set({ orgUrlHistory: [] }),
+      setAiEnabled: (v) => set({ aiEnabled: v }),
+      setAiModel: (v) => set({ aiModel: v })
     }),
     { name: 'adolens-settings' }
   )

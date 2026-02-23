@@ -42,6 +42,8 @@ interface UIState {
   setSearchQuery: (q: string) => void
   setLeftPane: (p: Partial<PaneSelection>) => void
   setRightPane: (p: Partial<PaneSelection>) => void
+  /** Swap left and right pane selections and their associated edits in one atomic update. */
+  swapPanes: () => void
   clearPanes: () => void
 
   /** Upsert an own-pane edit; side must match the pane side. */
@@ -115,6 +117,17 @@ export const useUIStore = create<UIState>((set, get) => ({
       ...(p.groupId !== undefined && p.groupId !== s.rightPane.groupId
         ? { rightOwnEdits: [], rightAddedVars: [], rightDeletedKeys: [] }
         : {})
+    })),
+  swapPanes: () =>
+    set((s) => ({
+      leftPane: s.rightPane,
+      rightPane: s.leftPane,
+      leftOwnEdits: s.rightOwnEdits,
+      rightOwnEdits: s.leftOwnEdits,
+      leftAddedVars: s.rightAddedVars,
+      rightAddedVars: s.leftAddedVars,
+      leftDeletedKeys: s.rightDeletedKeys,
+      rightDeletedKeys: s.leftDeletedKeys
     })),
   clearPanes: () =>
     set({

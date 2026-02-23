@@ -3,6 +3,7 @@ mod commands;
 use azure_devops_rust_api::{core, distributed_task, Credential};
 use commands::{
     ado::{clone_variable_group, get_projects, get_variable_group, get_variable_groups, update_variable_group},
+    ai::{ai_chat, ai_check_gpu, ai_check_model, ai_check_ollama, ai_pull_model},
     auth::{clear_credentials, get_user_profile, load_credentials, save_credentials, set_request_timeout},
     preferences::{load_favorites, save_favorites},
 };
@@ -101,6 +102,11 @@ pub fn run() {
             load_favorites,
             save_favorites,
             set_request_timeout,
+            ai_check_ollama,
+            ai_check_model,
+            ai_check_gpu,
+            ai_pull_model,
+            ai_chat,
         ])
         .run(tauri::generate_context!())
         .expect("error while running ADOLens");

@@ -1,13 +1,23 @@
-import { FolderOpen, Layers } from 'lucide-react'
+import { FolderOpen, Layers, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Tooltip } from '../ui/Tooltip'
 
 interface Props {
   side: 'left' | 'right'
   projectName: string | null
   groupName: string | null
+  /** When set and pane has a group loaded, an unload button is shown next to the label. */
+  onUnload?: () => void
+  hasGroup: boolean
 }
 
-export function PaneHeader({ side, projectName, groupName }: Props): React.JSX.Element {
+export function PaneHeader({
+  side,
+  projectName,
+  groupName,
+  onUnload,
+  hasGroup
+}: Props): React.JSX.Element {
   const { t } = useTranslation()
   const label = side === 'left' ? t('pane.left') : t('pane.right')
 
@@ -33,16 +43,36 @@ export function PaneHeader({ side, projectName, groupName }: Props): React.JSX.E
     <span className="text-xs text-slate-600">{t('pane.noGroupSelected')}</span>
   )
 
+  const unloadBtn =
+    hasGroup && onUnload ? (
+      <Tooltip content={t('pane.unloadTooltip')} side="bottom">
+        <button
+          type="button"
+          onClick={onUnload}
+          className="rounded p-0.5 text-slate-500 transition hover:bg-slate-700 hover:text-slate-300"
+          aria-label={t('pane.unloadTooltip')}
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </Tooltip>
+    ) : null
+
   const labelEl = (
-    <span
-      className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider ${labelStyle}`}
-    >
-      {label}
-    </span>
+    <div className="flex shrink-0 items-center gap-1">
+      {side === 'left' && unloadBtn}
+      <span
+        className={`rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider ${labelStyle}`}
+      >
+        {label}
+      </span>
+      {side === 'right' && unloadBtn}
+    </div>
   )
 
   return (
-    <div className={`flex items-center justify-between gap-2 border-b px-4 py-2 ${borderBg}`}>
+    <div
+      className={`flex h-10 shrink-0 items-center justify-between gap-2 border-b px-4 py-2 ${borderBg}`}
+    >
       {side === 'left' ? breadcrumbs : labelEl}
       {side === 'left' ? labelEl : breadcrumbs}
     </div>

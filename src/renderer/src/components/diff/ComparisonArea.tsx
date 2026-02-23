@@ -1,9 +1,9 @@
 import {
   ArrowLeftRight,
+  Bot,
   GripVertical,
   Info,
   MoreHorizontal,
-  RefreshCw,
   Settings,
   Trash2,
   Unplug
@@ -26,6 +26,8 @@ import { useAuthStore } from '../../store/authStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useUIStore } from '../../store/uiStore'
 import type { AdoVariable } from '../../types'
+import { AiModal } from '../ai/AiModal'
+import { AboutModal } from '../modals/AboutModal'
 import { PushReviewModal } from '../modals/PushReviewModal'
 import { SettingsModal } from '../modals/SettingsModal'
 import { AppDropdownMenu } from '../ui/AppDropdownMenu'
@@ -131,6 +133,8 @@ export function ComparisonArea(): React.JSX.Element {
     rightPane,
     syncScroll,
     setSyncScroll,
+    setLeftPane,
+    setRightPane,
     clearOwnEdits,
     upsertOwnEdit,
     removeOwnEdit,
@@ -140,7 +144,8 @@ export function ComparisonArea(): React.JSX.Element {
     clearDeletedKeys,
     markDeleted,
     unmarkDeleted,
-    clearPanes
+    clearPanes,
+    swapPanes
   } = useUIStore()
 
   // Use fine-grained selectors so the component re-renders exactly when these
@@ -185,6 +190,8 @@ export function ComparisonArea(): React.JSX.Element {
   // Which pane's review modal is currently open (null = closed)
   const [reviewSide, setReviewSide] = useState<'left' | 'right' | null>(null)
   const [showSettings, setShowSettings] = useState(false)
+  const [showAbout, setShowAbout] = useState(false)
+  const [showAi, setShowAi] = useState(false)
   // When confirmBeforeDiscard is on, holds the pending discard side until confirmed.
   const [discardConfirmSide, setDiscardConfirmSide] = useState<'left' | 'right' | null>(null)
 
@@ -372,38 +379,14 @@ export function ComparisonArea(): React.JSX.Element {
           className="flex items-center gap-2"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
-          {/* Swap panes */}
+          {/* Swap panes (pane selections + all local edits in one atomic update) */}
           <Tooltip content={t('toolbar.swapTooltip')} side="bottom">
             <button
-              onClick={() => {
-                const {
-                  setLeftPane,
-                  setRightPane,
-                  leftPane: lp,
-                  rightPane: rp
-                } = useUIStore.getState()
-                const tmp = { ...lp }
-                setLeftPane({ ...rp })
-                setRightPane({ ...tmp })
-              }}
+              onClick={swapPanes}
               className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-800 hover:text-slate-300"
             >
               <ArrowLeftRight className="h-3.5 w-3.5" />
               {t('toolbar.swap')}
-            </button>
-          </Tooltip>
-
-          {/* Refresh */}
-          <Tooltip content={t('toolbar.refreshTooltip')} side="bottom">
-            <button
-              onClick={() => {
-                refetchLeft()
-                refetchRight()
-              }}
-              className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-800 hover:text-slate-300"
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
-              {t('toolbar.refresh')}
             </button>
           </Tooltip>
 
@@ -420,6 +403,18 @@ export function ComparisonArea(): React.JSX.Element {
             </Tooltip>
           )}
         </div>
+
+        {/* Ask AI button */}
+        <Tooltip content={t('toolbar.askTooltip')} side="bottom">
+          <button
+            onClick={() => setShowAi(true)}
+            className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-800 hover:text-blue-400"
+            style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          >
+            <Bot className="h-3.5 w-3.5" />
+            {t('toolbar.ask')}
+          </button>
+        </Tooltip>
 
         {/* Profile badge + app menu — right-aligned, outside the drag region */}
         <div
@@ -438,7 +433,7 @@ export function ComparisonArea(): React.JSX.Element {
               {
                 label: t('appMenu.about'),
                 icon: <Info className="h-3.5 w-3.5" />,
-                onSelect: () => {}
+                onSelect: () => setShowAbout(true)
               }
             ]}
           >
@@ -471,6 +466,15 @@ export function ComparisonArea(): React.JSX.Element {
                 side="left"
                 projectName={leftPane.projectName}
                 groupName={leftPane.groupName}
+                hasGroup={hasLeft}
+                onUnload={() =>
+                  setLeftPane({
+                    projectId: null,
+                    projectName: null,
+                    groupId: null,
+                    groupName: null
+                  })
+                }
               />
               {hasLeft ? (
                 <DiffTable
@@ -512,8 +516,20 @@ export function ComparisonArea(): React.JSX.Element {
                 />
               )}
               {hasBoth && (
-                <div className="flex h-8 w-full shrink-0 items-center border-t border-slate-800 px-4">
-                  <DiffStats stats={diff.stats} side="left" />
+                <div className="flex h-10 w-full shrink-0 items-center border-t border-blue-500/20 bg-blue-500/5 px-4 py-2">
+                  <DiffStats
+                    stats={diff.stats}
+                    side="left"
+                    hasGroup={hasLeft}
+                    onUnload={() =>
+                      setLeftPane({
+                        projectId: null,
+                        projectName: null,
+                        groupId: null,
+                        groupName: null
+                      })
+                    }
+                  />
                 </div>
               )}
             </div>
@@ -535,6 +551,15 @@ export function ComparisonArea(): React.JSX.Element {
                 side="right"
                 projectName={rightPane.projectName}
                 groupName={rightPane.groupName}
+                hasGroup={hasRight}
+                onUnload={() =>
+                  setRightPane({
+                    projectId: null,
+                    projectName: null,
+                    groupId: null,
+                    groupName: null
+                  })
+                }
               />
               {hasRight ? (
                 <DiffTable
@@ -576,8 +601,20 @@ export function ComparisonArea(): React.JSX.Element {
                 />
               )}
               {hasBoth && (
-                <div className="flex h-8 w-full shrink-0 items-center border-t border-slate-800 px-4">
-                  <DiffStats stats={diff.stats} side="right" />
+                <div className="flex h-10 w-full shrink-0 items-center border-t border-fuchsia-500/20 bg-fuchsia-500/5 px-4 py-2">
+                  <DiffStats
+                    stats={diff.stats}
+                    side="right"
+                    hasGroup={hasRight}
+                    onUnload={() =>
+                      setRightPane({
+                        projectId: null,
+                        projectName: null,
+                        groupId: null,
+                        groupName: null
+                      })
+                    }
+                  />
                 </div>
               )}
             </div>
@@ -585,8 +622,22 @@ export function ComparisonArea(): React.JSX.Element {
         </PanelGroup>
       </div>
 
+      {/* ── AI Modal ───────────────────────────────────────────────────────── */}
+      {showAi && (
+        <AiModal
+          onClose={() => setShowAi(false)}
+          onOpenSettings={() => {
+            setShowAi(false)
+            setShowSettings(true)
+          }}
+        />
+      )}
+
       {/* ── Settings Modal ─────────────────────────────────────────────────── */}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+
+      {/* ── About Modal ────────────────────────────────────────────────────── */}
+      {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
 
       {/* ── Confirm Discard Dialog ─────────────────────────────────────────── */}
       {discardConfirmSide && (

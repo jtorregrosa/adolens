@@ -9,12 +9,28 @@
     "orgUrlPlaceholder": "https://dev.azure.com/tu-org",
     "pat": "Token de acceso personal",
     "patHint": "Requiere acceso de lectura y escritura en grupos de variables (ámbito Library)",
+    "patInstructionPrefix": "Haz clic ",
+    "patInstructionLink": "aquí",
+    "patInstructionSuffix": " para ver cómo generar el token.",
+    "patModal": {
+      "title": "Cómo crear un token de acceso personal",
+      "intro": "Crea un PAT en Azure DevOps para que ADOLens se autentique con tu organización.",
+      "stepsTitle": "Pasos",
+      "step1": "En Azure DevOps, abre Configuración de usuario (arriba a la derecha) → Tokens de acceso personal.",
+      "step2": "Pulsa Nuevo token. Ponle un nombre y elige la caducidad.",
+      "step3": "En Ámbitos, elige Definido por usuario y activa los permisos indicados abajo.",
+      "step4": "Crea el token y pégalo en ADOLens. Guárdalo de forma segura.",
+      "requiredPermissions": "Permisos necesarios",
+      "librariesPermission": "Library (Variable Groups): Lectura y ejecución, y Lectura y escritura en Variable Groups — para ver y editar grupos de variables.",
+      "profilePermission": "Perfil de usuario: Lectura — para identificar tu usuario y acceder a los recursos de la organización."
+    },
     "connect": "Conectar",
     "connecting": "Conectando...",
     "rememberToken": "Recordar token entre sesiones",
     "patStored": "Tu PAT se almacena de forma segura en el llavero del sistema operativo",
     "patStoredSession": "Tu PAT solo se almacena durante esta sesión",
     "recentOrgs": "Organizaciones recientes",
+    "noMatchingOrgs": "Ninguna URL coincide — escribe una nueva arriba",
     "toast": {
       "missingFields": "Por favor, rellena todos los campos",
       "success": "Conexión exitosa",
@@ -90,6 +106,7 @@
     "left": "Izquierdo",
     "right": "Derecho",
     "noGroupSelected": "Ningún grupo seleccionado",
+    "unloadTooltip": "Descargar este panel",
     "empty": "Panel {{label}} vacío",
     "emptyHint": "Selecciona un grupo de variables desde la barra lateral (botones I / D)",
     "vars": "vars",
@@ -116,6 +133,8 @@
     "refreshTooltip": "Actualizar ambos paneles",
     "unload": "Descargar",
     "unloadTooltip": "Descargar ambos paneles",
+    "ask": "Preguntar",
+    "askTooltip": "Preguntar a la IA sobre tus grupos de variables",
     "avatarAlt": "Avatar del usuario",
     "organization": "Organización",
     "importedVariables": "{{count}} variable(s) importada(s) — revisa y publica cuando estés listo"
@@ -130,7 +149,8 @@
       "appearance": "Apariencia",
       "behavior": "Comportamiento",
       "exportImport": "Exportar / Importar",
-      "connection": "Conexión"
+      "connection": "Conexión",
+      "ai": "Asistente IA"
     },
     "appearance": {
       "language": "Idioma",
@@ -165,7 +185,63 @@
       "orgUrlHistoryDescription": "Las URLs usadas anteriormente aparecen como sugerencias en la pantalla de inicio",
       "clearHistory": "Borrar historial",
       "noHistory": "No hay URLs guardadas aún"
+    },
+    "ai": {
+      "enable": "Activar asistente IA",
+      "enableDescription": "Usa un modelo de lenguaje local para consultar tus grupos de variables en lenguaje natural. Requiere Ollama.",
+      "ollamaNotRunning": "Ollama no está en ejecución",
+      "ollamaInstallHint": "Instala Ollama y asegúrate de que esté en ejecución antes de activar esta función.",
+      "tierLight": "Ligero",
+      "tierLightHint": "1 – 2 GB · inferencia rápida · todos verificados para llamada a herramientas",
+      "tierStandard": "Estándar",
+      "tierStandardHint": "2.5 – 5 GB · mejor razonamiento · recomendado con GPU",
+      "model": "Modelo",
+      "modelDescription": "Todos los modelos listados han sido verificados para manejar herramientas de forma fiable. Los modelos sub-1B (p.ej. Llama 3.2 1B) están excluidos por producir JSON malformado.",
+      "checkingModel": "Verificando estado del modelo…",
+      "modelReady": "Modelo listo",
+      "gpuChecking": "Verificando GPU…",
+      "gpuFound": "Aceleración por GPU —",
+      "gpuNotFound": "No se detectó GPU — ejecutando en CPU (la inferencia puede ser más lenta)",
+      "modelNotDownloaded": "El modelo aún no está descargado.",
+      "downloadModel": "Descargar modelo",
+      "downloading": "Descargando…",
+      "error": "Ha ocurrido un error",
+      "retry": "Reintentar",
+      "checkStatus": "Comprobar estado",
+      "modelNote": {
+        "fastest": "Más rápido",
+        "fast": "Rápido",
+        "balanced": "Equilibrado",
+        "microsoft": "Microsoft",
+        "recommended": "Recomendado",
+        "alternative": "Alternativa"
+      }
     }
+  },
+  "ai": {
+    "title": "Asistente ADOLens",
+    "toolListingProjects": "Listando proyectos",
+    "toolListingLibraries": "Listando bibliotecas",
+    "toolFetchingLibrary": "Obteniendo biblioteca",
+    "toolCallCount": "{{count}} llamada a herramienta",
+    "toolCallCount_plural": "{{count}} llamadas a herramientas",
+    "errorPrefix": "Error",
+    "notEnabled": "El asistente IA no está activado",
+    "notEnabledHint": "Actívalo en Ajustes → Asistente IA",
+    "openSettings": "Abrir ajustes",
+    "ollamaOffline": "Ollama no está en ejecución",
+    "ollamaOfflineHint": "Inicia Ollama o instálalo desde ollama.com y vuelve a intentarlo.",
+    "retry": "Reintentar",
+    "modelMissing": "Modelo no descargado",
+    "modelMissingHint": "Descarga el modelo \"{{model}}\" en Ajustes → Asistente IA.",
+    "emptyHint": "Pregunta cualquier cosa sobre tus grupos de variables",
+    "suggestions": [
+      "¿Cuál es el valor de API_URL en producción?",
+      "Lista todas las bibliotecas del proyecto Platform",
+      "¿Qué variables difieren entre staging y prod?"
+    ],
+    "inputPlaceholder": "Pregunta sobre tus grupos de variables…",
+    "inputHint": "Intro para enviar · Mayús+Intro para nueva línea"
   },
   "modals": {
     "review": {
@@ -254,5 +330,12 @@
       "clone": "Clonar biblioteca",
       "cloning": "Clonando…"
     }
+  },
+  "about": {
+    "description": "Herramienta de comparación de grupos de variables de Azure DevOps",
+    "author": "Autor",
+    "builtWith": "Construido con",
+    "source": "Código fuente",
+    "copyright": "© {{year}} Jorge Torregrosa Lloret. Todos los derechos reservados."
   }
 }
