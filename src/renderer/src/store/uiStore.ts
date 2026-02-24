@@ -1,3 +1,4 @@
+import { toast } from 'sonner'
 import { create } from 'zustand'
 import { saveFavorites } from '../lib/api'
 import type { DraftNewVariable, PendingChange } from '../types'
@@ -196,7 +197,10 @@ export const useUIStore = create<UIState>((set, get) => ({
       const next = s.favoriteProjectIds.includes(projectId)
         ? s.favoriteProjectIds.filter((id) => id !== projectId)
         : [...s.favoriteProjectIds, projectId]
-      saveFavorites(next, s.favoriteLibraryIds).catch(console.error)
+      saveFavorites(next, s.favoriteLibraryIds).catch((err) => {
+        console.error('[uiStore] Failed to save project favorites:', err)
+        toast.error('Failed to save favorites. Changes may not persist.')
+      })
       return { favoriteProjectIds: next }
     })
   },
@@ -206,7 +210,10 @@ export const useUIStore = create<UIState>((set, get) => ({
       const next = s.favoriteLibraryIds.includes(libraryId)
         ? s.favoriteLibraryIds.filter((id) => id !== libraryId)
         : [...s.favoriteLibraryIds, libraryId]
-      saveFavorites(s.favoriteProjectIds, next).catch(console.error)
+      saveFavorites(s.favoriteProjectIds, next).catch((err) => {
+        console.error('[uiStore] Failed to save library favorites:', err)
+        toast.error('Failed to save favorites. Changes may not persist.')
+      })
       return { favoriteLibraryIds: next }
     })
   },

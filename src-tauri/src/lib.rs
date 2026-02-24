@@ -1,6 +1,9 @@
 mod commands;
+mod error;
+mod validation;
 
 use azure_devops_rust_api::{core, distributed_task, Credential};
+use error::{AppError, AppResult};
 use commands::{
     ado::{add_variable_group, clone_variable_group, get_projects, get_variable_group, get_variable_groups, update_variable_group},
     ai::{ai_chat, ai_check_gpu, ai_check_model, ai_check_ollama, ai_pull_model},
@@ -44,12 +47,12 @@ pub struct AppTimeoutState(pub Mutex<u64>);
 pub struct OllamaClientState(pub reqwest::Client);
 
 impl ClientState {
-    pub fn get(&self) -> Result<Arc<CachedAdoClients>, String> {
+    pub fn get(&self) -> AppResult<Arc<CachedAdoClients>> {
         self.0
             .lock()
-            .expect("client lock poisoned")
+            .map_err(|_| AppError::ClientLockPoisoned)?
             .clone()
-            .ok_or_else(|| "Not authenticated".to_string())
+            .ok_or(AppError::NotAuthenticated)
     }
 }
 

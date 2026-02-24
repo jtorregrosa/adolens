@@ -1,11 +1,16 @@
 import { CloudUpload, FileJson, FileUp } from 'lucide-react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import type { AdoVariable } from '../../types'
-import { ExportModal } from '../modals/ExportModal'
-import { ImportModal } from '../modals/ImportModal'
 import { Tooltip } from '../ui/Tooltip'
+
+const ExportModal = lazy(() =>
+  import('../modals/ExportModal').then((m) => ({ default: m.ExportModal }))
+)
+const ImportModal = lazy(() =>
+  import('../modals/ImportModal').then((m) => ({ default: m.ImportModal }))
+)
 
 interface Props {
   side: 'left' | 'right'
@@ -84,21 +89,25 @@ export function PaneActionBar({
       </div>
 
       {exportOpen && variables && (
-        <ExportModal
-          variables={variables}
-          groupName={groupName}
-          onClose={() => setExportOpen(false)}
-        />
+        <Suspense fallback={null}>
+          <ExportModal
+            variables={variables}
+            groupName={groupName}
+            onClose={() => setExportOpen(false)}
+          />
+        </Suspense>
       )}
 
       {importOpen && (
-        <ImportModal
-          onClose={() => setImportOpen(false)}
-          onImport={(vars) => {
-            onImport(vars)
-            setImportOpen(false)
-          }}
-        />
+        <Suspense fallback={null}>
+          <ImportModal
+            onClose={() => setImportOpen(false)}
+            onImport={(vars) => {
+              onImport(vars)
+              setImportOpen(false)
+            }}
+          />
+        </Suspense>
       )}
     </>
   )

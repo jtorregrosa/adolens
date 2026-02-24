@@ -4,6 +4,7 @@ use tauri::{AppHandle, State};
 use tauri_plugin_store::StoreExt;
 
 use crate::{AppCredentials, AppTimeoutState, ClientState, CredentialsState, build_cached_clients, extract_org_name};
+use crate::validation::validate_org_url;
 
 fn minimal_profile(org_name: String) -> UserProfile {
     UserProfile { display_name: String::new(), email: String::new(), avatar_data_url: None, org_name }
@@ -29,6 +30,8 @@ pub async fn save_credentials(
     pat: String,
     remember: bool,
 ) -> Result<(), String> {
+    validate_org_url(&org_url).map_err(|e| e.to_string())?;
+
     let org_name = extract_org_name(&org_url);
 
     // Populate credential state for auth commands.

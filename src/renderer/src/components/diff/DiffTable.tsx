@@ -269,7 +269,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
   const copyRowToOtherSide = useCallback(
     (key: string, value: string | undefined, isSecret?: boolean) => {
       const targetSide = side === 'left' ? 'right' : 'left'
-      if (warnOnSecretOverwrite && otherGroup?.variables[key]?.isSecret) {
+      if (warnOnSecretOverwrite && otherGroup?.variables?.[key]?.isSecret) {
         toast.warning(t('diff.warnSecretOverwrite', { key }))
       }
       const newValue = isSecret ? '' : (value ?? '')
@@ -399,16 +399,17 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
 
       {/* Bulk sync toolbar */}
       {otherGroup && (
-        <div className="flex items-center gap-2 border-b border-slate-800 px-4 py-1 text-xs">
-          <span className="text-slate-600">{t('diff.bulk')}</span>
+        <div
+          className={`flex items-center gap-2 border-b border-slate-800 px-4 py-1 text-xs ${side === 'left' ? 'justify-end' : ''}`}
+        >
           <button
             onClick={bulkSyncAll}
             className="flex items-center gap-1 rounded px-2 py-0.5 text-slate-500 transition hover:bg-slate-700 hover:text-slate-300"
           >
             {side === 'left' ? (
               <>
-                <ChevronsRight className="h-3.5 w-3.5" />
                 {t('diff.syncAllRight')}
+                <ChevronsRight className="h-3.5 w-3.5" />
               </>
             ) : (
               <>
@@ -664,7 +665,7 @@ export const DiffTable = forwardRef<HTMLDivElement, Props>(function DiffTable(
               const hasOwnValueEdit = ownEdits.some((e) => e.key === row.key) && !isKeyRenamed
               const rowHighlightClass = isDeleted
                 ? 'diff-row-deleted'
-                : isKeyRenamed
+                : isKeyRenamed && !!variable
                   ? 'diff-row-renamed'
                   : isAddedToThisLibrary
                     ? 'diff-row-added'

@@ -76,7 +76,7 @@ export function useCloneVariableGroup() {
     }) => api.cloneVariableGroup(projectId, groupId, newName),
     onSuccess: (_data, { projectId }) => {
       queryClient.invalidateQueries({ queryKey: ['variableGroups', projectId] })
-      toast.success('Library cloned successfully')
+      toast.success(t('modals.addLibrary.toastSuccess'))
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : String(err)
@@ -95,6 +95,7 @@ export function useCloneVariableGroup() {
 
 export function useUpdateVariableGroup() {
   const queryClient = useQueryClient()
+  const { t } = useTranslation()
 
   return useMutation({
     mutationFn: ({
@@ -109,11 +110,11 @@ export function useUpdateVariableGroup() {
     onSuccess: (_data, { projectId, groupId }) => {
       queryClient.invalidateQueries({ queryKey: ['variableGroup', projectId, groupId] })
       queryClient.invalidateQueries({ queryKey: ['variableGroups', projectId] })
-      toast.success('Variable group updated successfully')
+      toast.success(t('modals.updateLibrary.toastSuccess'))
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : String(err)
-      toast.error(`Failed to update: ${msg}`)
+      toast.error(t('modals.updateLibrary.toastError', { message: msg }))
     }
   })
 }

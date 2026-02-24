@@ -63,7 +63,7 @@ function ToolCallBadge({
 }): React.JSX.Element {
   const { t } = useTranslation()
   const labelKey = TOOL_LABEL_KEYS[name]
-  const label = labelKey ? t(labelKey) : name
+  const label = labelKey ? t(labelKey as any) : name
 
   const detail =
     name === 'list_variable_groups'
@@ -85,7 +85,7 @@ function ToolCallBadge({
       ) : (
         <Sparkles className="h-2.5 w-2.5 shrink-0" />
       )}
-      <span>{label}</span>
+      <span>{label as React.ReactNode}</span>
       {detail && <span className="text-slate-600">({detail})</span>}
     </div>
   )

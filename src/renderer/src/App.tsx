@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { LoginScreen } from './components/auth/LoginScreen'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { ResizableLayout } from './components/layout/ResizableLayout'
 import { SplashView } from './components/SplashView'
 import { getUserProfile, loadCredentials, loadFavorites } from './lib/api'
@@ -85,7 +86,9 @@ function App(): React.JSX.Element {
             transition={{ duration: 0.25 }}
             className="h-full w-full"
           >
-            <ResizableLayout />
+            <ErrorBoundary>
+              <ResizableLayout />
+            </ErrorBoundary>
           </motion.div>
         ) : (
           <motion.div
@@ -96,7 +99,9 @@ function App(): React.JSX.Element {
             transition={{ duration: 0.25 }}
             className="h-full w-full"
           >
-            <LoginScreen />
+            <ErrorBoundary>
+              <LoginScreen />
+            </ErrorBoundary>
           </motion.div>
         )}
       </AnimatePresence>

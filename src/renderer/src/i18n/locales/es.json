@@ -96,8 +96,8 @@
     "reviewAndPush": "Revisar y publicar",
     "discard": "Descartar",
     "bulk": "Masivo:",
-    "syncAllRight": "Sincronizar todo → Derecha",
-    "syncAllLeft": "Sincronizar todo ← Izquierda",
+    "syncAllRight": "Sincronizar todo",
+    "syncAllLeft": "Sincronizar todo",
     "key": "Clave",
     "value": "Valor",
     "copyToRight": "Copiar a la derecha",
@@ -376,6 +376,10 @@
       "creating": "Creando…",
       "toastSuccess": "Biblioteca creada correctamente",
       "toastError": "Error al crear la biblioteca: {{message}}"
+    },
+    "updateLibrary": {
+      "toastSuccess": "Biblioteca actualizada correctamente",
+      "toastError": "Error al actualizar la biblioteca: {{message}}"
     },
     "libraryDetails": {
       "title": "Detalles de la biblioteca",

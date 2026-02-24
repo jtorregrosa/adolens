@@ -21,12 +21,14 @@ import {
   Star,
   StarOff
 } from 'lucide-react'
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useProjects, useVariableGroup, useVariableGroups } from '../../hooks/useADOApi'
+import { useDebounce } from '../../hooks/useDebounce'
 import { clearCredentials } from '../../lib/api'
+import { ANIMATION_DURATION_MS, SEARCH_DEBOUNCE_MS, TOOLTIP_DELAY_MS } from '../../lib/constants'
 import { useAuthStore } from '../../store/authStore'
 import { useUIStore } from '../../store/uiStore'
 
@@ -62,9 +64,7 @@ function LibraryTooltipContent({
   return (
     <div className="max-w-[240px] text-left">
       <div className="font-medium text-slate-200">{group.name}</div>
-      {group.description != null && group.description !== '' && (
-        <div className="mt-1 text-xs text-slate-400">{group.description}</div>
-      )}
+      {group.description && <div className="mt-1 text-xs text-slate-400">{group.description}</div>}
     </div>
   )
 }
@@ -174,7 +174,7 @@ function LibraryRow({
         <Tooltip
           content={<LibraryTooltipContent groupName={groupName} group={group} />}
           side="top"
-          delayDuration={400}
+          delayDuration={TOOLTIP_DELAY_MS}
         >
           <div className="min-w-0 flex-1 truncate">
             <span className="block truncate">{groupName}</span>
@@ -249,6 +249,7 @@ function ProjectNode({
     orgUrl && projectName ? `${orgUrl.replace(/\/$/, '')}/${encodeURIComponent(projectName)}` : ''
   const [expanded, setExpanded] = useState(false)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, SEARCH_DEBOUNCE_MS)
   const [exportGroupId, setExportGroupId] = useState<number | null>(null)
   const [exportGroupName, setExportGroupName] = useState<string | null>(null)
   const [cloneGroupId, setCloneGroupId] = useState<number | null>(null)
@@ -270,26 +271,35 @@ function ProjectNode({
     isFavoriteLibrary
   } = useUIStore()
 
-  const filtered = (groups ?? []).filter((g) => g.name.toLowerCase().includes(search.toLowerCase()))
-
-  const favLibraries = filtered
-    .filter((g) => isFavoriteLibrary(g.id!))
-    .sort((a, b) => a.name!.localeCompare(b.name!))
-  const regularLibraries = filtered
-    .filter((g) => !isFavoriteLibrary(g.id!))
-    .sort((a, b) => a.name!.localeCompare(b.name!))
-  const hasLibFavorites = favLibraries.length > 0
-
-  const selectGroup = (groupId: number, groupName: string, side: 'left' | 'right'): void => {
-    if (side === 'left') setLeftPane({ projectId, projectName, groupId, groupName })
-    else setRightPane({ projectId, projectName, groupId, groupName })
-    toast.success(
-      t('sidebar.groupLoaded', {
-        name: groupName,
-        side: side === 'left' ? t('sidebar.left') : t('sidebar.right')
-      })
+  const { favLibraries, regularLibraries, hasLibFavorites } = useMemo(() => {
+    const searchLower = debouncedSearch.toLowerCase()
+    const [fav, reg] = (groups ?? []).reduce(
+      (acc, g) => {
+        if (!g.name?.toLowerCase().includes(searchLower)) return acc
+        if (!g.id) return acc
+        acc[isFavoriteLibrary(g.id) ? 0 : 1].push(g)
+        return acc
+      },
+      [[], []] as [AdoVariableGroup[], AdoVariableGroup[]]
     )
-  }
+    fav.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
+    reg.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
+    return { favLibraries: fav, regularLibraries: reg, hasLibFavorites: fav.length > 0 }
+  }, [groups, debouncedSearch, isFavoriteLibrary])
+
+  const selectGroup = useCallback(
+    (groupId: number, groupName: string, side: 'left' | 'right'): void => {
+      if (side === 'left') setLeftPane({ projectId, projectName, groupId, groupName })
+      else setRightPane({ projectId, projectName, groupId, groupName })
+      toast.success(
+        t('sidebar.groupLoaded', {
+          name: groupName,
+          side: side === 'left' ? t('sidebar.left') : t('sidebar.right')
+        })
+      )
+    },
+    [projectId, projectName, setLeftPane, setRightPane, t]
+  )
 
   const handleExport = (groupId: number, groupName: string): void => {
     setExportGroupId(groupId)
@@ -372,7 +382,7 @@ function ProjectNode({
       </AppContextMenu>
 
       {/* Export modal — rendered outside the AnimatePresence so it stays mounted */}
-      {exportGroup && exportGroupId !== null && (
+      {exportGroup && exportGroupId !== null && exportGroup.variables && (
         <Suspense fallback={null}>
           <ExportModal
             variables={exportGroup.variables}
@@ -428,7 +438,7 @@ function ProjectNode({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: ANIMATION_DURATION_MS / 1000 }}
             className="overflow-hidden"
           >
             <div className="ml-5 mt-1 space-y-0.5">
@@ -453,63 +463,19 @@ function ProjectNode({
               {hasLibFavorites && (
                 <>
                   <SectionHeader label={t('sidebar.favorites')} />
-                  <AnimatePresence>
-                    {favLibraries.map((g) => {
-                      const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
-                      const isRight =
-                        rightPane.groupId === g.id && rightPane.projectId === projectId
-                      return (
-                        <motion.div
-                          key={g.id}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <LibraryRow
-                            groupId={g.id!}
-                            groupName={g.name!}
-                            projectId={projectId}
-                            projectName={projectName}
-                            orgUrl={orgUrl}
-                            isFavorite={true}
-                            onToggleFavorite={() => toggleFavoriteLibrary(g.id!)}
-                            onSelect={(side) => selectGroup(g.id!, g.name!, side)}
-                            onExport={() => handleExport(g.id!, g.name!)}
-                            onClone={() => handleClone(g.id!, g.name!)}
-                            onShowDetails={() => setDetailsGroup(g)}
-                            isLeft={isLeft}
-                            isRight={isRight}
-                            group={g}
-                          />
-                        </motion.div>
-                      )
-                    })}
-                  </AnimatePresence>
-                  <SectionHeader label={t('sidebar.allLibraries')} />
-                </>
-              )}
-
-              {/* Regular libraries */}
-              <AnimatePresence>
-                {regularLibraries.map((g) => {
-                  const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
-                  const isRight = rightPane.groupId === g.id && rightPane.projectId === projectId
-                  return (
-                    <motion.div
-                      key={g.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
+                  {favLibraries.map((g) => {
+                    if (!g.id || !g.name) return null
+                    const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
+                    const isRight = rightPane.groupId === g.id && rightPane.projectId === projectId
+                    return (
                       <LibraryRow
-                        groupId={g.id!}
-                        groupName={g.name!}
+                        key={g.id}
+                        groupId={g.id}
+                        groupName={g.name}
                         projectId={projectId}
                         projectName={projectName}
                         orgUrl={orgUrl}
-                        isFavorite={false}
+                        isFavorite={true}
                         onToggleFavorite={() => toggleFavoriteLibrary(g.id!)}
                         onSelect={(side) => selectGroup(g.id!, g.name!, side)}
                         onExport={() => handleExport(g.id!, g.name!)}
@@ -519,10 +485,37 @@ function ProjectNode({
                         isRight={isRight}
                         group={g}
                       />
-                    </motion.div>
-                  )
-                })}
-              </AnimatePresence>
+                    )
+                  })}
+                  <SectionHeader label={t('sidebar.allLibraries')} />
+                </>
+              )}
+
+              {/* Regular libraries */}
+              {regularLibraries.map((g) => {
+                if (!g.id || !g.name) return null
+                const isLeft = leftPane.groupId === g.id && leftPane.projectId === projectId
+                const isRight = rightPane.groupId === g.id && rightPane.projectId === projectId
+                return (
+                  <LibraryRow
+                    key={g.id}
+                    groupId={g.id}
+                    groupName={g.name}
+                    projectId={projectId}
+                    projectName={projectName}
+                    orgUrl={orgUrl}
+                    isFavorite={false}
+                    onToggleFavorite={() => toggleFavoriteLibrary(g.id!)}
+                    onSelect={(side) => selectGroup(g.id!, g.name!, side)}
+                    onExport={() => handleExport(g.id!, g.name!)}
+                    onClone={() => handleClone(g.id!, g.name!)}
+                    onShowDetails={() => setDetailsGroup(g)}
+                    isLeft={isLeft}
+                    isRight={isRight}
+                    group={g}
+                  />
+                )
+              })}
 
               {!isLoading && favLibraries.length === 0 && regularLibraries.length === 0 && (
                 <p className="px-2 py-1 text-xs text-slate-600">{t('sidebar.noGroupsFound')}</p>
@@ -595,15 +588,29 @@ export function Sidebar(): React.JSX.Element {
     clearCredentials().catch(() => {})
   }
 
-  const all = projects ?? []
-  const filtered = all.filter((p) => p.name!.toLowerCase().includes(projectSearch.toLowerCase()))
-  const favoriteProjects = filtered
-    .filter((p) => isFavoriteProject(p.id!))
-    .sort((a, b) => a.name!.localeCompare(b.name!))
-  const regularProjects = filtered
-    .filter((p) => !isFavoriteProject(p.id!))
-    .sort((a, b) => a.name!.localeCompare(b.name!))
-  const hasFavorites = favoriteProjectIds.length > 0 && favoriteProjects.length > 0
+  const debouncedProjectSearch = useDebounce(projectSearch, SEARCH_DEBOUNCE_MS)
+
+  const { favoriteProjects, regularProjects, hasFavorites } = useMemo(() => {
+    const searchLower = debouncedProjectSearch.toLowerCase()
+    const result = (projects ?? []).reduce(
+      (acc, p) => {
+        if (!p.name?.toLowerCase().includes(searchLower)) return acc
+        if (!p.id) return acc
+        acc[isFavoriteProject(p.id) ? 0 : 1].push(p)
+        return acc
+      },
+      [[], []] as [NonNullable<typeof projects>, NonNullable<typeof projects>]
+    )
+    const fav = result[0]
+    const reg = result[1]
+    fav.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
+    reg.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
+    return {
+      favoriteProjects: fav,
+      regularProjects: reg,
+      hasFavorites: favoriteProjectIds.length > 0 && fav.length > 0
+    }
+  }, [projects, debouncedProjectSearch, isFavoriteProject, favoriteProjectIds.length])
 
   return (
     <div className="sidebar-inner flex h-full w-full flex-col bg-slate-900">
@@ -688,49 +695,39 @@ export function Sidebar(): React.JSX.Element {
               {hasFavorites && (
                 <>
                   <SectionHeader label={t('sidebar.favorites')} />
-                  <AnimatePresence>
-                    {favoriteProjects.map((p) => (
-                      <motion.div
-                        key={p.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <ProjectNode
-                          projectId={p.id!}
-                          projectName={p.name!}
-                          orgUrl={orgUrl}
-                          isFavorite={true}
-                          onToggleFavorite={() => toggleFavoriteProject(p.id!)}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
+                  {favoriteProjects.map((p) => {
+                    if (!p.id || !p.name) return null
+                    const projectId = p.id
+                    return (
+                      <ProjectNode
+                        key={projectId}
+                        projectId={projectId}
+                        projectName={p.name}
+                        orgUrl={orgUrl}
+                        isFavorite={true}
+                        onToggleFavorite={() => toggleFavoriteProject(projectId)}
+                      />
+                    )
+                  })}
                   <SectionHeader label={t('sidebar.allProjects')} />
                 </>
               )}
 
               {/* Regular projects */}
-              <AnimatePresence>
-                {regularProjects.map((p) => (
-                  <motion.div
-                    key={p.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <ProjectNode
-                      projectId={p.id!}
-                      projectName={p.name!}
-                      orgUrl={orgUrl}
-                      isFavorite={false}
-                      onToggleFavorite={() => toggleFavoriteProject(p.id!)}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+              {regularProjects.map((p) => {
+                if (!p.id || !p.name) return null
+                const projectId = p.id
+                return (
+                  <ProjectNode
+                    key={projectId}
+                    projectId={projectId}
+                    projectName={p.name}
+                    orgUrl={orgUrl}
+                    isFavorite={false}
+                    onToggleFavorite={() => toggleFavoriteProject(projectId)}
+                  />
+                )
+              })}
             </div>
           </div>
 

@@ -69,7 +69,7 @@ pub struct AdoVariableGroup {
 /// Clone the cached Arc — acquires the Mutex only for the duration of the clone,
 /// so the lock is never held across an async .await boundary.
 fn get_clients(state: &State<'_, ClientState>) -> Result<Arc<CachedAdoClients>, String> {
-    state.get()
+    state.get().map_err(|e| e.to_string())
 }
 
 /// Convert the SDK's `variables: Option<Value>` field to our typed map.
@@ -286,13 +286,20 @@ pub async fn add_variable_group(
         }),
     }];
 
+    // Azure DevOps API requires at least one variable to create a library.
+    // Include a dummy variable that can be deleted by the user later.
     let params = VariableGroupParameters {
         name: Some(name),
         description,
         type_: None,
         provider_data: None,
         variable_group_project_references,
-        variables: Some(serde_json::json!({})),
+        variables: Some(serde_json::json!({
+            "dummy": {
+                "value": "",
+                "isSecret": false
+            }
+        })),
     };
 
     let created = clients

@@ -96,8 +96,8 @@
     "reviewAndPush": "Review & Push",
     "discard": "Discard",
     "bulk": "Bulk:",
-    "syncAllRight": "Sync All → Right",
-    "syncAllLeft": "Sync All ← Left",
+    "syncAllRight": "Sync All",
+    "syncAllLeft": "Sync All",
     "key": "Key",
     "value": "Value",
     "copyToRight": "Copy to Right",
@@ -376,6 +376,10 @@
       "creating": "Creating…",
       "toastSuccess": "Library created successfully",
       "toastError": "Failed to create library: {{message}}"
+    },
+    "updateLibrary": {
+      "toastSuccess": "Library updated successfully",
+      "toastError": "Failed to update library: {{message}}"
     },
     "libraryDetails": {
       "title": "Library details",

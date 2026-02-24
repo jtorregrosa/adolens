@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "sonner/dist/styles.css";
 
 /* Title bar height: modal backdrop starts below it so topbar stays visible */
 :root {

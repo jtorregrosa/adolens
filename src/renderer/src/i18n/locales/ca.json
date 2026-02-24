@@ -96,8 +96,8 @@
     "reviewAndPush": "Revisar i publicar",
     "discard": "Descartar",
     "bulk": "Massiu:",
-    "syncAllRight": "Sincronitzar tot → Dreta",
-    "syncAllLeft": "Sincronitzar tot ← Esquerra",
+    "syncAllRight": "Sincronitzar tot",
+    "syncAllLeft": "Sincronitzar tot",
     "key": "Clau",
     "value": "Valor",
     "copyToRight": "Copiar a la dreta",
@@ -376,6 +376,10 @@
       "creating": "Creant…",
       "toastSuccess": "Biblioteca creada correctament",
       "toastError": "Error en crear la biblioteca: {{message}}"
+    },
+    "updateLibrary": {
+      "toastSuccess": "Biblioteca actualitzada correctament",
+      "toastError": "Error en actualitzar la biblioteca: {{message}}"
     },
     "libraryDetails": {
       "title": "Detalls de la biblioteca",

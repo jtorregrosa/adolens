@@ -1,0 +1,3 @@
+export const TOOLTIP_DELAY_MS = 400
+export const ANIMATION_DURATION_MS = 200
+export const SEARCH_DEBOUNCE_MS = 300

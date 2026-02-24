@@ -1,8 +1,8 @@
 // ─── Azure DevOps entities ──────────────────────────────────────────────────
 
 export interface AdoProject {
-  id: string
-  name: string
+  id?: string
+  name?: string
   description?: string
 }
 
@@ -19,11 +19,11 @@ export interface AdoVariableGroupProjectRef {
 }
 
 export interface AdoVariableGroup {
-  id: number
-  name: string
+  id?: number
+  name?: string
   description?: string
-  variableCount: number
-  variables: Record<string, AdoVariable>
+  variableCount?: number
+  variables?: Record<string, AdoVariable>
   type?: string
   createdOn?: string
   modifiedOn?: string
